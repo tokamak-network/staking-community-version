@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"],
+      "@/utils/*": ["utils/*"],
+      "@/components/*": ["components/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/types/*": ["types/*"],
+      "@/graphql/*": ["graphql/*"],
+      "@/config/*": ["config/*"],
+      "@/app/*": ["app/*"],
+      "@/page/*": ["page/*"],
+      "@/pages/*": ["pages/*"],
+      "@/bridgeSwap/*": ["app/Staking/*"],
+      "@/abis/*": ["constant/abis/*"],
+      "@/css/*": ["css/*"],
+      "@/contracts/*": ["constant/contracts/*"],
+      "@/constant/": ["constant"],
+      "@/staging/": ["staging/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}
