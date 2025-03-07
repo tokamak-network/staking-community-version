@@ -32,7 +32,7 @@ export default function Candidates() {
     return colors[seed % colors.length];
   };
   const { operators } = useCallOperators();
-  console.log(operators);
+  
 
   const stakingProjects = [
     {

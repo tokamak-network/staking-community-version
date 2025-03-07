@@ -12,7 +12,7 @@ import { getContract } from "viem";
 
 import CONTRACT_ADDRESS from "constant/contracts";
 
-export default function useCallL2Registry(functionName: string) {
+export default function useCallL2Registry(functionName: string, args?: any) {
   const {
     TON_ADDRESS,
     WTON_ADDRESS,
@@ -26,17 +26,18 @@ export default function useCallL2Registry(functionName: string) {
     address: Layer2Registry_ADDRESS,
     abi: Layer2Registry,
     functionName,
+    args: args
   });
-
+  // console.log(args, result);
   const provider = usePublicClient();
-  const contract = getContract({
-    address: Layer2Registry_ADDRESS,
-    abi: Layer2Registry,
-    publicClient: provider,
-  });
+  // const contract = getContract({
+  //   address: Layer2Registry_ADDRESS,
+  //   abi: Layer2Registry,
+  //   publicClient: provider,
+  // });
   
 
-  return { result, contract };
+  return { result };
 }
 
 
