@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import Head from 'next/head';
+import { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Heading,
@@ -7,183 +6,153 @@ import {
   Flex,
   VStack,
   Badge,
-  Avatar,
-  AvatarBadge,
-  useColorModeValue,
-  SimpleGrid,
-  Tooltip,
-  Stack
+  Center,
+  HStack
 } from '@chakra-ui/react';
 import useCallOperators from '@/hooks/staking/useCallOperators';
+import { ethers } from 'ethers';
+import commafy from '@/utils/trim/commafy';
+import { Operator } from 'recoil/operator';
+import React from 'react';
+import { OperatorItem } from './components/OperatorItem';
 
-export default function Candidates() {
-  const [searchTerm, setSearchTerm] = useState('');
+const Candidates: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const { operatorsList, loading } = useCallOperators();
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      'red.400', 'orange.400', 'yellow.400', 'green.400', 
-      'teal.400', 'blue.400', 'cyan.400', 'purple.400', 
-      'pink.400', 'linkedin.400', 'facebook.400', 'messenger.400',
-      'whatsapp.400', 'twitter.400', 'telegram.400'
-    ];
-    
-    // Use name as seed to pick a color
-    const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[seed % colors.length];
-  };
-  const { operators } = useCallOperators();
+  const filteredOperators = operatorsList.filter(op => 
+    op.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   
-
-  const stakingProjects = [
-    {
-      id: 'tokamak1',
-      name: 'Tokamak1',
-      stakingAPY: '34.56%',
-      totalStaked: '8,990,253.10 TON',
-      yourStaked: '1,000.00 TON',
-      isL2: false,
-    },
-    {
-      id: 'hammer-dao',
-      name: 'Hammer DAO',
-      stakingAPY: '34.56%',
-      totalStaked: '636,558.29 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'titan-sepolia',
-      name: 'Titan-Sepolia',
-      stakingAPY: '34.56%',
-      totalStaked: '990,253.10 TON',
-      yourStaked: '',
-      isL2: true,
-    },
-    {
-      id: 'thanos-sepolia',
-      name: 'Thanos-Sepolia',
-      stakingAPY: '34.56%',
-      totalStaked: '90,253.10 TON',
-      yourStaked: '',
-      isL2: true,
-    },
-    {
-      id: 'staked',
-      name: 'Staked',
-      stakingAPY: '34.56%',
-      totalStaked: '24,968.01 TON',
-      yourStaked: '1,000.00 TON',
-      isL2: false,
-    },
-    {
-      id: 'dsrv',
-      name: 'DSRV',
-      stakingAPY: '34.56%',
-      totalStaked: '16,301.40 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'dxm-corp',
-      name: 'DXM Corp',
-      stakingAPY: '34.56%',
-      totalStaked: '2,841.65 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'despread',
-      name: 'DeSpread',
-      stakingAPY: '34.56%',
-      totalStaked: '2,828.72 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'decipher',
-      name: 'decipher',
-      stakingAPY: '34.56%',
-      totalStaked: '2,529.87 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'danal-fintech',
-      name: 'Danal Fintech',
-      stakingAPY: '34.56%',
-      totalStaked: '14,947.54 TON',
-      yourStaked: '',
-      isL2: false,
-    },
-    {
-      id: 'tokent',
-      name: 'Tokent',
-      stakingAPY: '34.56%',
-      totalStaked: '0 TON',
-      yourStaked: '',
-      isL2: false,
-    },
+  const repeatedOperators = [
+    ...filteredOperators, 
+    ...filteredOperators, 
+    ...filteredOperators
   ];
 
-  const filteredProjects = stakingProjects.filter(project => 
-    project.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const bgHover = useColorModeValue('gray.50', 'gray.700');
+    let isAdjusting = false;
+    let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const handleScroll = (): void => {
+      if (isAdjusting) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const totalContentHeight = scrollHeight / 3;
+      
+      if (scrollTop < 50) {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        
+        scrollTimer = setTimeout(() => {
+          isAdjusting = true;
+          
+          container.style.scrollBehavior = 'auto';
+          container.scrollTop = totalContentHeight + scrollTop;
+          
+          setTimeout(() => {
+            isAdjusting = false;
+            container.style.scrollBehavior = 'smooth';
+          }, 50);
+        }, 100);
+      } else if (scrollTop >= (scrollHeight - clientHeight - 50)) {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        
+        scrollTimer = setTimeout(() => {
+          isAdjusting = true;
+          container.style.scrollBehavior = 'auto';
+          container.scrollTop = totalContentHeight - clientHeight + (scrollTop - (scrollHeight - clientHeight));
+          
+          setTimeout(() => {
+            isAdjusting = false;
+            container.style.scrollBehavior = 'smooth';
+          }, 50);
+        }, 100);
+      }
+    };
+    const debouncedHandleScroll = () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(handleScroll, 10); 
+    };
+
+    container.addEventListener('scroll', debouncedHandleScroll, { passive: true });
+    
+    const totalContentHeight = container.scrollHeight / 3;
+    container.scrollTop = totalContentHeight + 60;
+    
+    // 스크롤 동작 부드럽게 설정
+    container.style.scrollBehavior = 'smooth';
+
+    return () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      container.removeEventListener('scroll', debouncedHandleScroll);
+    };
+  }, [filteredOperators.length]);
 
   return (
-    <VStack spacing={4} align="stretch" mb={8}>
-      {filteredProjects.map((project) => (
-        <Flex
-          key={project.id}
-          align="center"
-          
-          rounded="md"
-          p={4}
-          transition="all 0.2s"
-          _hover={{ bg: bgHover, boxShadow: 'sm' }}
+    <Box h="1056px" w="100%" maxW="1200px" mx="auto" px={4} position="relative" >
+      <Box 
+        ref={scrollContainerRef}
+        h="1056px" 
+        maxH="1056px"
+        overflowY="auto"
+        mt={6} 
+        position="relative"
+        pt="40px" 
+        pb="40px" 
+        css={{
+          '&::-webkit-scrollbar': {
+            width: '0px', 
+            display: 'none', 
+          },
+          'scrollbarWidth': 'none', // hide scrollbar for Firefox
+          '-ms-overflow-style': 'none', // hide scrollbar for IE/Edge
+          'willChange': 'scroll-position', 
+          'overscrollBehavior': 'none',
+        }}
+      >
+        <VStack 
+          spacing={0} 
+          align="stretch"
+          style={{ willChange: 'transform' }}
         >
-          <Box position="relative" mr={4}>
-            <Box w={2} h={2} rounded="full" bg="green.500" />
-          </Box>
-          
-          <Avatar 
-            size="md" 
-            name={project.name} 
-            bgColor={getAvatarColor(project.name)}
-            mr={4}
-          />
-          
-          <Box flex="1">
-            <Flex align="center" mb={2}>
-              <Heading size="sm" mr={2}>{project.name}</Heading>
-              {project.isL2 && (
-                <Badge colorScheme="blue" fontSize="0.7em">L2</Badge>
-              )}
-            </Flex>
-            
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-              <Box>
-                <Text fontSize="xs" color="gray.500">Staking APY</Text>
-                <Text fontSize="sm" fontWeight="medium">{project.stakingAPY}</Text>
-              </Box>
-              
-              <Box>
-                <Text fontSize="xs" color="gray.500">Total Staked</Text>
-                <Text fontSize="sm" fontWeight="medium">{project.totalStaked}</Text>
-              </Box>
-              
-              {project.yourStaked && (
-                <Box>
-                  <Text fontSize="xs" color="gray.500">Your Staked</Text>
-                  <Text fontSize="sm" fontWeight="medium">{project.yourStaked}</Text>
-                </Box>
-              )}
-            </SimpleGrid>
-          </Box>
-        </Flex>
-      ))}
-    </VStack>
+          {loading ? (
+            <Center py={10}>Loading operators...</Center>
+          ) : (
+            repeatedOperators.map((operator, index) => (
+              <OperatorItem 
+                key={index}
+                operator={operator} 
+              />
+            ))
+          )}
+        </VStack>
+      </Box>
+      <Box
+        position="absolute"
+        top="0"
+        left={0}
+        right={0}
+        h="350px"
+        pointerEvents="none"
+        bgGradient="linear(to-b, rgba(250,251,252,1) 0%, rgba(250,251,252,0.9) 30%, rgba(250,251,252,0.5) 60%, transparent 100%)"
+        zIndex={2}
+      />
+      <Box
+        position="absolute"
+        bottom={0}
+        left={0}
+        right={0}
+        h="350px"
+        pointerEvents="none"
+        bgGradient="linear(to-t, rgba(250,251,252,1) 0%, rgba(250,251,252,0.9) 30%, rgba(250,251,252,0.5) 60%, transparent 100%)"
+        zIndex={2}
+      />
+    </Box>
   );
-}
+};
+
+export default Candidates;

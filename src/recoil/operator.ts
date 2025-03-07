@@ -4,7 +4,9 @@ import { atom, selector } from 'recoil';
 // 오퍼레이터 타입 정의
 export interface Operator {
   name: string;
+  address: string;
   totalStaked: string;
+  yourStaked?: string;
 }
 
 // 오퍼레이터 리스트를 위한 atom
