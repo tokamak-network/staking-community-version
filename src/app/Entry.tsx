@@ -11,6 +11,7 @@ import { Flex } from "@chakra-ui/react";
 // import Drawers from "./Drawers";
 // import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
+import { Header } from "@/components/header";
 
 // const DynamicHeader = dynamic(() => import("@/components/header/Index"), {
 //   loading: () => <></>,
@@ -41,7 +42,7 @@ export default function Entry({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ChakraProvidersForNextJs>
           <Flex flexDir={"column"} h={"100vh"}>
-            {/* <DynamicHeader /> */}
+            <Header />
             <Flex flexDir={"column"} flexGrow={1}>
               <Flex
                 justifyContent={"center"}

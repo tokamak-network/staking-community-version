@@ -15,11 +15,16 @@ import commafy from '@/utils/trim/commafy';
 import { Operator } from 'recoil/operator';
 import React from 'react';
 import { OperatorItem } from './components/OperatorItem';
+import { useAPY } from '@/hooks/staking/useAPY';
 
 const Candidates: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // console.log(operatorsList[0])
+  const a = useAPY(operatorsList[0]?.address as `0x${string}`);
+  // console.log(a)
 
   const filteredOperators = operatorsList.filter(op => 
     op.name.toLowerCase().includes(searchTerm.toLowerCase())

@@ -9,6 +9,7 @@ import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
+import { useAPY } from "./useAPY";
 
 type SortDirection = "asc" | "desc";
 
@@ -116,7 +117,6 @@ export default function useCallOperators() {
           }
         }
         
-        // 정렬된 상태로 목록 설정
         setOperatorsList(operators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
       } catch (error) {
         console.error("Error fetching operators:", error);
@@ -194,6 +194,7 @@ export default function useCallOperators() {
             abi: Candidates.abi,
             publicClient: publicClient,
           });
+
           
           const [totalStaked, memo] = await Promise.all([
             candidateContract.read.totalStaked(),
@@ -220,7 +221,9 @@ export default function useCallOperators() {
       setLoading(false);
     }
   };
-  
+  // console.log(operatorsList[0])
+          const a = useAPY('0x0F42D1C40b95DF7A1478639918fc358B4aF5298D');
+          // console.log(a)
   return { 
     operatorsList,
     loading,

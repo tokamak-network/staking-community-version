@@ -4,19 +4,15 @@ import { WagmiProviders } from "@/providers/wagmiProvider";
 import Entry from "./Entry";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bridge.tokamak.network"),
   title: "Tokamak Bridge",
   viewport:
     "width=device-width,user-scalable=no,initial-scale=1, maximum-scale=1, minimum-scale=1",
-  description:
-    "Tokamak Bridge offers a unified bridge and swap experience between Ethereum and Titan Network.",
-  keywords: "tokamak bridge titan swap pool",
+  keywords: "staking",
   openGraph: {
     type: "website",
-    url: "https://bridge.tokamak.network",
-    title: "Tokamak Bridge",
+    title: "Staking community version",
     description:
-      "Tokamak Bridge offers a unified bridge and swap experience between Ethereum and Titan Network.",
+      "Staking community version offers a unified bridge and swap experience between Ethereum and Titan Network.",
   },
   icons: {
     icon: [{ url: "/favicon.ico" }],

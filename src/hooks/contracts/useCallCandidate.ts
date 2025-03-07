@@ -12,7 +12,6 @@ export default function useCallCandidate(functionName: string, address: any, arg
     args: args
   });
 
-  console.log(result);
   // const provider = usePublicClient();
   // const contract = getContract({
   //   address: Layer2Registry_ADDRESS,
