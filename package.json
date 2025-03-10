@@ -23,6 +23,8 @@
     "react-dom": "^18.3.1",
     "react-jazzicon": "^1.0.4",
     "recoil": "^0.7.7",
+    "recoil-persist": "^5.1.0",
+    "uuid": "^11.1.0",
     "viem": "~0.3.18",
     "wagmi": "^1.4.13"
   },

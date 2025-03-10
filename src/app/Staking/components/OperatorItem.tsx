@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react';
 import {
   Box,
@@ -13,6 +15,7 @@ import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
 import { Operator } from 'recoil/operator';
 import React from 'react';
+// import { useRouter } from 'next/router'
 
 interface OperatorItemProps {
   operator: Operator;
@@ -20,6 +23,8 @@ interface OperatorItemProps {
 }
 
 export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator }) => {
+  // const router = useRouter();
+
   const getInitials = (name: string): string => {
     if (!name) return "?";
     const words = name.trim().split(/\s+/);
@@ -37,6 +42,10 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
 
   const isL2 = operator.name.toLowerCase().includes('sepolia');
 
+  const navigateToOperatorDetail = () => {
+     window.location.href = `/${operator.address}`
+  };
+
   return (
     <Flex
       align="center"
@@ -44,6 +53,8 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       py={4}
       h="66px"
       my={'12px'}
+      cursor={'pointer'}
+      onClick={navigateToOperatorDetail}
     >
       <Box position="relative" mr={2}>
         <Box w={2} h={2} rounded="full" bg="green.400" />

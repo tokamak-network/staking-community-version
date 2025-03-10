@@ -22,7 +22,7 @@ const Candidates: React.FC = () => {
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // console.log(operatorsList[0])
+  console.log(operatorsList)
   const a = useAPY(operatorsList[0]?.address as `0x${string}`);
   // console.log(a)
 

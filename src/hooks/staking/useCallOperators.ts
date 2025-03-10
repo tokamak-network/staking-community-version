@@ -22,26 +22,20 @@ export default function useCallOperators() {
   
   const { result: numLayer2Result } = useCallL2Registry("numLayer2s");
   
-  // totalStaked 값을 비교하기 위한 헬퍼 함수
   const compareTotalStaked = (a: Operator, b: Operator, direction: SortDirection): number => {
     try {
-      // 문자열을 BigNumber로 변환하여 비교 (오버플로우 방지)
       const aBN = BigNumber.from(a.totalStaked || "0");
       const bBN = BigNumber.from(b.totalStaked || "0");
       
-      // BigNumber의 비교 메서드 사용
       if (aBN.eq(bBN)) return 0;
       
-      // 오름차순: 작은 값이 먼저
+      
       if (direction === "asc") {
         return aBN.lt(bBN) ? -1 : 1;
-      } 
-      // 내림차순: 큰 값이 먼저
-      else {
+      } else {
         return aBN.gt(bBN) ? -1 : 1;
       }
     } catch (error) {
-      // BigNumber 변환 실패 시 문자열 비교 시도
       const aNum = Number(a.totalStaked || "0");
       const bNum = Number(b.totalStaked || "0");
       
@@ -53,7 +47,6 @@ export default function useCallOperators() {
     }
   };
   
-  // 목록을 정렬하는 함수
   const sortOperators = (direction: SortDirection = sortDirection): void => {
     setOperatorsList(prevList => {
       const newList = [...prevList];
@@ -61,11 +54,9 @@ export default function useCallOperators() {
       return newList;
     });
     
-    // 정렬 방향 상태 업데이트
     setSortDirection(direction);
   };
   
-  // 정렬 방향 토글 함수
   const toggleSortDirection = (): void => {
     const newDirection = sortDirection === "asc" ? "desc" : "asc";
     setSortDirection(newDirection);
@@ -75,6 +66,11 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
+        if (operatorsList.length > 0) {
+          setLoading(false);
+          return;
+        }
+
         if (!numLayer2Result?.data || !publicClient) return;
         
         setLoading(true);
@@ -106,7 +102,7 @@ export default function useCallOperators() {
             ]);
             
             const operatorInfo: Operator = {
-              name: typeof memo === 'string' ? memo : "Unknown",
+              name: typeof memo === 'string' ? memo : operatorAddress as string,
               address: operatorAddress,
               totalStaked: totalStaked?.toString() || "0",
             };
@@ -202,7 +198,7 @@ export default function useCallOperators() {
           ]);
           
           operators.push({
-            name: typeof memo === 'string' ? memo : "Unknown",
+            name: typeof memo === 'string' ? memo : operatorAddress as string,
             address: operatorAddress as `0x${string}`,
             totalStaked: totalStaked?.toString() || "0",
           });
@@ -211,7 +207,6 @@ export default function useCallOperators() {
         }
       }
       
-      // 정렬된 상태로 목록 설정
       setOperatorsList(operators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
       return true;
     } catch (error) {
@@ -221,9 +216,9 @@ export default function useCallOperators() {
       setLoading(false);
     }
   };
-  // console.log(operatorsList[0])
-          const a = useAPY('0x0F42D1C40b95DF7A1478639918fc358B4aF5298D');
-          // console.log(a)
+  
+  const a = useAPY('0x0F42D1C40b95DF7A1478639918fc358B4aF5298D');
+  
   return { 
     operatorsList,
     loading,

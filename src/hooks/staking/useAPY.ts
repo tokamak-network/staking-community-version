@@ -18,12 +18,12 @@ const updateSeigniorageEventABI = parseAbiItem(
 export function useAPY(contractAddress: `0x${string}`) {
   const [apy, setApy] = useState<number | null>(null);
   const provider = usePublicClient();
-  console.log(provider)
+  // console.log(provider)
   useEffect(() => {
     // console.log(contractAddress);
     
     if (!contractAddress) return;
-    console.log('bbbb')
+    // console.log('bbbb')
     // 최신 updateSeigniorage 이벤트를 조회하여 초기 APY 계산
     const fetchLatestAPY = async () => {
       try {
@@ -33,7 +33,7 @@ export function useAPY(contractAddress: `0x${string}`) {
           fromBlock: BigInt(21970425), 
           toBlock: BigInt(21995432)
         });
-        console.log(logs)
+        // console.log(logs)
         if (logs.length === 0) return;  // 이벤트 발생 기록 없으면 종료
         const lastLog = logs[logs.length - 1];
         const { rewardAmount, totalStaked } = lastLog.args as { rewardAmount: bigint; totalStaked: bigint };
