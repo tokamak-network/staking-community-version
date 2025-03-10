@@ -81,11 +81,6 @@ export default function Page() {
   //   tokenDecimals: 18,
   // });
 
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  
-  
-
-  // 토큰 스테이킹 양 포맷팅
   const formatTotalStaked = useCallback((amount: string) => {
     try {
       return commafy(ethers.utils.formatUnits(amount, 27), 2);
@@ -137,7 +132,8 @@ export default function Page() {
           onClick={() => setActiveAction('Stake')}
           h={'32px'}
           borderRadius={'16px'}
-          border={'1px soid #E7ebf2'}
+          border={'1px'}
+          borderColor={'#E7EBF2'} 
           bgColor={ activeAction === 'Stake' ? '#2a72e5' : 'white'}
           w={'80px'}
           fontSize={'12px'}
@@ -147,14 +143,15 @@ export default function Page() {
           Stake
         </Button>
         <Button 
-          variant="outline" 
+          // variant="outline" 
           px={8}
           onClick={() => setActiveAction('Unstake')}
           h={'32px'}
-          borderRadius={'16px'}
           fontSize={'12px'}
           fontWeight={600}
-          border={'1px soid #E7ebf2'}
+          borderRadius={'16px'}
+          border={'1px'}
+          borderColor={'#E7EBF2'} 
           bgColor={ activeAction === 'Unstake' ? '#2a72e5' : 'white'}
           w={'80px'}
           color={activeAction === 'Unstake' ? 'white' : '#808992'}
@@ -162,14 +159,15 @@ export default function Page() {
           Unstake
         </Button>
         <Button 
-          variant="outline" 
+          // variant="outline" 
           px={8}
           onClick={() => setActiveAction('Withdraw')}
           h={'32px'}
-          borderRadius={'16px'}
           fontSize={'12px'}
           fontWeight={600}
-          border={'1px soid #E7ebf2'}
+          borderRadius={'16px'}
+          border={'1px'}
+          borderColor={'#E7EBF2'} 
           bgColor={ activeAction === 'Withdraw' ? '#2a72e5' : 'white'}
           w={'80px'}
           color={activeAction === 'Withdraw' ? 'white' : '#808992'}
@@ -189,8 +187,9 @@ export default function Page() {
 
       <Box 
         border="1px" 
-        borderColor={borderColor} 
+        borderColor={'#E7EBF2'} 
         borderRadius="md" 
+        bgColor={'#fff'}
         p={5} 
         mb={6}
       >
@@ -286,7 +285,6 @@ export default function Page() {
         </Text>
       }
       
-      {/* 스테이킹 계산기 모달 */}
       {/* <StakingCalculator
         isOpen={isOpen}
         onClose={onClose}

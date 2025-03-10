@@ -42,7 +42,7 @@ const addComma = (inputVal: any) => {
 
 function BalanceInput(props: InputProp) {
   const { placeHolder, h, isError, maxValue, type, w } = props;
-  const { colorMode } = useColorMode();
+
   const [value, setValue] = useRecoilState(inputState);
   const theme = useTheme()
   const {INPUT_STYLE} = theme
@@ -52,58 +52,67 @@ function BalanceInput(props: InputProp) {
     const { value: inputValue } = target;
     setValue(addComma(inputValue));
   };
+
+  const getButtonPosition = () => {
+    if (!value || value.length <= 5) return "76px";
+    
+    const charWidth = 17;
+    const maxChars = 20;
+    const basePos = 76;
+    const charsToConsider = Math.min(value.length - 5, maxChars);
+    
+    return `${basePos + (charsToConsider * charWidth)}px`;
+  };
   
   return (
-    <InputGroup alignItems={'center'}>
-      <Flex justifyContent={'center'} >
-        <NumberInput
-          isInvalid={isError}
-          w={'150px'}
-          h={h || 45}
-          focusBorderColor={'#fff'}
-          // border={type === 'staking' || type === 'unstaking' ? 'none' : '1px solid #dfe4ee'}
-          borderRadius={'4px'}
-          value={addComma(value)}
-          // ml={type==='staking' || type === 'unstaking' ? '65px' : ''}
-        >
-          {/* <Flex flexDir={type === 'staking' ? 'column' : 'row'} alignItems={'center'} justifyContent={'center'}> */}
-            <NumberInputField
-              fontSize={'30px'}
-              // height:'100%',
-              borderRadius={0}
-              textAlign={'center'}
-              overflow={'auto'}
-              fontWeight={600}
-              _placeholder={{
-                color: '#C6CBD9' 
-              }}  
-              border={''}
-              m={0}
-              placeholder={placeHolder}
-              onChange={onChange}
-            /> 
-          {/* </Flex> */}
-        </NumberInput>
-      </Flex>
-      <Flex justifyContent={'center'} alignItems={'center'}>
-        <Button
-          zIndex={100}
-          w={'43px'}
-          h={'20px'}
-          border={'1px solid #dfe4ee'}
-          borderRadius={'4px'}
-          bgColor={'#fff'}
-          fontSize={'12px'}
-          fontWeight={'normal'}
-          color={'#86929d'}
-          onClick={() => {
-            setValue(String(maxValue));
+    <Flex alignItems="center" position="relative" w="100%" justifyContent="flex-start">
+      <NumberInput
+        isInvalid={isError}
+        w="auto"
+        h={h || 45}
+        focusBorderColor={'#fff'}
+        borderRadius={'4px'}
+        value={addComma(value)}
+        position="relative"
+      >
+        <NumberInputField
+          fontSize={'30px'}
+          fontWeight={600}
+          color="gray.400"
+          border="none"
+          p={0}
+          pl={0}
+          textAlign="left"
+          _placeholder={{
+            color: '#C6CBD9',
+            fontWeight: 600
           }}
-        >
-          Max
-        </Button>
-      </Flex>
-    </InputGroup>
+          placeholder={placeHolder}
+          onChange={onChange}
+          width="auto"
+        />
+      </NumberInput>
+      
+      <Button
+        position="absolute"
+        left={getButtonPosition()}
+        bottom={'35%'}
+        w={'43px'}
+        h={'20px'}
+        border={'1px solid #dfe4ee'}
+        borderRadius={'4px'}
+        bgColor={'#fff'}
+        fontSize={'12px'}
+        fontWeight={'normal'}
+        color={'#86929d'}
+        zIndex={1}
+        onClick={() => {
+          setValue(String(maxValue));
+        }}
+      >
+        MAX
+      </Button>
+    </Flex>
   );
 }
 
