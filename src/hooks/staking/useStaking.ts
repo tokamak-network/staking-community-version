@@ -2,6 +2,7 @@ import CONTRACT_ADDRESS from "@/constant/contracts";
 import TON from '@/abis/TON.json';
 import WTON from '@/abis/WTON.json';
 import DepositManager from '@/abis/DepositManager.json';
+import SeigManager from '@/abis/SeigManager.json';
 import { getContract } from "viem";
 import { useAccount, usePublicClient, useContractWrite } from "wagmi";
 import { useCallback } from "react";
@@ -14,33 +15,65 @@ const {
   TON_ADDRESS,
   WTON_ADDRESS,
   DepositManager_ADDRESS,
+  SeigManager_ADDRESS
 } = CONTRACT_ADDRESS;
 
 export default function useStakeTON() {
-  // const { account } = useAccount();
-  // const marshalData = getData(layer2);
-  // const publicClient = usePublicClient();
+  
   const {
     data: stakeTonData,
-    write
+    write: stakeTON
   } = useContractWrite({
     address: TON_ADDRESS,
     abi: TON,
     functionName: "approveAndCall",
   })
 
-  // const stakeTON = useCallback(async (
-  //   amount: string,
-  //   layer2: string
-  // ) => {
-  //   if (layer2) {
-  //     const data = getData(layer2);
-  //     const weiAmount = convertToWei(amount);
-  //     stakeTONWrite({
-  //       args: [CONTRACT_ADDRESS.DepositManager_ADDRESS, weiAmount, data]
-  //     })
-  //   }
-  // }, [amount, layer2]);
+  const {
+    data: stakeWtonData,
+    write: stakeWTON
+  } = useContractWrite({
+    address: WTON_ADDRESS,
+    abi: WTON,
+    functionName: "approveAndCall",
+  })
 
-  return { write, stakeTonData }
+  const {
+    data: unstakeData,
+    write: unstake
+  } = useContractWrite({
+    address: DepositManager_ADDRESS,
+    abi: DepositManager,
+    functionName: "requestWithdrawal",
+  })
+
+  const {
+    data: withdrawData,
+    write: withdraw
+  } = useContractWrite({
+    address: DepositManager_ADDRESS,
+    abi: DepositManager,
+    functionName: "processRequests",
+  })
+
+  const {
+    data: reatakeData,
+    write: restake
+  } = useContractWrite({
+    address: DepositManager_ADDRESS,
+    abi: DepositManager,
+    functionName: "redepositMulti",
+  })
+
+  const {
+    data: updateSeigData,
+    write: updateSeig
+  } = useContractWrite({
+    address: SeigManager_ADDRESS,
+    abi: SeigManager,
+    functionName: "updateSeigniorageLayer"
+  })
+
+
+  return { stakeTON, stakeTonData, stakeWTON, stakeWtonData, unstake, unstakeData, withdraw, withdrawData, restake, reatakeData, updateSeig, updateSeigData }
 }

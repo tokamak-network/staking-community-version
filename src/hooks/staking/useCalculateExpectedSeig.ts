@@ -52,6 +52,7 @@ interface DataInputs {
 interface SeigResult {
   expectedSeig: string;
   seigOfLayer: string;
+  lastSeigBlock: string;
 }
 
 // Constants
@@ -403,5 +404,5 @@ export function useExpectedSeig(
     stakedAmount,
   ]);
 
-  return { expectedSeig, seigOfLayer };
+  return { expectedSeig, seigOfLayer, lastSeigBlock: lastSeigBlock?.toString() || '' };
 }

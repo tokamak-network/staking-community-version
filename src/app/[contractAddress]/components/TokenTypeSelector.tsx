@@ -12,7 +12,7 @@ export const TokenTypeSelector = (args: TokenTypeSelectorProps) => {
   return (
     <Flex
       w={mobile ? '100%' : '146px'}
-      h={mobile ? '40px' : '22px'}
+      h={mobile ? '40px' : '25px'}
       p={'1px'}
       border={'solid 1px #e7ebf2'}
       borderRadius={'5px'}

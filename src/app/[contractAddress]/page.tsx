@@ -42,8 +42,9 @@ import useTokenBalance from '@/hooks/balance/useTonBalance';
 import useStakeTON from '@/hooks/staking/useStaking';
 import { marshalString, unmarshalString } from '@/utils/format/marshalString';
 import { padLeft } from 'web3-utils';
-import { convertToWei, floatParser } from '@/utils/number/convert';
+import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert';
 import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
+import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 
 const {
   TON_ADDRESS,
@@ -63,6 +64,7 @@ export default function Page() {
   const [currentOperator, setCurrentOperator] = useState<Operator | null>(null);
 
   const [value, setValue] = useRecoilState(inputState);
+  const { onOpenSelectModal } = useSelectOperatorModal()
   
   useEffect(() => {  
     if (operatorAddress && operators.length > 0) {
@@ -72,45 +74,47 @@ export default function Page() {
     }
   }, [operatorAddress, operators]);
   
-  const { expectedSeig, seigOfLayer } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
+  const { expectedSeig, lastSeigBlock } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
 
-  const [stakeAmount, setStakeAmount] = useState<string>('0.00');
   const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const tonBalance = useTokenBalance(activeToken);
 
-  const { write: _stakeTON } = useStakeTON();
+  const { stakeTON: _stakeTON, stakeWTON, unstake, withdraw, restake, updateSeig } = useStakeTON();
 
-  // 스테이킹 훅 사용
-  // const {
-  //   stakingInfo,
-  //   handleStake,
-  //   handleUnstake,
-  //   handleWithdraw,
-  //   isStaking,
-  //   isUnstaking,
-  //   isWithdrawing,
-  //   isStakeSuccess,
-  //   isUnstakeSuccess,
-  //   isWithdrawSuccess,
-  // } = useStaking({
-  //   contractAddress: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
-  //   tokenDecimals: 18,
-  // });
+  useEffect(() => {
+
+  }, [currentOperator]);
 
   const onClick = useCallback(() => {
     const amount = floatParser(value);
+    console.log(amount, activeAction)
     if (amount) {
       switch (activeAction) {
         case 'Stake':
           const marshalData = getData();
+          const wtonMarshalData = getDataForWton();
           const weiAmount = convertToWei(amount.toString());
+          const rayAmount = convertToRay(amount.toString());
           
-          return _stakeTON({
-            args: [WTON_ADDRESS, weiAmount, marshalData]
+          return activeToken === 'TON' ? 
+            _stakeTON({
+              args: [WTON_ADDRESS, weiAmount, marshalData]
+            }) :
+            stakeWTON({
+              args: [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
+            });
+        
+        case 'Unstake':
+          const rayAmouont = convertToRay(amount.toString());
+
+          return unstake({
+            args: [operatorAddress, rayAmouont]
           })
+        case 'Withdraw':
+        case 'Restake':
         default:
           return console.error("action mode is not found");
       }
@@ -136,9 +140,9 @@ export default function Page() {
       );
   }, [DepositManager_ADDRESS, operatorAddress]);
   
-  const getDataForWton = useCallback((layer2: string) => {
-    if (layer2) return marshalString(
-      [layer2]
+  const getDataForWton = useCallback(() => {
+    if (operatorAddress) return marshalString(
+      [operatorAddress]
         .map(unmarshalString)
         .map((str) => padLeft(str, 64))
         .join(''),
@@ -161,7 +165,7 @@ export default function Page() {
         </Flex>
         <Flex fontSize={'30px'} fontWeight={700} flexDir={'row'} ml={'20px'}>
           {currentOperator?.name || 'Loading...'}
-          <Flex ml={'12px'}>
+          <Flex ml={'12px'} onClick={() => onOpenSelectModal()} cursor={'pointer'}>
             <Image src={LIST_ARROW} alt={''} />
           </Flex>
         </Flex>
@@ -247,7 +251,7 @@ export default function Page() {
       <Box 
         border="1px" 
         borderColor={'#E7EBF2'} 
-        borderRadius="md" 
+        borderRadius="10px" 
         bgColor={'#fff'}
         p={5} 
         mb={6}
@@ -288,7 +292,7 @@ export default function Page() {
           </Flex>
         </Flex>
 
-        {/* 입력 버튼 */}
+        
         <Button 
           w="full" 
           variant="outline"
@@ -319,20 +323,12 @@ export default function Page() {
           } 
         </Button>
 
-        {/* 스테이킹 정보 */}
         <VStack spacing={6} align="stretch">
-          <Flex justify="space-between">
-            <Text fontWeight="medium">Your Staked amount</Text>
+          <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
+            <Text >Your Staked amount</Text>
             <VStack spacing={0} align="end">
-              <Text>
-                {/* {currentOperator?.yourStaked 
-                  ? currentOperator.yourStaked 
-                  : parseFloat(stakingInfo.stakedBalance).toLocaleString()} TON */}
-              </Text>
-              <Text color="gray.500">$ 
-                {/* {currentOperator?.yourStaked 
-                  ? (parseFloat(currentOperator.yourStaked) * 1.42).toLocaleString()
-                  : (parseFloat(stakingInfo.stakedBalance) * 1.42).toLocaleString()} */}
+              <Text fontSize={'14px'}>
+                {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
               </Text>
             </VStack>
           </Flex>
@@ -341,17 +337,103 @@ export default function Page() {
           
           <Flex justify="space-between">
             <VStack align="start" spacing={1}>
-              <Text fontWeight="medium">Unclaimed Staking Reward</Text>
-              <Text fontSize="sm" color="gray.500">
+              <Text fontWeight={600} color={'#1c1c1c'}>Unclaimed Staking Reward</Text>
+              <Text fontSize="12px" color="#808992">
                 Seigniorage is updated {
-                // formattedLastUpdate()
+                lastSeigBlock
                 }.
               </Text>
             </VStack>
-            <Text>{formatTotalStaked(expectedSeig)} TON</Text>
+            <VStack>
+              <Text 
+                fontSize={'14px'} 
+                fontWeight={600}
+                textAlign={'right'} 
+                w={'100%'}
+              >
+                {formatTotalStaked(expectedSeig)} TON
+              </Text>
+              { 
+                formatTotalStaked(expectedSeig) !== '0' && (
+                  <Flex 
+                    fontSize={'12px'} 
+                    color={'#2a72e5'} 
+                    cursor={'pointer'} 
+                    textAlign={'right'} 
+                    fontWeight={400}
+                    onClick={() => updateSeig({args: [operatorAddress]})}
+                  >
+                    Update Seigniorage
+                  </Flex>
+                )
+              }
+            </VStack>
           </Flex>
         </VStack>
       </Box>
+      <VStack>
+        <Flex 
+          fontSize={'16px'} 
+          fontWeight={700} 
+          color={'#1c1c1c'} 
+          justifyContent={'center'} 
+          w={'100%'}
+        >
+            Sequencer seigniorage
+        </Flex>
+        <Box
+          border="1px" 
+          borderColor={'#E7EBF2'} 
+          borderRadius="10px" 
+          bgColor={'#fff'}
+          p={5} 
+          mb={6}
+          w={'100%'}
+        >
+          <VStack spacing={6} align="stretch">
+            <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
+              <Text>TON Bridged to L2</Text>
+              <VStack spacing={0} align="end">
+                <Text fontSize={'14px'}>
+                  {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
+                </Text>
+              </VStack>
+            </Flex>
+            
+            <Divider />
+            
+            <Flex justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontWeight={600} color={'#1c1c1c'}>Claimable seigniorage</Text>
+              </VStack>
+              <VStack>
+                <Text 
+                  fontSize={'14px'} 
+                  fontWeight={600}
+                  textAlign={'right'} 
+                  w={'100%'}
+                >
+                  {formatTotalStaked(expectedSeig)} TON
+                </Text>
+                { 
+                  formatTotalStaked(expectedSeig) !== '0' && (
+                    <Flex 
+                      fontSize={'12px'} 
+                      color={'#2a72e5'} 
+                      cursor={'pointer'} 
+                      textAlign={'right'} 
+                      fontWeight={400}
+                      onClick={() => updateSeig({args: [operatorAddress]})}
+                    >
+                      Claim
+                    </Flex>
+                  )
+                }
+              </VStack>
+            </Flex>
+          </VStack>
+        </Box>
+      </VStack>
 
       { 
         activeAction === 'Stake' &&

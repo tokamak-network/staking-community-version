@@ -12,6 +12,7 @@ import { Flex } from "@chakra-ui/react";
 // import Footer from "@/components/footer";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/header";
+import Modals from "./Modal";
 
 // const DynamicHeader = dynamic(() => import("@/components/header/Index"), {
 //   loading: () => <></>,
@@ -54,8 +55,8 @@ export default function Entry({ children }: { children: React.ReactNode }) {
               {/* <Footer /> */}
             </Flex>
             {/* <GlobalComponents /> */}
-            {/* <Drawers />
-            <Modals /> */}
+            {/* <Drawers /> */}
+            <Modals />
           </Flex>
         </ChakraProvidersForNextJs>
       </QueryClientProvider>
