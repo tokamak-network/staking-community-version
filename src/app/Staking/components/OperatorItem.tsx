@@ -55,6 +55,7 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       my={'12px'}
       cursor={'pointer'}
       onClick={navigateToOperatorDetail}
+      overflowX={'visible'}
     >
       <Box position="relative" mr={2}>
         <Box w={2} h={2} rounded="full" bg="green.400" />
@@ -65,14 +66,14 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
         w="50px"
         h="50px"
         mr={4}
-        fontSize="lg"
-        fontWeight="bold"
+        fontSize="12px"
+        fontWeight={500}
       >
         {getInitials(operator.name)}
       </Center>
       <Box flex="1">
         <HStack spacing={2} mb={1}>
-          <Heading size="md" fontWeight="semibold">{operator.name}</Heading>
+          <Heading color={'#304156'} fontSize="24px" fontWeight={700}>{operator.name}</Heading>
           {isL2 && (
             <Badge colorScheme="blue" fontSize="0.7em">L2</Badge>
           )}
@@ -80,26 +81,28 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
         
         <Flex 
           direction={{ base: 'column', md: 'row' }} 
-          fontSize="sm" 
-          color="gray.500"
           align={{ base: 'start', md: 'center' }}
           gap={{ base: 0, md: 8 }}
         >
-          <Text mr={4}>Staking APY 34.56%</Text>
+          {/* <Text mr={4}>Staking APY 34.56%</Text> */}
           
-          <Flex align="center">
+          <Flex align="center" color={'#86929D'} fontSize={'13px'} fontWeight={400}>
             <Text>Total Staked</Text>
-            <Text ml={2} fontWeight="medium" color="gray.700">
+            <Text ml={2} fontWeight="medium">
               {operator.totalStaked 
                 ? commafy(ethers.utils.formatUnits(operator.totalStaked, 27), 2) 
                 : commafy(Math.random() * 1000000, 2)} TON
             </Text>
           </Flex>
           
-          {operator.yourStaked && (
-            <Flex align="center">
+          {operator.yourStaked && operator.yourStaked !== '0' && (
+            <Flex align="center" color={'#304156'} fontSize={'13px'} fontWeight={400}>
               <Text>Your Staked</Text>
-              <Text ml={2} fontWeight="medium" color="gray.700">{operator.yourStaked} TON</Text>
+              <Text ml={2} fontWeight="medium" >
+              {operator.yourStaked 
+                ? commafy(ethers.utils.formatUnits(operator.yourStaked, 27), 2) 
+                : ''} TON
+              </Text>
             </Flex>
           )}
         </Flex>

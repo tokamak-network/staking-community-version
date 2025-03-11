@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { operatorsListState, operatorsLoadingState, Operator } from "recoil/operator";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { getContract } from "viem";
 import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
+import CandidateAddon from "@/abis/CandidateAddon.json";
+import OperatorManager from "@/abis/OperatorManager.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
 import { useAPY } from "./useAPY";
@@ -17,6 +19,7 @@ export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
   const [loading, setLoading] = useRecoilState(operatorsLoadingState);
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); // 기본값은 내림차순
+  const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
   
@@ -62,6 +65,7 @@ export default function useCallOperators() {
     setSortDirection(newDirection);
     sortOperators(newDirection);
   };
+  // console.log(publicClient)
   
   useEffect(() => {
     const fetchOperators = async () => {
@@ -86,25 +90,42 @@ export default function useCallOperators() {
         
         for (let i = 0; i < numLayer2; i++) {
           try {
-            const operatorAddress: string = await layer2RegistryContract.read.layer2ByIndex([i]) as unknown as string;
+            const candidateAddress: string = await layer2RegistryContract.read.layer2ByIndex([i]) as unknown as string;
             
-            if (!operatorAddress) continue;
+            if (!candidateAddress) continue;
             
             const candidateContract = getContract({
-              address: operatorAddress as `0x${string}`,
+              address: candidateAddress as `0x${string}`,
               abi: Candidates.abi,
               publicClient: publicClient,
             });
-            
-            const [totalStaked, memo] = await Promise.all([
+
+            const [totalStaked, memo, stakeOf] = await Promise.all([
               candidateContract.read.totalStaked(),
-              candidateContract.read.memo()
+              candidateContract.read.memo(),
+              candidateContract.read.stakedOf([address])
             ]);
-            
+
+            const candidateAddon = getContract({
+              address: candidateAddress as `0x${string}`,
+              abi: CandidateAddon,
+              publicClient: publicClient,
+            })
+
+            const operatorAddress = await candidateAddon.read.operator();
+            const operatorManager = getContract({
+              address: operatorAddress as `0x${string}`,
+              abi: OperatorManager,
+              publicClient: publicClient
+            })
+            const manager = await operatorManager.read.manager();
+            console.log(manager)
+
             const operatorInfo: Operator = {
-              name: typeof memo === 'string' ? memo : operatorAddress as string,
-              address: operatorAddress,
+              name: typeof memo === 'string' ? memo : candidateAddress as string,
+              address: candidateAddress,
               totalStaked: totalStaked?.toString() || "0",
+              yourStaked: stakeOf?.toString() || "0"
             };
             
             operators.push(operatorInfo);
@@ -124,22 +145,23 @@ export default function useCallOperators() {
     fetchOperators();
   }, [numLayer2Result?.data, publicClient, setOperatorsList, setLoading, sortDirection]);
   
-  const refreshOperator = async (operatorAddress: string) => {
+  const refreshOperator = async (candidateAddress: string) => {
     try {
       if (!publicClient) return;
       
       const candidateContract = getContract({
-        address: operatorAddress as `0x${string}`,
+        address: candidateAddress as `0x${string}`,
         abi: Candidates.abi,
         publicClient: publicClient,
       });
       
       const [totalStaked, memo] = await Promise.all([
         candidateContract.read.totalStaked(),
-        candidateContract.read.memo()
+        candidateContract.read.memo(),
+        candidateContract.read.stakedOf({ account: address })
       ]);
       
-      const operatorIndex = (operatorsList as Operator[]).findIndex(op => op.address === operatorAddress);
+      const operatorIndex = (operatorsList as Operator[]).findIndex(op => op.address === candidateAddress);
       
       if (operatorIndex !== -1) {
         setOperatorsList((prevList: Operator[]) => {
@@ -157,7 +179,7 @@ export default function useCallOperators() {
       
       return true;
     } catch (error) {
-      console.error(`Error refreshing operator ${operatorAddress}:`, error);
+      console.error(`Error refreshing operator ${candidateAddress}:`, error);
       return false;
     }
   };
@@ -181,12 +203,12 @@ export default function useCallOperators() {
       
       for (let i = 0; i < numLayer2; i++) {
         try {
-          const operatorAddress = await layer2RegistryContract.read.layer2ByIndex([i]);
+          const candidateAddress = await layer2RegistryContract.read.layer2ByIndex([i]);
           
-          if (!operatorAddress) continue;
+          if (!candidateAddress) continue;
           
           const candidateContract = getContract({
-            address: operatorAddress as `0x${string}`,
+            address: candidateAddress as `0x${string}`,
             abi: Candidates.abi,
             publicClient: publicClient,
           });
@@ -194,12 +216,13 @@ export default function useCallOperators() {
           
           const [totalStaked, memo] = await Promise.all([
             candidateContract.read.totalStaked(),
-            candidateContract.read.memo()
+            candidateContract.read.memo(),
+            candidateContract.read.stakedOf({ account: address })
           ]);
           
           operators.push({
-            name: typeof memo === 'string' ? memo : operatorAddress as string,
-            address: operatorAddress as `0x${string}`,
+            name: typeof memo === 'string' ? memo : candidateAddress as string,
+            address: candidateAddress as `0x${string}`,
             totalStaked: totalStaked?.toString() || "0",
           });
         } catch (error) {

@@ -35,6 +35,7 @@ import { TokenTypeSelector } from './components/TokenTypeSelector';
 import { BalanceInput } from '@/components/input/CustomInput';
 import TON_SYMBOL from '@/assets/images/ton_symbol.svg';
 import Image from 'next/image';
+import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
 
 export default function Page() {
   const router = useRouter();
@@ -103,9 +104,12 @@ export default function Page() {
           />
           Back
         </Flex>
-        <Heading fontSize={'30px'}>
+        <Flex fontSize={'30px'} fontWeight={700} flexDir={'row'} ml={'20px'}>
           {currentOperator?.name || 'Loading...'}
-        </Heading>
+          <Flex ml={'12px'}>
+            <Image src={LIST_ARROW} alt={''} />
+          </Flex>
+        </Flex>
         <Flex w={'72px'}/>
       </Flex>
 

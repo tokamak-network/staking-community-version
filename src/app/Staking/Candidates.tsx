@@ -22,7 +22,7 @@ const Candidates: React.FC = () => {
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  console.log(operatorsList)
+  // console.log(operatorsList)
   const a = useAPY(operatorsList[0]?.address as `0x${string}`);
   // console.log(a)
 
@@ -88,7 +88,6 @@ const Candidates: React.FC = () => {
     const totalContentHeight = container.scrollHeight / 3;
     container.scrollTop = totalContentHeight + 60;
     
-    // 스크롤 동작 부드럽게 설정
     container.style.scrollBehavior = 'smooth';
 
     return () => {
@@ -98,7 +97,7 @@ const Candidates: React.FC = () => {
   }, [filteredOperators.length]);
 
   return (
-    <Box h="1056px" w="100%" maxW="1200px" mx="auto" px={4} position="relative" >
+    <Box h="1056px" w="100%" maxW="600px" mx="auto" px={4} position="relative" >
       <Box 
         ref={scrollContainerRef}
         h="1056px" 
