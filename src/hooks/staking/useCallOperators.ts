@@ -70,10 +70,10 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        if (operatorsList.length > 0) {
-          setLoading(false);
-          return;
-        }
+        // if (operatorsList.length > 0) {
+        //   setLoading(false);
+        //   return;
+        // }
 
         if (!numLayer2Result?.data || !publicClient) return;
         
@@ -118,8 +118,8 @@ export default function useCallOperators() {
               abi: OperatorManager,
               publicClient: publicClient
             })
-            const manager = await operatorManager.read.manager();
-            console.log(manager)
+            // const manager = await operatorManager.read.manager();
+            // console.log(manager)
 
             const operatorInfo: Operator = {
               name: typeof memo === 'string' ? memo : candidateAddress as string,

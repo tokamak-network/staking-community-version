@@ -34,19 +34,35 @@ import { HeadInfo } from './components/HeadInfo';
 import { TokenTypeSelector } from './components/TokenTypeSelector';
 import { BalanceInput } from '@/components/input/CustomInput';
 import TON_SYMBOL from '@/assets/images/ton_symbol.svg';
+import WTON_SYMBOL from '@/assets/images/wton_symbol.svg';
 import Image from 'next/image';
 import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
+import { inputState } from '@/recoil/input';
+import useTokenBalance from '@/hooks/balance/useTonBalance';
+import useStakeTON from '@/hooks/staking/useStaking';
+import { marshalString, unmarshalString } from '@/utils/format/marshalString';
+import { padLeft } from 'web3-utils';
+import { convertToWei, floatParser } from '@/utils/number/convert';
+import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
+
+const {
+  TON_ADDRESS,
+  WTON_ADDRESS,
+  DepositManager_ADDRESS,
+} = CONTRACT_ADDRESS;
 
 export default function Page() {
   const router = useRouter();
   const params = useParams();
-  const operatorAddress = params?.contractAddress as string;
+  const operatorAddress = params?.contractAddress as `0x${string}`;
   
   const { address, isConnected } = useAccount();
   const toast = useToast();
   
   const operators = useRecoilValue(filteredOperatorsState);
   const [currentOperator, setCurrentOperator] = useState<Operator | null>(null);
+
+  const [value, setValue] = useRecoilState(inputState);
   
   useEffect(() => {  
     if (operatorAddress && operators.length > 0) {
@@ -56,14 +72,16 @@ export default function Page() {
     }
   }, [operatorAddress, operators]);
   
-  const { data: balanceData } = useBalance({
-    address,
-  });
+  const { expectedSeig, seigOfLayer } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
 
   const [stakeAmount, setStakeAmount] = useState<string>('0.00');
-  const [activeTab, setActiveTab] = useState<string>('TON');
+  const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
-  const { isOpen, onOpen, onClose } = useDisclosure(); // 계산기 모달용
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const tonBalance = useTokenBalance(activeToken);
+
+  const { write: _stakeTON } = useStakeTON();
 
   // 스테이킹 훅 사용
   // const {
@@ -82,6 +100,23 @@ export default function Page() {
   //   tokenDecimals: 18,
   // });
 
+  const onClick = useCallback(() => {
+    const amount = floatParser(value);
+    if (amount) {
+      switch (activeAction) {
+        case 'Stake':
+          const marshalData = getData();
+          const weiAmount = convertToWei(amount.toString());
+          
+          return _stakeTON({
+            args: [WTON_ADDRESS, weiAmount, marshalData]
+          })
+        default:
+          return console.error("action mode is not found");
+      }
+    }
+  }, [])
+
   const formatTotalStaked = useCallback((amount: string) => {
     try {
       return commafy(ethers.utils.formatUnits(amount, 27), 2);
@@ -90,6 +125,26 @@ export default function Page() {
     }
   }, []);
 
+  const getData = useCallback(() => {
+    if (operatorAddress)
+      return marshalString(
+        
+        [DepositManager_ADDRESS, operatorAddress]
+          .map(unmarshalString)
+          .map((str) => padLeft(str, 64))
+          .join(''),
+      );
+  }, [DepositManager_ADDRESS, operatorAddress]);
+  
+  const getDataForWton = useCallback((layer2: string) => {
+    if (layer2) return marshalString(
+      [layer2]
+        .map(unmarshalString)
+        .map((str) => padLeft(str, 64))
+        .join(''),
+    )
+  }, [])
+  
   // L2 여부 체크
   const isL2 = currentOperator?.name.toLowerCase().includes('sepolia');
 
@@ -199,8 +254,8 @@ export default function Page() {
       >
         <Flex mb={5} flexWrap="wrap" gap={2}>
           <TokenTypeSelector 
-            tab={activeTab}
-            setTab={setActiveTab}
+            tab={activeToken}
+            setTab={setActiveToken}
           />
           <Text 
             ml="auto" 
@@ -208,7 +263,7 @@ export default function Page() {
             fontSize={'12px'}
             fontWeight={400}
           >
-            Balance: {balanceData ? parseFloat(balanceData.formatted).toLocaleString() : '0'} TON
+            Balance: {tonBalance?.data?.parsedBalance || '0'} TON
           </Text>
         </Flex>
 
@@ -220,15 +275,15 @@ export default function Page() {
             // maxValue={stakedAmount ? stakedAmount.replace(/\,/g,'') : '0.00'}
             maxValue={'0.00'}
           />
-          <Flex align="center">
-            <Image src={TON_SYMBOL} alt={''}/>
+          <Flex align="center" mr={'15px'}>
+            <Image src={ activeToken === 'TON' ? TON_SYMBOL : WTON_SYMBOL} alt={''}/>
             <Text 
               fontSize={'18px'} 
               fontWeight="bold"
               ml={'9px'}
               mt={'2px'}
             >
-              TON
+              {activeToken}
             </Text>
           </Flex>
         </Flex>
@@ -237,15 +292,31 @@ export default function Page() {
         <Button 
           w="full" 
           variant="outline"
-          bgColor={'#E9EDF1'}
-          color="#86929d"
+          bgColor={
+            value !== '0.00' && value && value === '0'
+            ? '#257EEE' 
+            : '#E9EDF1'
+          }
+          color={
+            value !== '0.00' && value && value === '0' 
+            ? '#fff' 
+            : "#86929d"
+          }
           h="60px"
-          fontWeight="normal"
+          fontWeight={500}
+          fontSize={'14px'}
           justifyContent="center"
           mb={6}
-          onClick={() => document.getElementById('amount-input')?.focus()}
+          isDisabled={value == '0.00' || !value || value === '0' }
+          onClick={() => onClick()}
         >
-          Enter amount
+          {
+            value !== '0.00' && value && value === '0' 
+              ? activeAction === 'Stake' ? 'Stake'
+              : activeAction === 'Unstake' ? 'Unstake'
+              : 'Withdraw'
+              : 'Enter an amount'
+          } 
         </Button>
 
         {/* 스테이킹 정보 */}
@@ -277,7 +348,7 @@ export default function Page() {
                 }.
               </Text>
             </VStack>
-            {/* <Text>{parseFloat(stakingInfo.rewards).toLocaleString()} TON</Text> */}
+            <Text>{formatTotalStaked(expectedSeig)} TON</Text>
           </Flex>
         </VStack>
       </Box>

@@ -15,7 +15,8 @@ export const StakingInfo = (args: StakingInfoProps) => {
     <Box>
       <HStack>
         <Text fontSize="112x" color="#808992" fontWeight={400}>{title}</Text>
-        {label &&
+        {
+          label &&
           <Tooltip label={label}>
             <Image src={QUESTION_ICON} alt="question icon" />
           </Tooltip>
