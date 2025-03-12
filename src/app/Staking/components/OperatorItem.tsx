@@ -46,10 +46,11 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       <Center 
         bg={getAvatarBgColor(operator.name)}
         borderRadius="full"
-        w="50px"
-        h="50px"
+        w="66px"
+        h="66px"
         mr={4}
-        fontSize="12px"
+        color={'#fff'}
+        fontSize="14px"
         fontWeight={500}
       >
         {getInitials(operator.name)}

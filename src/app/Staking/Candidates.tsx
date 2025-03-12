@@ -10,9 +10,6 @@ import {
   HStack
 } from '@chakra-ui/react';
 import useCallOperators from '@/hooks/staking/useCallOperators';
-import { ethers } from 'ethers';
-import commafy from '@/utils/trim/commafy';
-import { Operator } from 'recoil/operator';
 import React from 'react';
 import { OperatorItem } from './components/OperatorItem';
 import { useAPY } from '@/hooks/staking/useAPY';

@@ -45,6 +45,7 @@ import { padLeft } from 'web3-utils';
 import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert';
 import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
+import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 
 const {
   TON_ADDRESS,

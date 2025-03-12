@@ -1,5 +1,6 @@
-import { InfoIcon } from "@chakra-ui/icons"
+import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 import { Heading, HStack, Tooltip, VStack, Text } from "@chakra-ui/react"
+import Image from 'next/image';
 
 type HedInfoType = {
   title: string,
@@ -14,9 +15,12 @@ export const HeadInfo = (args: HedInfoType) => {
     <VStack align="center" spacing={1}>
       <HStack>
         <Text color="gray.500" fontSize="12px">{title}</Text>
-        <Tooltip label={label}>
-          <InfoIcon color="gray.400" boxSize={3} />
-        </Tooltip>
+        {
+          label &&
+          <Tooltip label={label}>
+            <Image src={QUESTION_ICON} alt={''} />
+          </Tooltip>
+        }
       </HStack>
       <Heading fontSize={'21px'}>{value}</Heading>
     </VStack>
