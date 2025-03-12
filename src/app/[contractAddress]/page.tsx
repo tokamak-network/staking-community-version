@@ -6,17 +6,11 @@ import {
   Container,
   Flex,
   Text,
-  Heading,
   HStack,
   VStack,
-  Input,
   IconButton,
   Divider,
-  useColorModeValue,
-  Icon,
   Link,
-  Tooltip,
-  ButtonGroup,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
@@ -24,7 +18,6 @@ import { ArrowBackIcon, InfoIcon } from '@chakra-ui/icons';
 import { useRouter, useParams } from "next/navigation";
 import { useAccount, useBalance } from 'wagmi';
 // import StakingCalculator from '@/components/StakingCalculator';
-import useStaking from '@/hooks/staking/useStaking';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { operatorsListState, filteredOperatorsState, Operator } from "recoil/operator";
 import { ethers } from 'ethers';
@@ -153,10 +146,59 @@ export default function Page() {
   // L2 여부 체크
   const isL2 = currentOperator?.name.toLowerCase().includes('sepolia');
 
+  const actionButtonStyle = (isActive: boolean) => ({
+    h: '32px',
+    borderRadius: '16px',
+    border: '1px',
+    borderColor: '#E7EBF2',
+    bgColor: isActive ? '#2a72e5' : 'white',
+    w: '80px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: isActive ? 'white' : '#808992',
+    _hover: {
+      bgColor: isActive ? '#1a62d5' : '#f5f7fa',
+      borderColor: isActive ? '#1a62d5' : '#d7dbe2',
+      transform: 'translateY(-1px)',
+      boxShadow: 'sm',
+    },
+    transition: 'all 0.2s ease-in-out'
+  });
+
+  const mainButtonStyle = {
+    w: "full",
+    variant: "outline",
+    bgColor: value !== '0.00' && value && value !== '0' ? '#257EEE' : '#E9EDF1',
+    color: value !== '0.00' && value && value !== '0' ? '#fff' : "#86929d",
+    h: "60px",
+    fontWeight: 500,
+    fontSize: '14px',
+    justifyContent: "center",
+    mb: 6,
+    isDisabled: value === '0.00' || !value || value === '0',
+    _hover: {
+      bgColor: value !== '0.00' && value && value !== '0' ? '#1a62d5' : '#E9EDF1',
+    },
+    transition: 'all 0.2s ease-in-out'
+  };
+
+  const updateSeigniorageStyle = {
+    fontSize: '12px', 
+    color: '#2a72e5', 
+    cursor: 'pointer', 
+    // textAlign: 'right', 
+    fontWeight: 400,
+    _hover: {
+      color: '#1a62d5',
+      textDecoration: 'underline'
+    },
+    transition: 'all 0.2s ease'
+  };
+
   return (
     <Container maxW="515px" py={5}>
       <Flex mb={6} align="center" justifyContent={'space-between'}>
-        <Flex alignItems={'center'} onClick={() => router.back()}>
+        <Flex alignItems={'center'} onClick={() => router.back()} cursor="pointer">
           <IconButton
             aria-label="Back"
             icon={<ArrowBackIcon />}
@@ -166,7 +208,7 @@ export default function Page() {
         </Flex>
         <Flex fontSize={'30px'} fontWeight={700} flexDir={'row'} ml={'20px'}>
           {currentOperator?.name || 'Loading...'}
-          <Flex ml={'12px'} onClick={() => onOpenSelectModal()} cursor={'pointer'}>
+          <Flex ml={'12px'} onClick={() => onOpenSelectModal()} cursor={'pointer'} _hover={{ transform: 'scale(1.05)' }}>
             <Image src={LIST_ARROW} alt={''} />
           </Flex>
         </Flex>
@@ -194,47 +236,19 @@ export default function Page() {
       <HStack spacing={3} mb={6} flexWrap="wrap" fontSize={'12px'} px={'18px'}>
         <Button 
           onClick={() => setActiveAction('Stake')}
-          h={'32px'}
-          borderRadius={'16px'}
-          border={'1px'}
-          borderColor={'#E7EBF2'} 
-          bgColor={ activeAction === 'Stake' ? '#2a72e5' : 'white'}
-          w={'80px'}
-          fontSize={'12px'}
-          fontWeight={600}
-          color={activeAction === 'Stake' ? 'white' : '#808992'}
+          {...actionButtonStyle(activeAction === 'Stake')}
         >
           Stake
         </Button>
         <Button 
-          // variant="outline" 
-          px={8}
           onClick={() => setActiveAction('Unstake')}
-          h={'32px'}
-          fontSize={'12px'}
-          fontWeight={600}
-          borderRadius={'16px'}
-          border={'1px'}
-          borderColor={'#E7EBF2'} 
-          bgColor={ activeAction === 'Unstake' ? '#2a72e5' : 'white'}
-          w={'80px'}
-          color={activeAction === 'Unstake' ? 'white' : '#808992'}
+          {...actionButtonStyle(activeAction === 'Unstake')}
         >
           Unstake
         </Button>
         <Button 
-          // variant="outline" 
-          px={8}
           onClick={() => setActiveAction('Withdraw')}
-          h={'32px'}
-          fontSize={'12px'}
-          fontWeight={600}
-          borderRadius={'16px'}
-          border={'1px'}
-          borderColor={'#E7EBF2'} 
-          bgColor={ activeAction === 'Withdraw' ? '#2a72e5' : 'white'}
-          w={'80px'}
-          color={activeAction === 'Withdraw' ? 'white' : '#808992'}
+          {...actionButtonStyle(activeAction === 'Withdraw')}
         >
           Withdraw
         </Button>
@@ -244,6 +258,10 @@ export default function Page() {
           fontWeight="medium"
           cursor="pointer"
           onClick={onOpen}
+          _hover={{
+            color: "blue.600",
+            textDecoration: "underline"
+          }}
         >
           Staking Calculator
         </Link>
@@ -293,30 +311,12 @@ export default function Page() {
           </Flex>
         </Flex>
 
-        
         <Button 
-          w="full" 
-          variant="outline"
-          bgColor={
-            value !== '0.00' && value && value === '0'
-            ? '#257EEE' 
-            : '#E9EDF1'
-          }
-          color={
-            value !== '0.00' && value && value === '0' 
-            ? '#fff' 
-            : "#86929d"
-          }
-          h="60px"
-          fontWeight={500}
-          fontSize={'14px'}
-          justifyContent="center"
-          mb={6}
-          isDisabled={value == '0.00' || !value || value === '0' }
           onClick={() => onClick()}
+          {...mainButtonStyle}
         >
           {
-            value !== '0.00' && value && value === '0' 
+            value !== '0.00' && value && value !== '0' 
               ? activeAction === 'Stake' ? 'Stake'
               : activeAction === 'Unstake' ? 'Unstake'
               : 'Withdraw'
@@ -357,12 +357,8 @@ export default function Page() {
               { 
                 formatTotalStaked(expectedSeig) !== '0' && (
                   <Flex 
-                    fontSize={'12px'} 
-                    color={'#2a72e5'} 
-                    cursor={'pointer'} 
-                    textAlign={'right'} 
-                    fontWeight={400}
                     onClick={() => updateSeig({args: [operatorAddress]})}
+                    {...updateSeigniorageStyle}
                   >
                     Update Seigniorage
                   </Flex>
@@ -419,12 +415,8 @@ export default function Page() {
                 { 
                   formatTotalStaked(expectedSeig) !== '0' && (
                     <Flex 
-                      fontSize={'12px'} 
-                      color={'#2a72e5'} 
-                      cursor={'pointer'} 
-                      textAlign={'right'} 
-                      fontWeight={400}
                       onClick={() => updateSeig({args: [operatorAddress]})}
+                      {...updateSeigniorageStyle}
                     >
                       Claim
                     </Flex>
