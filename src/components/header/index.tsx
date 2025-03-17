@@ -58,7 +58,7 @@ const WALLET_VIEWS = {
   PENDING: 'pending',
 };
 
-// 지원되는 지갑 정보 (예시)
+
 export const SUPPORTED_WALLETS: { [key: string]: any } = {
   METAMASK: {
     connector: 'metaMask',
@@ -100,8 +100,7 @@ export const Header = () => {
               Project Name-<Text as="span" color="blue.500">staking</Text>
             </Heading>
           </HStack>
-          
-          {/* 지갑 주소 표시 */}
+
           <HStack>
             <WalletConnector />
           </HStack>
@@ -181,21 +180,16 @@ const WalletPending = ({
     </Flex>
   );
 };
-// components/WalletConnector.tsx
 
 const WalletConnector: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const [hasMounted, setHasMounted] = useState(false);
   
-  // Wagmi 훅
   const { address, isConnected, connector: activeConnector } = useAccount();
   const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
   
-  const { data: balanceData } = useBalance({
-    address: address
-  });
   const { chain } = useNetwork();
   const { chains, switchNetwork } = useSwitchNetwork();
 
@@ -211,7 +205,6 @@ const WalletConnector: React.FC = () => {
     setWalletView(WALLET_VIEWS.OPTIONS);
   }, []);
 
-  // 지갑 연결 시도
   const tryActivation = async (connector: Connector) => {
     setPendingWallet(connector);
     setWalletView(WALLET_VIEWS.PENDING);
@@ -228,7 +221,7 @@ const WalletConnector: React.FC = () => {
     if (address) {
       copy(address);
       toast({
-        title: "주소가 복사되었습니다",
+        title: "Copy Success",
         status: "success",
         duration: 2000,
         isClosable: true,
@@ -240,28 +233,8 @@ const WalletConnector: React.FC = () => {
     setHasMounted(true);
   }, []);
 
-  // 지갑 주소 포맷팅
-  const shortenAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "주소가 복사되었습니다",
-      status: "success",
-      duration: 2000,
-      isClosable: true,
-    });
-  };
   const { onCopy } = useClipboard(address || '');
-
-  // 네트워크 변경 시 알림
-  const handleSwitchNetwork = (chainId: number) => {
-    if (switchNetwork) {
-      switchNetwork(chainId);
-    }
-  };
 
   const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
   const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
@@ -272,25 +245,6 @@ const WalletConnector: React.FC = () => {
   if (!hasMounted) {
     return null;
   }
-
-  const handleCopy = () => {
-    onCopy();
-    toast({
-      title: "주소가 복사되었습니다",
-      status: "success",
-      duration: 2000,
-    });
-  };
-  
-  const handleDisconnect = () => {
-    disconnect();
-    onClose();
-    toast({
-      title: "지갑 연결이 해제되었습니다",
-      status: "info",
-      duration: 2000,
-    });
-  };
   
   const formatConnectorName = () => {
     if (!activeConnector) return null;
@@ -323,7 +277,6 @@ const WalletConnector: React.FC = () => {
     );
   };
 
-
   const getOptions = () => {
     return connectors.map((connector) => {
       const walletInfo = Object.values(SUPPORTED_WALLETS).find(
@@ -351,13 +304,66 @@ const WalletConnector: React.FC = () => {
   return (
     <>
       {!isConnected ? (
-        <Button
-          onClick={onOpen}
-          colorScheme="blue"
-          w="127px"
-        >
-          
-        </Button>
+        <Menu isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+          <MenuButton
+            as={Button}
+            bgColor={'#fff'}
+            w="137px"
+            border={'1px'}
+            borderColor={'#D7D9DF'}
+            borderRadius={'17.5px'}
+            color={'#86929d'}
+          >
+            Connect Wallet
+          </MenuButton>
+          <MenuList
+            bg={menuBg}
+            w={'280px'}
+            p={'0px'}
+            // position={'absolute'}
+            right={'45px'}
+          >
+            <Box fontFamily={'TitilliumWeb'} p={4}>
+              <Text>
+                Connect Wallet
+              </Text>
+              <Text
+                fontSize={'12px'}
+                color={'#86929d'}
+                fontWeight={'normal'}
+              >
+                To start using Staking
+              </Text>
+            </Box>
+            <Box fontFamily={'TitilliumWeb'} pb={6} px={0}>
+              {walletView === WALLET_VIEWS.PENDING ? (
+                <WalletPending
+                  connector={pendingWallet}
+                  error={pendingError}
+                  setPendingError={setPendingError}
+                  tryActivation={tryActivation}
+                />
+              ) : (
+                <>{getOptions()}</>
+              )}
+              {walletView !== WALLET_VIEWS.PENDING && (
+                <Flex flexDir={'column'} fontSize={'13px'} fontFamily={'TitilliumWeb'} ml={'25px'} mb={4}>
+                  <Text pt={3} >
+                    New to Ethereum?{' '}
+                  </Text>
+                  <Link 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    href="https://ethereum.org/wallets/"
+                    color={'#2a72e5'}
+                  >
+                    Learn more about wallets
+                  </Link>
+                </Flex>
+              )}
+            </Box>
+          </MenuList>
+        </Menu>
       ) : (
         <Menu>
           <MenuButton
@@ -367,202 +373,108 @@ const WalletConnector: React.FC = () => {
             borderRadius={'17.5px'}
             border= {"1px solid #D7D9DF"}
             bg={'#fff'}
-            _hover={{ bg: 'blue.600' }}
+            // _hover={{ bg: 'blue.600' }}
             size="md"
           >
             <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
-            <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
-              <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
-            </span>
-            <Text textAlign={'left'} fontWeight={'normal'}>
-              {trimAddress({
-                address: address as string,
-                firstChar: 7,
-                lastChar: 4,
-                dots: '....',
-              })}
-            </Text>
-          </Flex>
+              <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
+                <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
+              </span>
+              <Text textAlign={'left'} fontWeight={'normal'}>
+                {trimAddress({
+                  address: address as string,
+                  firstChar: 7,
+                  lastChar: 4,
+                  dots: '....',
+                })}
+              </Text>
+            </Flex>
           </MenuButton>
-          <MenuList bg={menuBg}>
-            <VStack align="start" p={3} spacing={1}>
-              <Text fontWeight="medium" fontSize="sm">Connected</Text>
-              <HStack spacing={2}>
-                <Text fontWeight="bold">{shortenAddress(address as string)}</Text>
-                <CopyIcon 
-                  cursor="pointer" 
-                  onClick={() => copyToClipboard(address as string)} 
-                />
-              </HStack>
-            </VStack>
-            
-            <Divider />
-            
-            {balanceData && (
-              <VStack align="start" p={3} spacing={1}>
-                <Text fontWeight="medium" fontSize="sm">Balance</Text>
-                <Text fontWeight="bold">
-                  {parseFloat(balanceData.formatted).toFixed(4)} {balanceData.symbol}
-                </Text>
-              </VStack>
+          <MenuList
+            bg={menuBg}
+            w={'280px'}
+            p={'0px'}
+            // position={'position'}
+            right={'45px'}
+          >
+            {connectError || (chain && chain.unsupported) ? (
+              <>
+                <Box p={4}>
+                  {chain && chain.unsupported ? (
+                    <Text>
+                      Network not supported.
+                      <br />
+                      Please change to a supported network.
+                    </Text>
+                  ) : (
+                    <Text>Error connecting</Text>
+                  )}
+                </Box>
+                <Box p={4} pb={6}>
+                  {chain && chain.unsupported ? (
+                    <Button onClick={() => switchNetwork?.(1)}>
+                      Switch to Ethereum Mainnet
+                    </Button>
+                  ) : (
+                    'Error connecting. Try refreshing the page.'
+                  )}
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box fontFamily={'TitilliumWeb'} p={4}>
+                  <Text>
+                    Account
+                  </Text>
+                  <Text
+                    fontSize={'12px'}
+                    color={'#86929d'}
+                    fontWeight={'normal'}
+                  >
+                    My account & connect change
+                  </Text>
+                </Box>
+                <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} ml={0}>
+                  {address && (
+                    <Flex my={'24px'} ml={'25px'}>
+                      <Text fontSize="15px" fontWeight={600} mr={'12px'}>
+                        {`0x${address.slice(2, 9)}...${address.slice(-4)}`}
+                      </Text>
+                      <Flex w={'22px'} h={'22px'} mr={'7px'} onClick={handleCopyAction} cursor="pointer">
+                        <Image src={ACCOUNT_COPY} alt="Copy" />
+                      </Flex>
+                      <Link
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`https://etherscan.io/address/${address}`}
+                      >
+                        <Image src={ETHERSCAN_LINK} alt="Etherscan" />
+                      </Link>
+                    </Flex>
+                  )}
+                </Flex>
+                <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
+                  {formatConnectorName()}
+                </Flex>
+                <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
+                  <Flex 
+                    fontSize={'15px'} 
+                    color={'#2a72e5'} 
+                    fontWeight={600}
+                    cursor={'pointer'}
+                    onClick={() => {
+                      disconnect();
+                      onClose();
+                    }}
+                  >
+                    Logout
+                  </Flex>
+                </Flex>
+              </>
             )}
-            
-            <Divider />
-      
-            
-            <Divider />
-            
-            <MenuItem onClick={() => disconnect()}>
-              Log out
-            </MenuItem>
           </MenuList>
         </Menu>
       )}
-
-      {/* 지갑 연결 모달 */}
-      <Modal isOpen={isOpen} onClose={onClose}>
-      {walletView === WALLET_VIEWS.ACCOUNT && isConnected && address ? (
-        <ModalContent
-          w={'280px'}
-          px={'0px'}
-          position={'absolute'}
-          right={'45px'}
-        >
-          <ModalHeader
-            fontFamily={'TitilliumWeb'}
-          >
-            <Text>
-              Account
-            </Text>
-            <Text
-              fontSize={'12px'}
-              color={'#86929d'}
-              fontWeight={'normal'}
-            >
-              My account & connect change
-            </Text>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody p={0} fontFamily={'TitilliumWeb'}>
-            <Flex w={'280px'} borderY={'1px'} borderColor={'#f4f6f8'} ml={0}>
-              {address && (
-                <Flex my={'24px'} ml={'25px'}>
-                  <Text fontSize="15px" fontWeight={600} mr={'12px'}>
-                    {`0x${address.slice(2, 9)}...${address.slice(-4)}`}
-                  </Text>
-                  <Flex w={'22px'} h={'22px'} mr={'7px'} onClick={handleCopyAction} cursor="pointer">
-                    <Image src={ACCOUNT_COPY} alt="Copy" />
-                  </Flex>
-                  <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`https://etherscan.io/address/${address}`}
-                  >
-                    <Image src={ETHERSCAN_LINK} alt="Etherscan" />
-                  </Link>
-                </Flex>
-              )}
-            </Flex>
-            <Flex w={'280px'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
-              {formatConnectorName()}
-            </Flex>
-            <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
-              <Flex 
-                fontSize={'15px'} 
-                color={'#2a72e5'} 
-                fontWeight={600}
-                cursor={'pointer'}
-                onClick={() => {
-                  disconnect();
-                  onClose();
-                }}
-              >
-                Logout
-              </Flex>
-            </Flex>
-          </ModalBody>
-        </ModalContent>
-      ) : connectError || (chain && chain.unsupported) ? (
-        <ModalContent
-          w={'280px'}
-          px={'0px'}
-          position={'absolute'}
-          right={'45px'}
-        >
-          <ModalHeader>
-            {chain && chain.unsupported ? (
-              <Text>
-                Network not supported.
-                <br />
-                Please change to a supported network.
-              </Text>
-            ) : (
-              <Text>Error connecting</Text>
-            )}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            {chain && chain.unsupported ? (
-              <Button onClick={() => switchNetwork?.(1)}>
-                Switch to Ethereum Mainnet
-              </Button>
-            ) : (
-              'Error connecting. Try refreshing the page.'
-            )}
-          </ModalBody>
-        </ModalContent>
-      ) : (
-        <ModalContent
-          w={'280px'}
-          px={'0px'}
-          position={'absolute'}
-          right={'45px'}
-        >
-          <ModalHeader
-            fontFamily={'TitilliumWeb'}
-          >
-            <Text>
-              Connect Wallet
-            </Text>
-            <Text
-              fontSize={'12px'}
-              color={'#86929d'}
-              fontWeight={'normal'}
-            >
-              To start using Staking
-            </Text>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6} fontFamily={'TitilliumWeb'} px={0}>
-            {walletView === WALLET_VIEWS.PENDING ? (
-              <WalletPending
-                connector={pendingWallet}
-                error={pendingError}
-                setPendingError={setPendingError}
-                tryActivation={tryActivation}
-              />
-            ) : (
-              <>{getOptions()}</>
-            )}
-            {walletView !== WALLET_VIEWS.PENDING && (
-              <Flex flexDir={'column'} fontSize={'13px'} fontFamily={'TitilliumWeb'} ml={'25px'} mb={4}>
-                <Text pt={3} >
-                  New to Ethereum?{' '}
-                </Text>
-                <Link 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  href="https://ethereum.org/wallets/"
-                  color={'#2a72e5'}
-                >
-                  Learn more about wallets
-                </Link>
-              </Flex>
-            )}
-          </ModalBody>
-        </ModalContent>
-      )}
-    </Modal>
     </>
   );
 };

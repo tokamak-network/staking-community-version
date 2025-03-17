@@ -59,7 +59,19 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
         <HStack spacing={2} mb={1}>
           <Heading color={'#304156'} fontSize="24px" fontWeight={700}>{operator.name}</Heading>
           {isL2 && (
-            <Badge colorScheme="blue" fontSize="0.7em">L2</Badge>
+            <Flex 
+              bgColor={'#257eee'}
+              w={'34px'}
+              h={'18px'}
+              borderRadius={'3px'}
+              justifyContent={'center'}
+              fontSize={'12px'}
+              color={'#fff'}
+              fontWeight={600}
+              fontFamily={'Roboto'}
+            >
+              L2
+            </Flex>
           )}
         </HStack>
         

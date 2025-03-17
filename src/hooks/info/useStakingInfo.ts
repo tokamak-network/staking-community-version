@@ -16,7 +16,7 @@ export type SupplyValueProps = {
   width?: string;
 }
 
-export function useStakingInformation(candidateList?: any) {
+export function useStakingInformation() {
   const [stakingInfo, setStakingInfo] = useState<SupplyValueProps[]>([
     {
       title: "Staking APY",

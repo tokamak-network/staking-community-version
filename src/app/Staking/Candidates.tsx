@@ -137,7 +137,7 @@ const Candidates: React.FC = () => {
         top="0"
         left={0}
         right={0}
-        h="350px"
+        h="300px"
         pointerEvents="none"
         bgGradient="linear(to-b, rgba(250,251,252,1) 0%, rgba(250,251,252,0.9) 30%, rgba(250,251,252,0.5) 60%, transparent 100%)"
         zIndex={2}
@@ -147,7 +147,7 @@ const Candidates: React.FC = () => {
         bottom={0}
         left={0}
         right={0}
-        h="350px"
+        h="300px"
         pointerEvents="none"
         bgGradient="linear(to-t, rgba(250,251,252,1) 0%, rgba(250,251,252,0.9) 30%, rgba(250,251,252,0.5) 60%, transparent 100%)"
         zIndex={2}

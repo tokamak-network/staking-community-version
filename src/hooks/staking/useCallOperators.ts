@@ -9,6 +9,8 @@ import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
 import CandidateAddon from "@/abis/CandidateAddon.json";
 import OperatorManager from "@/abis/OperatorManager.json";
+import CandidateAddOn from "@/abis/CandidateAddon.json";
+import Layer2Manager from "@/abis/Layer2Manager.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
 import { useAPY } from "./useAPY";
@@ -71,10 +73,10 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        if (operatorsList.length > 0) {
-          setLoading(false);
-          return;
-        }
+        // if (operatorsList.length > 0) {
+        //   setLoading(false);
+        //   return;
+        // }
 
         if (!numLayer2Result?.data || !publicClient) return;
         
@@ -89,6 +91,13 @@ export default function useCallOperators() {
         
         const operators: Operator[] = [];
         let totalStakedAmount = BigNumber.from(0);
+
+        const layer2manager = getContract({
+          address: '0x53faC2e379cBfFd4C32D2b6FBBA83De102DDA2E5',
+          abi: Layer2Manager,
+          publicClient: publicClient
+        })
+        // console.log(layer2manager)
         
         for (let i = 0; i < numLayer2; i++) {
           try {
@@ -108,22 +117,24 @@ export default function useCallOperators() {
               candidateContract.read.stakedOf([address])
             ]);
 
-            const candidateAddon = getContract({
-              address: candidateAddress as `0x${string}`,
-              abi: CandidateAddon,
-              publicClient: publicClient,
-            })
+            // const candidateAddon = getContract({
+            //   address: candidateAddress as `0x${string}`,
+            //   abi: CandidateAddon,
+            //   publicClient: publicClient,
+            // })
 
-            const operatorAddress = await candidateAddon.read.operator();
-            const operatorManager = getContract({
-              address: operatorAddress as `0x${string}`,
-              abi: OperatorManager,
-              publicClient: publicClient
-            })
+            // console.log(await layer2manager.read.layer2CandidateOfOperator(["0x501C74df1aDEb8024738D880B01306a92d6e722d"]))
+            // const operatorAddress = await candidateAddon.read.operator();
+            // const operatorManager = getContract({
+            //   address: operatorAddress as `0x${string}`,
+            //   abi: OperatorManager,
+            //   publicClient: publicClient
+            // })
             // const manager = await operatorManager.read.manager();
-            // console.log(manager)
-            totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'))
+            
 
+            totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'))
+            
             const operatorInfo: Operator = {
               name: typeof memo === 'string' ? memo : candidateAddress as string,
               address: candidateAddress,
