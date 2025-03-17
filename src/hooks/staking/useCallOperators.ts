@@ -17,6 +17,7 @@ type SortDirection = "asc" | "desc";
 
 export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
+  const [totalStaked, setTotalStaked] = useState('0');
   const [loading, setLoading] = useRecoilState(operatorsLoadingState);
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); // 기본값은 내림차순
   const { address, isConnected } = useAccount();
@@ -70,10 +71,10 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        // if (operatorsList.length > 0) {
-        //   setLoading(false);
-        //   return;
-        // }
+        if (operatorsList.length > 0) {
+          setLoading(false);
+          return;
+        }
 
         if (!numLayer2Result?.data || !publicClient) return;
         
@@ -87,6 +88,7 @@ export default function useCallOperators() {
         });
         
         const operators: Operator[] = [];
+        let totalStakedAmount = BigNumber.from(0);
         
         for (let i = 0; i < numLayer2; i++) {
           try {
@@ -120,6 +122,7 @@ export default function useCallOperators() {
             })
             // const manager = await operatorManager.read.manager();
             // console.log(manager)
+            totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'))
 
             const operatorInfo: Operator = {
               name: typeof memo === 'string' ? memo : candidateAddress as string,
@@ -133,7 +136,7 @@ export default function useCallOperators() {
             console.error(`Error fetching operator at index ${i}:`, error);
           }
         }
-        
+        setTotalStaked(totalStakedAmount.toString());
         setOperatorsList(operators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
       } catch (error) {
         console.error("Error fetching operators:", error);
@@ -248,7 +251,6 @@ export default function useCallOperators() {
     refreshOperator,
     refreshAllOperators,
     sortOperators,
-    toggleSortDirection,
-    sortDirection
+    totalStaked
   };
 }
