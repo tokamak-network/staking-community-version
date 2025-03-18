@@ -22,8 +22,7 @@ interface OperatorItemProps {
 }
 
 export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator }) => {
-
-  const isL2 = operator.name.toLowerCase().includes('sepolia');
+  const isL2 = operator.isL2;
 
   const navigateToOperatorDetail = () => {
      window.location.href = `/${operator.address}`
@@ -58,21 +57,23 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       <Box flex="1">
         <HStack spacing={2} mb={1}>
           <Heading color={'#304156'} fontSize="24px" fontWeight={700}>{operator.name}</Heading>
-          {isL2 && (
-            <Flex 
-              bgColor={'#257eee'}
-              w={'34px'}
-              h={'18px'}
-              borderRadius={'3px'}
-              justifyContent={'center'}
-              fontSize={'12px'}
-              color={'#fff'}
-              fontWeight={600}
-              fontFamily={'Roboto'}
-            >
-              L2
-            </Flex>
-          )}
+          {
+            isL2 && (
+              <Flex 
+                bgColor={'#257eee'}
+                w={'34px'}
+                h={'18px'}
+                borderRadius={'3px'}
+                justifyContent={'center'}
+                fontSize={'12px'}
+                color={'#fff'}
+                fontWeight={600}
+                fontFamily={'Roboto'}
+              >
+                L2
+              </Flex>
+            )
+          }
         </HStack>
         
         <Flex 

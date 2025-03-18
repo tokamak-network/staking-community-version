@@ -206,8 +206,26 @@ export default function Page() {
           />
           Back
         </Flex>
-        <Flex fontSize={'30px'} fontWeight={700} flexDir={'row'} ml={'20px'}>
+        <Flex fontSize={'30px'} fontWeight={700} flexDir={'row'} ml={'20px'} alignItems={'center'}>
           {currentOperator?.name || 'Loading...'}
+          {
+            currentOperator?.isL2 && (
+              <Flex 
+                bgColor={'#257eee'}
+                w={'34px'}
+                h={'18px'}
+                borderRadius={'3px'}
+                justifyContent={'center'}
+                fontSize={'12px'}
+                color={'#fff'}
+                fontWeight={600}
+                fontFamily={'Roboto'}
+                ml={'5px'}
+              >
+                L2
+              </Flex>
+            )
+          }
           <Flex ml={'12px'} onClick={() => onOpenSelectModal()} cursor={'pointer'} _hover={{ transform: 'scale(1.05)' }}>
             <Image src={LIST_ARROW} alt={''} />
           </Flex>
@@ -410,10 +428,10 @@ export default function Page() {
                   textAlign={'right'} 
                   w={'100%'}
                 >
-                  {formatTotalStaked(expectedSeig)} TON
+                  {formatTotalStaked(currentOperator?.sequencerSeig || '0')} TON
                 </Text>
                 { 
-                  formatTotalStaked(expectedSeig) !== '0' && (
+                  formatTotalStaked(currentOperator?.sequencerSeig || '0') !== '0' && (
                     <Flex 
                       onClick={() => updateSeig({args: [operatorAddress]})}
                       {...updateSeigniorageStyle}

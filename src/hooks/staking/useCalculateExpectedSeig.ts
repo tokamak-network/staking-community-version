@@ -255,25 +255,7 @@ export function useExpectedSeig(
   // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
-      // Check if all required data is available
-      const dataInputs: DataInputs = {
-        publicClient, 
-        walletClient, 
-        account, 
-        candidateContract, 
-        tot: tot as `0x${string}` | undefined, 
-        coinageAddress: coinageAddress as `0x${string}` | undefined, 
-        lastSeigBlock, 
-        seigPerBlock, 
-        relativeSeigRate, 
-        tonTotalSupply, 
-        tonBalanceOfWTON, 
-        tonBalanceOfZero, 
-        tonBalanceOfOne, 
-        blockNumber,
-        stakedAmount
-      };
-
+   
       // if (!isDataReady(dataInputs)) {
       //   return;
       // }
@@ -387,20 +369,6 @@ export function useExpectedSeig(
     account, 
     candidateContract, 
     // txPending, 
-    publicClient, 
-    walletClient, 
-    blockNumber,
-    tot,
-    coinageAddress,
-    lastSeigBlock,
-    seigPerBlock,
-    relativeSeigRate,
-    tonTotalSupply,
-    tonBalanceOfWTON,
-    tonBalanceOfZero,
-    tonBalanceOfOne,
-    commissionRates,
-    isCommissionRateNegative,
     stakedAmount,
   ]);
 

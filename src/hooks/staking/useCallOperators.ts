@@ -2,18 +2,19 @@
 import { useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { operatorsListState, operatorsLoadingState, Operator } from "recoil/operator";
-import { useAccount, usePublicClient } from "wagmi";
-import { getContract } from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { getContract, isAddress } from "viem";
 import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
 import CandidateAddon from "@/abis/CandidateAddon.json";
 import OperatorManager from "@/abis/OperatorManager.json";
+import SeigManager from "@/abis/SeigManager.json";
+import WTON from "@/abis/WTON.json";
 import CandidateAddOn from "@/abis/CandidateAddon.json";
 import Layer2Manager from "@/abis/Layer2Manager.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
-import { useAPY } from "./useAPY";
 
 type SortDirection = "asc" | "desc";
 
@@ -25,6 +26,10 @@ export default function useCallOperators() {
   const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
+  const walletClient = useWalletClient();
+  
+  // const client = useClient();
+  
   
   const { result: numLayer2Result } = useCallL2Registry("numLayer2s");
   
@@ -68,16 +73,30 @@ export default function useCallOperators() {
     setSortDirection(newDirection);
     sortOperators(newDirection);
   };
-  // console.log(publicClient)
+  
+  const checkContractExists = async (address: string): Promise<boolean> => {
+    try {
+      if (!isAddress(address)) return false;
+      
+      const code = await publicClient.getBytecode({
+        address: address as `0x${string}`
+      });
+      
+      return code !== null && code !== undefined && code !== '0x';
+    } catch (error) {
+      console.error(`Error checking contract at ${address}:`, error);
+      return false;
+    }
+  };
   
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        // if (operatorsList.length > 0) {
-        //   setLoading(false);
-        //   return;
-        // }
-
+        if (operatorsList.length > 0) {
+          setLoading(false);
+          return;
+        }
+        
         if (!numLayer2Result?.data || !publicClient) return;
         
         setLoading(true);
@@ -86,8 +105,20 @@ export default function useCallOperators() {
         const layer2RegistryContract = getContract({
           address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
           abi: Layer2Registry,
-          publicClient: publicClient,
+          publicClient: publicClient
         });
+
+        const seigManagerContract = getContract({
+          address: CONTRACT_ADDRESS.SeigManager_ADDRESS,
+          abi: SeigManager,
+          publicClient: publicClient
+        })
+
+        const wtonContract = getContract({
+          address: CONTRACT_ADDRESS.WTON_ADDRESS,
+          abi: WTON,
+          publicClient: publicClient
+        })
         
         const operators: Operator[] = [];
         let totalStakedAmount = BigNumber.from(0);
@@ -96,8 +127,7 @@ export default function useCallOperators() {
           address: '0x53faC2e379cBfFd4C32D2b6FBBA83De102DDA2E5',
           abi: Layer2Manager,
           publicClient: publicClient
-        })
-        // console.log(layer2manager)
+        });
         
         for (let i = 0; i < numLayer2; i++) {
           try {
@@ -117,29 +147,79 @@ export default function useCallOperators() {
               candidateContract.read.stakedOf([address])
             ]);
 
-            // const candidateAddon = getContract({
-            //   address: candidateAddress as `0x${string}`,
-            //   abi: CandidateAddon,
-            //   publicClient: publicClient,
-            // })
+            const candidateAddon = getContract({
+              address: candidateAddress as `0x${string}`,
+              abi: CandidateAddon,
+              publicClient: publicClient,
+            });
 
-            // console.log(await layer2manager.read.layer2CandidateOfOperator(["0x501C74df1aDEb8024738D880B01306a92d6e722d"]))
-            // const operatorAddress = await candidateAddon.read.operator();
-            // const operatorManager = getContract({
-            //   address: operatorAddress as `0x${string}`,
-            //   abi: OperatorManager,
-            //   publicClient: publicClient
-            // })
-            // const manager = await operatorManager.read.manager();
+            const operatorAddress = await candidateAddon.read.operator();
+          
+            const operatorContractExists = await checkContractExists(operatorAddress as string);
+            if (!operatorContractExists) {
             
+              totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
+              
+              operators.push({
+                name: typeof memo === 'string' ? memo : candidateAddress as string,
+                address: candidateAddress,
+                totalStaked: totalStaked?.toString() || "0",
+                yourStaked: stakeOf?.toString() || "0",
+                isL2: false
+              });
+              
+              continue;
+            }
+            
+            const operatorManager = getContract({
+              address: operatorAddress as `0x${string}`,
+              abi: OperatorManager,
+              publicClient: publicClient
+            });
+            
+            let rollupConfig;
+            try {
+              rollupConfig = await operatorManager.read.rollupConfig();
+            } catch (error) {
+              // console.log(`rollupConfig function not available for operator: ${operatorAddress}`);
+              rollupConfig = null;
+            }
 
-            totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'))
+            let bridgeDetail = null;
+            let isL2 = false;
+            let sequencerSeig;
+            if (rollupConfig) {
+              try {
+                bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfig]);
+              
+                if (Array.isArray(bridgeDetail)) {
+                  isL2 = bridgeDetail[5] === 1 ? true : false;
+                  if (isL2) {
+                    const blockNumber = await publicClient.getBlockNumber();
+                    
+                    const wtonBalanceOfM = await wtonContract.read.balanceOf([operatorAddress]);
+                    
+                    const estimatedDistribution = await seigManagerContract.read.estimatedDistribute([Number(blockNumber.toString()) + 1, candidateAddress, true]) as { layer2Seigs: bigint };
+                    
+                    //@ts-ignore
+                    const addedWton = wtonBalanceOfM + estimatedDistribution[7];
+                    sequencerSeig = addedWton.toString();
+                  }
+                }  
+              } catch (error) {
+                console.log(`Failed to get bridge details: ${error}`);
+              }
+            }
+
+            totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
             
             const operatorInfo: Operator = {
               name: typeof memo === 'string' ? memo : candidateAddress as string,
               address: candidateAddress,
               totalStaked: totalStaked?.toString() || "0",
-              yourStaked: stakeOf?.toString() || "0"
+              yourStaked: stakeOf?.toString() || "0",
+              isL2: isL2,
+              sequencerSeig: sequencerSeig
             };
             
             operators.push(operatorInfo);
@@ -253,8 +333,6 @@ export default function useCallOperators() {
       setLoading(false);
     }
   };
-  
-  const a = useAPY('0x0F42D1C40b95DF7A1478639918fc358B4aF5298D');
   
   return { 
     operatorsList,

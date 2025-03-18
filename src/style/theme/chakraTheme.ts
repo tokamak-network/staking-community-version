@@ -1,17 +1,17 @@
 import { extendTheme } from "@chakra-ui/react";
-// import "@fontsource/poppins";
-// import "@fontsource/quicksand";
-// import "@fontsource/quicksand/700.css";
+import '@fontsource/titillium-web';
+import '@fontsource/roboto';
 
 const fonts = {
-  Poppins: "Poppins",
-  Quicksand: "Quicksand",
-};
+  TitilliumWeb: 'Titillium Web, sans-serif',
+  Roboto: 'Roboto',
+  Nanum: `'NanumSquareEB', sans-serif`,
+}
 
 const theme = extendTheme({
   fonts: {
-    body: fonts.Poppins,
-    Quicksand: fonts.Quicksand,
+    TitilliumWeb: 'Titillium Web, sans-serif',
+    Roboto: 'Roboto',
   },
 
   breakpoints: {

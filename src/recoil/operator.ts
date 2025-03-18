@@ -8,6 +8,8 @@ export interface Operator {
   address: string;
   totalStaked: string;
   yourStaked?: string;
+  isL2?: boolean;
+  sequencerSeig?: string;
 }
 
 

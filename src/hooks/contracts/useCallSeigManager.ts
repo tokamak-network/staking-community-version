@@ -17,7 +17,7 @@ export default function useCallSeigManager(functionName: string, args?: any) {
     args: args
   });
   
-  const provider = usePublicClient();
+  // const provider = usePublicClient();
   // const contract = getContract({
   //   address: Layer2Registry_ADDRESS,
   //   abi: Layer2Registry,
