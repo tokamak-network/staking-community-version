@@ -198,7 +198,7 @@ export default function Page() {
   return (
     <Container maxW="515px" py={5}>
       <Flex mb={6} align="center" justifyContent={'space-between'}>
-        <Flex alignItems={'center'} onClick={() => router.back()} cursor="pointer">
+        <Flex alignItems={'center'} onClick={() => router.push('/')} cursor="pointer">
           <IconButton
             aria-label="Back"
             icon={<ArrowBackIcon />}
@@ -386,65 +386,69 @@ export default function Page() {
           </Flex>
         </VStack>
       </Box>
-      <VStack>
-        <Flex 
-          fontSize={'16px'} 
-          fontWeight={700} 
-          color={'#1c1c1c'} 
-          justifyContent={'center'} 
-          w={'100%'}
-        >
-            Sequencer seigniorage
-        </Flex>
-        <Box
-          border="1px" 
-          borderColor={'#E7EBF2'} 
-          borderRadius="10px" 
-          bgColor={'#fff'}
-          p={5} 
-          mb={6}
-          w={'100%'}
-        >
-          <VStack spacing={6} align="stretch">
-            <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
-              <Text>TON Bridged to L2</Text>
-              <VStack spacing={0} align="end">
-                <Text fontSize={'14px'}>
-                  {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
-                </Text>
-              </VStack>
-            </Flex>
-            
-            <Divider />
-            
-            <Flex justify="space-between">
-              <VStack align="start" spacing={1}>
-                <Text fontWeight={600} color={'#1c1c1c'}>Claimable seigniorage</Text>
-              </VStack>
-              <VStack>
-                <Text 
-                  fontSize={'14px'} 
-                  fontWeight={600}
-                  textAlign={'right'} 
-                  w={'100%'}
-                >
-                  {formatTotalStaked(currentOperator?.sequencerSeig || '0')} TON
-                </Text>
-                { 
-                  formatTotalStaked(currentOperator?.sequencerSeig || '0') !== '0' && (
-                    <Flex 
-                      onClick={() => updateSeig({args: [operatorAddress]})}
-                      {...updateSeigniorageStyle}
-                    >
-                      Claim
-                    </Flex>
-                  )
-                }
-              </VStack>
-            </Flex>
-          </VStack>
-        </Box>
-      </VStack>
+      {
+        isL2 ?
+        <VStack>
+          <Flex 
+            fontSize={'16px'} 
+            fontWeight={700} 
+            color={'#1c1c1c'} 
+            justifyContent={'center'} 
+            w={'100%'}
+          >
+              Sequencer seigniorage
+          </Flex>
+          <Box
+            border="1px" 
+            borderColor={'#E7EBF2'} 
+            borderRadius="10px" 
+            bgColor={'#fff'}
+            p={5} 
+            mb={6}
+            w={'100%'}
+          >
+            <VStack spacing={6} align="stretch">
+              <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
+                <Text>TON Bridged to L2</Text>
+                <VStack spacing={0} align="end">
+                  <Text fontSize={'14px'}>
+                    {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
+                  </Text>
+                </VStack>
+              </Flex>
+              
+              <Divider />
+              
+              <Flex justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontWeight={600} color={'#1c1c1c'}>Claimable seigniorage</Text>
+                </VStack>
+                <VStack>
+                  <Text 
+                    fontSize={'14px'} 
+                    fontWeight={600}
+                    textAlign={'right'} 
+                    w={'100%'}
+                  >
+                    {formatTotalStaked(currentOperator?.sequencerSeig || '0')} TON
+                  </Text>
+                  { 
+                    formatTotalStaked(currentOperator?.sequencerSeig || '0') !== '0' && (
+                      <Flex 
+                        onClick={() => updateSeig({args: [operatorAddress]})}
+                        {...updateSeigniorageStyle}
+                      >
+                        Claim
+                      </Flex>
+                    )
+                  }
+                </VStack>
+              </Flex>
+            </VStack>
+          </Box>
+        </VStack> : ''
+      }
+      
 
       { 
         activeAction === 'Stake' &&

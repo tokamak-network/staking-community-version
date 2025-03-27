@@ -96,7 +96,7 @@ export default function useCallOperators() {
           setLoading(false);
           return;
         }
-        
+
         if (!numLayer2Result?.data || !publicClient) return;
         
         setLoading(true);

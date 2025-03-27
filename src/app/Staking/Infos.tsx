@@ -24,7 +24,7 @@ export default function Infos() {
   }, [stakingInfo]);
 
   return (
-    <Flex alignItems="center" h="100%" flexDir="column" w="500px">
+    <Flex alignItems="center" justifyContent={"center"} h="100%" flexDir="column" w="500px">
       <Text 
         fontSize="45px" 
         fontWeight={700} 
@@ -41,8 +41,8 @@ export default function Infos() {
         governance.
       </Text>
       
-      <Flex my="36px" alignItems="start" w="100%" fontSize="11px" color="#304156" fontWeight={400}>
-        <HStack mr="21px" h="21px">
+      <Flex my="18px" alignItems="start" w="100%" fontSize="11px" color="#304156" fontWeight={400}>
+        {/* <HStack mr="21px" h="21px">
           <Box w={2} h={2} rounded="full" bg="blue.500" />
           <Flex fontSize="sm" flexDir="row">
             <Text mr="3px">
@@ -63,7 +63,7 @@ export default function Infos() {
               <Image src={QUESTION_ICON} alt="question icon" />
             </Tooltip>
           </Flex>
-        </HStack>
+        </HStack> */}
       </Flex>
       
       {isLoading ? (

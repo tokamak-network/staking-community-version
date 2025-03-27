@@ -11,8 +11,8 @@ export default function StakingDashboard() {
   const theme = useTheme();
   
   return (
-    <Flex maxW="container.xl" p={4} flexDir={'row'} h={'100%'} justifyContent={'center'} alignItems={'center'} fontFamily={theme.fonts.TitilliumWeb}>
-      <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'} mr={'100px'}>
+    <Flex maxW="container.xl" p={4} flexDir={'row'} h={'100%'} justifyContent={'start'} alignItems={'start'} fontFamily={theme.fonts.TitilliumWeb}>
+      <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'} mr={'100px'} h={'1056px'}>
         <Info />
       </Flex>
       <Box mt={8}>

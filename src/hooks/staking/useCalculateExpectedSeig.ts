@@ -66,47 +66,6 @@ const CONSTANTS = {
 };
 
 /**
- * Helper function to check if all required data is available
- */
-const isDataReady = (data: DataInputs): boolean => {
-  const {
-    publicClient,
-    walletClient,
-    account,
-    candidateContract,
-    tot,
-    coinageAddress,
-    lastSeigBlock,
-    seigPerBlock,
-    relativeSeigRate,
-    tonTotalSupply,
-    tonBalanceOfWTON,
-    tonBalanceOfZero,
-    tonBalanceOfOne,
-    blockNumber,
-    stakedAmount
-  } = data;
-
-  return !!(
-    publicClient && 
-    walletClient && 
-    account && 
-    candidateContract && 
-    tot && 
-    coinageAddress && 
-    lastSeigBlock && 
-    seigPerBlock && 
-    relativeSeigRate && 
-    tonTotalSupply && 
-    tonBalanceOfWTON && 
-    tonBalanceOfZero && 
-    tonBalanceOfOne && 
-    blockNumber &&
-    stakedAmount !== '0'
-  );
-};
-
-/**
  * Sets the factor for refactoring
  */
 const setFactor = (factor_: bigint): FactorResult => {
