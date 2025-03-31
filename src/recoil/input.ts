@@ -14,4 +14,17 @@ const inputBalanceState = selector({
   },
 });
 
-export { inputState, inputBalanceState };
+const calculatorInputState = atom({
+  key: `inputState/${v1()}`,
+  default: '0',
+});
+
+const inputCalculatorBalanceState = selector({
+  key: `inputBalanceState/${v1()}`, // unique ID (with respect to other atoms/selectors)
+  get: ({ get }) => {
+    const selectedModalState = get(calculatorInputState);
+    return selectedModalState;
+  },
+});
+
+export { inputState, inputBalanceState, calculatorInputState, inputCalculatorBalanceState };

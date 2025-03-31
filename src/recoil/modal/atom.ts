@@ -21,3 +21,8 @@ export const transactionModalOpenStatus = atom<boolean>({
   key: "transactionModalOpenStatus",
   default: false,
 });
+
+export const calculatorModalStatus = atom<boolean>({
+  key: "calculatorStatus",
+  default: false,
+});

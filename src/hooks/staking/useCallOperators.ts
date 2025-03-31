@@ -15,6 +15,7 @@ import CandidateAddOn from "@/abis/CandidateAddon.json";
 import Layer2Manager from "@/abis/Layer2Manager.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
+import { useAllOperators } from '@ton-staking-sdk/react-kit';
 
 type SortDirection = "asc" | "desc";
 
@@ -26,10 +27,10 @@ export default function useCallOperators() {
   const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
-  const walletClient = useWalletClient();
+  // const walletClient = useWalletClient();
   
-  // const client = useClient();
-  
+  const { operators: operatorAddresses, isLoading } = useAllOperators();
+  // console.log(operators)
   
   const { result: numLayer2Result } = useCallL2Registry("numLayer2s");
   
@@ -68,12 +69,6 @@ export default function useCallOperators() {
     setSortDirection(direction);
   };
   
-  const toggleSortDirection = (): void => {
-    const newDirection = sortDirection === "asc" ? "desc" : "asc";
-    setSortDirection(newDirection);
-    sortOperators(newDirection);
-  };
-  
   const checkContractExists = async (address: string): Promise<boolean> => {
     try {
       if (!isAddress(address)) return false;
@@ -92,21 +87,14 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        if (operatorsList.length > 0) {
-          setLoading(false);
-          return;
-        }
+        // if (operatorsList.length > 0) {
+        //   setLoading(false);
+        //   return;
+        // }
 
         if (!numLayer2Result?.data || !publicClient) return;
         
         setLoading(true);
-        const numLayer2 = Number(numLayer2Result.data);
-        
-        const layer2RegistryContract = getContract({
-          address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
-          abi: Layer2Registry,
-          publicClient: publicClient
-        });
 
         const seigManagerContract = getContract({
           address: CONTRACT_ADDRESS.SeigManager_ADDRESS,
@@ -129,14 +117,12 @@ export default function useCallOperators() {
           publicClient: publicClient
         });
         
-        for (let i = 0; i < numLayer2; i++) {
+        for (let i = 0; i < operatorAddresses.length; i++) {
           try {
-            const candidateAddress: string = await layer2RegistryContract.read.layer2ByIndex([i]) as unknown as string;
             
-            if (!candidateAddress) continue;
-            
+            // console.log(operatorAddresses[i])
             const candidateContract = getContract({
-              address: candidateAddress as `0x${string}`,
+              address: operatorAddresses[i] as `0x${string}`,
               abi: Candidates.abi,
               publicClient: publicClient,
             });
@@ -148,7 +134,7 @@ export default function useCallOperators() {
             ]);
 
             const candidateAddon = getContract({
-              address: candidateAddress as `0x${string}`,
+              address: operatorAddresses[i]  as `0x${string}`,
               abi: CandidateAddon,
               publicClient: publicClient,
             });
@@ -161,8 +147,8 @@ export default function useCallOperators() {
               totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
               
               operators.push({
-                name: typeof memo === 'string' ? memo : candidateAddress as string,
-                address: candidateAddress,
+                name: typeof memo === 'string' ? memo : operatorAddresses[i] as string,
+                address: operatorAddresses[i],
                 totalStaked: totalStaked?.toString() || "0",
                 yourStaked: stakeOf?.toString() || "0",
                 isL2: false
@@ -199,7 +185,7 @@ export default function useCallOperators() {
                     
                     const wtonBalanceOfM = await wtonContract.read.balanceOf([operatorAddress]);
                     
-                    const estimatedDistribution = await seigManagerContract.read.estimatedDistribute([Number(blockNumber.toString()) + 1, candidateAddress, true]) as { layer2Seigs: bigint };
+                    const estimatedDistribution = await seigManagerContract.read.estimatedDistribute([Number(blockNumber.toString()) + 1, operatorAddresses[i], true]) as { layer2Seigs: bigint };
                     
                     //@ts-ignore
                     const addedWton = wtonBalanceOfM + estimatedDistribution[7];
@@ -214,8 +200,8 @@ export default function useCallOperators() {
             totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
             
             const operatorInfo: Operator = {
-              name: typeof memo === 'string' ? memo : candidateAddress as string,
-              address: candidateAddress,
+              name: typeof memo === 'string' ? memo : operatorAddresses[i] as unknown as string,
+              address: operatorAddresses[i],
               totalStaked: totalStaked?.toString() || "0",
               yourStaked: stakeOf?.toString() || "0",
               isL2: isL2,
@@ -237,7 +223,7 @@ export default function useCallOperators() {
     };
     
     fetchOperators();
-  }, [numLayer2Result?.data, publicClient, setOperatorsList, setLoading, sortDirection]);
+  }, [operatorAddresses, publicClient, isLoading, setLoading, sortDirection]);
   
   const refreshOperator = async (candidateAddress: string) => {
     try {
@@ -249,7 +235,7 @@ export default function useCallOperators() {
         publicClient: publicClient,
       });
       
-      const [totalStaked, memo] = await Promise.all([
+      const [totalStaked, memo, stakeOf] = await Promise.all([
         candidateContract.read.totalStaked(),
         candidateContract.read.memo(),
         candidateContract.read.stakedOf({ account: address })
@@ -266,7 +252,6 @@ export default function useCallOperators() {
             totalStaked: totalStaked?.toString() || prevList[operatorIndex].totalStaked
           };
           
-          // 업데이트 후 재정렬
           return newList.sort((a, b) => compareTotalStaked(a, b, sortDirection));
         });
       }

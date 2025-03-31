@@ -1,89 +1,103 @@
 import { Flex, Modal, ModalBody, ModalContent, ModalOverlay, useTheme, Text, Button, Input } from '@chakra-ui/react';
-import useModal from '@/hooks/useModal';
+import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
 import { useCallback, useMemo, useState } from 'react';
 import { ModalHeader } from './components/ModalHeader';
 import { CalculatorBody } from './components/CalculatorBody';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { durationState, selectedDurationState } from '@/atom/staking/duration';
-
-
-import { useWeb3React } from '@web3-react/core';
-import { inputBalanceState } from '@/recoil/input';
-import { modalState } from '@/atom/global/modal';
-
+import { Duration, durationState } from '@/recoil/duration/duration';
+import { inputCalculatorBalanceState } from '@/recoil/input';
 import { calculateRoi, calculateRoiBasedonCompound } from '@/utils/apy/calculateRoi';
 
 import useCallOperators from '@/hooks/staking/useCallOperators';
 import { ethers } from 'ethers';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
+import { useStakingInformation } from '@/hooks/info/useStakingInfo';
+import useCallSeigManager from '@/hooks/contracts/useCallSeigManager';
+import { useAllOperatorsTotalStaked, useOperatorStake } from '@ton-staking-sdk/react-kit';
 
 function CalculatorModal() {
   const theme = useTheme();
   const { btnStyle } = theme;
-  const { account } = useWeb3React();
-  const { closeModal, isModalLoading, selectedModalData } = useModal();
+  const { closeSelectModal, isOpen } = useCalculatorModal();
 
   const [duration, setDuration] = useRecoilState(durationState);
-  const input = useRecoilValue(inputBalanceState);
-  const [selectedModal, setSelectedModal] = useRecoilState(modalState);
+  const input = useRecoilValue(inputCalculatorBalanceState);
+
+  const { result: totalSupplyResult } = useCallSeigManager('totalSupplyOfTon');
 
   const [type, setType] = useState<'calculate' | 'result'>('calculate');
   const [roi, setROI] = useState('0');
   const [rewardTON, setRewardTON] = useState('0.00');
 
   const tonBalance = useTokenBalance('TON');
-  const { totalStaked } = useCallOperators();
-  console.log(totalStaked)
-  const totalStakedString = totalStaked ? ethers.utils.formatUnits(totalStaked, 27) : '0';
+
+  const { data: totalStaked, isLoading, error } = useAllOperatorsTotalStaked();
+  
+  const { stakingInfo } = useStakingInformation();
 
   const closeThisModal = useCallback(() => {
-    // setResetValue();
-    // setInput('0')
     setType('calculate');
     setDuration('1-year');
-    closeModal();
-  }, [closeModal]);
+    closeSelectModal();
+  }, [closeSelectModal]);
 
   const calButton = useCallback(async () => {
     const inputBalance = Number(input.replace(/,/g, ''));
-    const totalSup = await getTotalSupply();
+    console.log(totalStaked)
     
-    if (totalStakedString && selectedModalData) {
+    if (totalStaked) {
+      const totalStakedString = totalStaked ? ethers.utils.formatUnits(totalStaked, 27) : '0';
       const total = Number(totalStakedString.replace(/,/g, '')) + inputBalance;
-
-      const returnRate = calculateRoiBasedonCompound({ totalStakedAmount: total, totalSupply: totalSup, duration });
+      
+      const totalSupplyString = totalSupplyResult?.data ? 
+          ethers.utils.formatUnits(totalSupplyResult.data.toString(), 27) : '0';
+      // console.log(total, totalSupplyString, totalStakedString)
+      const returnRate = calculateRoiBasedonCompound({ totalStakedAmount: total, totalSupply: Number(totalSupplyString), duration });
+      // console.log(returnRate)
       const expectedSeig = inputBalance * (returnRate / 100);
 
       // const roi = returnRate.toLocaleString(undefined, { maximumFractionDigits: 2 });
       const rewardTON = expectedSeig.toLocaleString(undefined, { maximumFractionDigits: 2 });
-      
 
       setRewardTON(rewardTON);
       setROI(
-        selectedModalData.apy ?? '-',
+        returnRate.toString()
       );
       setType('result');
     }
-  }, [totalStakedString, duration, input]);
+  }, [totalStaked, duration, input]);
 
   const recalcButton = useCallback(() => {
     setType('calculate');
   }, []);
 
-  const toStakeButton = useCallback(async () => {
-    setSelectedModal('staking');
-    setType('calculate');
-    setDuration('1-year');
-  }, [setSelectedModal]);
+  const actionButtonStyle = (isActive: boolean) => ({
+    h: '38px',
+    borderRadius: '4px',
+    border: '1px',
+    borderColor: '#E7EBF2',
+    bgColor: isActive ? '#2a72e5' : 'white',
+    w: '130px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: isActive ? 'white' : '#808992',
+    _hover: {
+      bgColor: isActive ? '#1a62d5' : '#f5f7fa',
+      borderColor: isActive ? '#1a62d5' : '#d7dbe2',
+    },
+    transition: 'all 0.2s ease-in-out'
+  });
 
-  const totalStakedAmount = useMemo(() => {
-    //@ts-ignore
-    return selectedModalData?.stakedAmount ?? undefined;
-    //@ts-ignore
-  }, [selectedModalData?.stakedAmount]);
+  // const toStakeButton = useCallback(async () => {
+  //   setSelectedModal('staking');
+  //   setType('calculate');
+  //   setDuration('1-year');
+  // }, [setSelectedModal]);
+
+  
 
   return (
-    <Modal isOpen={selectedModal === 'calculator'} isCentered onClose={closeThisModal}>
+    <Modal isOpen={isOpen} isCentered onClose={closeThisModal}>
       <ModalOverlay>
         <ModalContent bg={'#fff'} w={'350px'} borderRadius={'15px'} boxShadow={'0 2px 6px 0 rgba(61, 73, 93, 0.1)'}>
           <ModalBody>
@@ -103,7 +117,7 @@ function CalculatorModal() {
               >
                 <Flex>
                   {type === 'calculate' ? (
-                    <CalculatorBody userBalance={tonBalance?.data?.parsedBalance} totalStaked={totalStakedAmount} />
+                    <CalculatorBody userBalance={tonBalance?.data?.parsedBalance} totalStaked={totalStaked} />
                   ) : (
                     <Flex flexDir={'column'} alignItems={'center'}>
                       <Text mt={'30px'} fontSize={'13px'} fontWeight={'normal'} color={'#2a72e5'}>
@@ -135,26 +149,24 @@ function CalculatorModal() {
               </Flex>
               <Flex flexDir={'column'} alignItems={'center'} mt={'25px'}>
                 {type === 'calculate' ? (
-                  <Button w={'150px'} h={'38px'} fontSize={'14px'} {...btnStyle.btnAble()} onClick={() => calButton()}>
+                  <Button 
+                    {...actionButtonStyle(true)}
+                    fontWeight={500}
+                    onClick={() => calButton()}
+                  >
                     Calculate
                   </Button>
                 ) : (
                   <Flex flexDir={'row'}>
                     <Button
-                      w={'130px'}
-                      h={'38px'}
-                      fontSize={'14px'}
-                      {...btnStyle.btnAble()}
+                      {...actionButtonStyle(true)}
                       mr={'10px'}
-                      onClick={() => toStakeButton()}
+                      // onClick={() => toStakeButton()}
                     >
                       Stake
                     </Button>
                     <Button
-                      w={'130px'}
-                      h={'38px'}
-                      fontSize={'14px'}
-                      {...btnStyle.btnAble()}
+                      {...actionButtonStyle(true)}
                       onClick={() => recalcButton()}
                     >
                       Recalculate

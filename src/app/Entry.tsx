@@ -10,9 +10,12 @@ import { Flex } from "@chakra-ui/react";
 // import Modals from "./Modals";
 // import Drawers from "./Drawers";
 // import Footer from "@/components/footer";
-import dynamic from "next/dynamic";
+import { sepolia } from 'viem/chains';
 import { Header } from "@/components/header";
 import Modals from "./Modal";
+import { TONStakingProvider } from '@ton-staking-sdk/react-kit';
+import { createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts"
 
 // const DynamicHeader = dynamic(() => import("@/components/header/Index"), {
 //   loading: () => <></>,
@@ -38,27 +41,43 @@ import Modals from "./Modal";
 export default function Entry({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
+  const testAccount = privateKeyToAccount(
+    `0x${process.env.NEXT_PUBLIC_PK}` as `0x${string}`
+  );
+  
+  const wallet = createWalletClient({
+    chain: sepolia,
+    transport: http(),
+    account: testAccount
+});
+
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <ChakraProvidersForNextJs>
-          <Flex flexDir={"column"} h={"100vh"}>
-            <Header />
-            <Flex flexDir={"column"} flexGrow={1}>
-              <Flex
-                justifyContent={"center"}
-                alignItems={"center"}
-                h={"100%"}
-              >
-                {children}
+        <TONStakingProvider
+          rpcUrl={process.env.NEXT_PUBLIC_SEPOLIA_RPC as string}
+          chainId={11155111}
+          // walletClient={wallet} // Optional: Include for write operations
+        >
+          <ChakraProvidersForNextJs>
+            <Flex flexDir={"column"} h={"100vh"}>
+              <Header />
+              <Flex flexDir={"column"} flexGrow={1}>
+                <Flex
+                  justifyContent={"center"}
+                  alignItems={"center"}
+                  h={"100%"}
+                >
+                  {children}
+                </Flex>
+                {/* <Footer /> */}
               </Flex>
-              {/* <Footer /> */}
+              {/* <GlobalComponents /> */}
+              {/* <Drawers /> */}
+              <Modals />
             </Flex>
-            {/* <GlobalComponents /> */}
-            {/* <Drawers /> */}
-            <Modals />
-          </Flex>
-        </ChakraProvidersForNextJs>
+          </ChakraProvidersForNextJs>
+        </TONStakingProvider>
       </QueryClientProvider>
     </>
   );
@@ -102,6 +121,7 @@ export default function Entry({ children }: { children: React.ReactNode }) {
         <div>{status}</div>
         <div>{error?.message}</div>
       </div> */}
+
 
 
     // </>

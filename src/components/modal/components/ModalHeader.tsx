@@ -1,5 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
-import CLOSE_ICON from 'assets/images/popup-close-icon.svg';
+// import CLOSE_ICON from 'assets/images/popup-close-icon.svg';
 import Image from 'next/image';
 
 export const ModalHeader = (args: { 
@@ -32,7 +32,7 @@ export const ModalHeader = (args: {
         cursor={'pointer'}
         onClick={() => closeThisModal()}
       >
-        <Image src={CLOSE_ICON} alt={'CLOSE_ICON'}></Image>
+        {/* <Image src={CLOSE_ICON} alt={'CLOSE_ICON'}></Image> */}
       </Flex>
       <Text color={'#3d495d'} fontSize={'20px'} fontWeight={'bold'}  mt={'6px'} w={'200px'} textAlign={'center'}>
         {main}

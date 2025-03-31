@@ -1,9 +1,9 @@
 // import { CalculatorBody } from './CalculatorBody';
 
 import { Flex, Input, Select, Text } from '@chakra-ui/react';
-import { BalanceInput } from '@/common/input/CustomInput';
+import { BalanceInput } from '@/components/input/CustomInput';
 import { useRecoilState } from 'recoil';
-import { Duration, durationState } from '@/atom/staking/duration';
+import { Duration, durationState } from '@/recoil/duration/duration';
 
 export const CalculatorBodyRow = (args: { title: string; value: any }) => {
   const [duration, setDuration] = useRecoilState(durationState);

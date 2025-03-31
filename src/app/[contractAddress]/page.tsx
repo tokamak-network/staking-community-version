@@ -31,7 +31,7 @@ import WTON_SYMBOL from '@/assets/images/wton_symbol.svg';
 import Image from 'next/image';
 import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
 import { inputState } from '@/recoil/input';
-import useTokenBalance from '@/hooks/balance/useTonBalance';
+// import useTokenBalance from '@/hooks/balance/useTonBalance';
 import useStakeTON from '@/hooks/staking/useStaking';
 import { marshalString, unmarshalString } from '@/utils/format/marshalString';
 import { padLeft } from 'web3-utils';
@@ -39,6 +39,8 @@ import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert'
 import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
+import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
+import { useTONBalance, useUserStakeAmount, useOperatorStake } from '@ton-staking-sdk/react-kit';
 
 const {
   TON_ADDRESS,
@@ -72,9 +74,16 @@ export default function Page() {
 
   const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  const { openCalculatorModal, isOpen } = useCalculatorModal();
 
-  const tonBalance = useTokenBalance(activeToken);
+  const { data: tonBalance } = useTONBalance({ account: address });
+  const { data: operatorStake } = useOperatorStake({ layer2Address: (currentOperator?.address || '') as `0x${string}` })
+  const { data: stakedAmount } = useUserStakeAmount({
+    layer2Address: (currentOperator?.address || '') as `0x${string}`, 
+    accountAddress: address  as `0x${string}` 
+  })
+  // console.log(operatorStake)
 
   const { stakeTON: _stakeTON, stakeWTON, unstake, withdraw, restake, updateSeig } = useStakeTON();
 
@@ -115,9 +124,9 @@ export default function Page() {
     }
   }, [])
 
-  const formatTotalStaked = useCallback((amount: string) => {
+  const formatUnits = useCallback((amount: string, unit: number) => {
     try {
-      return commafy(ethers.utils.formatUnits(amount, 27), 2);
+      return commafy(ethers.utils.formatUnits(amount, unit), 2);
     } catch (e) {
       return '0';
     }
@@ -143,7 +152,6 @@ export default function Page() {
     )
   }, [])
   
-  // L2 여부 체크
   const isL2 = currentOperator?.name.toLowerCase().includes('sepolia');
 
   const actionButtonStyle = (isActive: boolean) => ({
@@ -241,7 +249,7 @@ export default function Page() {
         />
         <HeadInfo 
           title="Total staked" 
-          value={`${currentOperator ? formatTotalStaked(currentOperator.totalStaked) : '0'} TON`}
+          value={`${formatUnits(operatorStake, 27) } TON`}
           label=""
         />
         <HeadInfo 
@@ -275,7 +283,7 @@ export default function Page() {
           color="blue.500" 
           fontWeight="medium"
           cursor="pointer"
-          onClick={onOpen}
+          onClick={() => openCalculatorModal()}
           _hover={{
             color: "blue.600",
             textDecoration: "underline"
@@ -304,7 +312,7 @@ export default function Page() {
             fontSize={'12px'}
             fontWeight={400}
           >
-            Balance: {tonBalance?.data?.parsedBalance || '0'} TON
+            Balance: {formatUnits(tonBalance, 18) || '0'} TON
           </Text>
         </Flex>
 
@@ -312,7 +320,7 @@ export default function Page() {
         <Flex mb={'15px'} align="center"  flexDir={'row'} h={'90px'}>
           <BalanceInput 
             placeHolder={'0.00'}
-            type={'unstaking'}
+            type={'staking'}
             // maxValue={stakedAmount ? stakedAmount.replace(/\,/g,'') : '0.00'}
             maxValue={'0.00'}
           />
@@ -347,7 +355,7 @@ export default function Page() {
             <Text >Your Staked amount</Text>
             <VStack spacing={0} align="end">
               <Text fontSize={'14px'}>
-                {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
+                {formatUnits(stakedAmount || '0', 27)} TON
               </Text>
             </VStack>
           </Flex>
@@ -370,10 +378,10 @@ export default function Page() {
                 textAlign={'right'} 
                 w={'100%'}
               >
-                {formatTotalStaked(expectedSeig)} TON
+                {formatUnits(expectedSeig, 27)} TON
               </Text>
               { 
-                formatTotalStaked(expectedSeig) !== '0' && (
+                formatUnits(expectedSeig, 27) !== '0' && (
                   <Flex 
                     onClick={() => updateSeig({args: [operatorAddress]})}
                     {...updateSeigniorageStyle}
@@ -412,7 +420,7 @@ export default function Page() {
                 <Text>TON Bridged to L2</Text>
                 <VStack spacing={0} align="end">
                   <Text fontSize={'14px'}>
-                    {formatTotalStaked(currentOperator?.yourStaked || '0')} TON
+                    {formatUnits(stakedAmount || '0', 27)} TON
                   </Text>
                 </VStack>
               </Flex>
@@ -427,13 +435,13 @@ export default function Page() {
                   <Text 
                     fontSize={'14px'} 
                     fontWeight={600}
-                    textAlign={'right'} 
+                    textAlign={'right'}
                     w={'100%'}
                   >
-                    {formatTotalStaked(currentOperator?.sequencerSeig || '0')} TON
+                    {formatUnits(currentOperator?.sequencerSeig || '0', 27)} TON
                   </Text>
                   { 
-                    formatTotalStaked(currentOperator?.sequencerSeig || '0') !== '0' && (
+                    formatUnits(currentOperator?.sequencerSeig || '0', 27) !== '0' && (
                       <Flex 
                         onClick={() => updateSeig({args: [operatorAddress]})}
                         {...updateSeigniorageStyle}
