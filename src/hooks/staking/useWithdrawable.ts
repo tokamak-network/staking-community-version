@@ -19,6 +19,8 @@ export function useWithdrawableLength(
   
   const [withdrawableLength, setWithdrawableLength] = useState('0');
   const [withdrawableAmount, setWithdrawableAmount] = useState('0');
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [pendingUnstaked, setPendingUnstaked] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWithdrawableLength = useCallback(async () => {
@@ -39,8 +41,10 @@ export function useWithdrawableLength(
 
       // Get number of pending requests and request index
       const numPendingRequests = await depositManagerContract.read.numPendingRequests([layer2, account]);
-
+      
       let requestIndex = await depositManagerContract.read.withdrawalRequestIndex([layer2, account]);
+
+      const pendingUnstaked = await depositManagerContract.read.pendingUnstaked([layer2, account]) as bigint;
 
       // Collect all pending requests
       const pendingRequests = [];
@@ -57,8 +61,10 @@ export function useWithdrawableLength(
       const reduceAmount = (acc: BigNumber, req: any) => acc.add(req[1]);
       const withdrawableAmount = withdrawableList.reduce(reduceAmount, initial);
 
+      setPendingUnstaked(pendingUnstaked.toString())
       setWithdrawableAmount(withdrawableAmount.toString())
       setWithdrawableLength(String(withdrawableList.length));
+      setPendingRequests(Number(numPendingRequests))
     } catch (error) {
       console.error('Error fetching withdrawable length:', error);
     } finally {
@@ -73,6 +79,8 @@ export function useWithdrawableLength(
   return {
     withdrawableAmount,
     withdrawableLength,
+    pendingRequests,
+    pendingUnstaked,
     isLoading,
     refetch: fetchWithdrawableLength
   };

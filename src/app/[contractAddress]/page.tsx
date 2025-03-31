@@ -86,7 +86,7 @@ export default function Page() {
     accountAddress: address  as `0x${string}` 
   })
   // console.log(operatorStake)
-  const { withdrawableLength, withdrawableAmount } = useWithdrawableLength(currentOperator?.address as `0x${string}`);
+  const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(currentOperator?.address as `0x${string}`);
   const { stakeTON: _stakeTON, stakeWTON, unstake, withdraw, restake, updateSeig } = useStakeTON();
 
   useEffect(() => {
@@ -123,6 +123,9 @@ export default function Page() {
             args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
           })
         case 'Restake':
+          return restake({
+            args: [operatorAddress, pendingRequests]
+          })
         default:
           return console.error("action mode is not found");
       }
@@ -264,7 +267,7 @@ export default function Page() {
         />
       </Flex>
 
-      <HStack spacing={3} mb={6} flexWrap="wrap" fontSize={'12px'} px={'18px'}>
+      <HStack spacing={2} mb={3} flexWrap="wrap" fontSize={'12px'} px={'5px'}>
         <Button 
           onClick={() => setActiveAction('Stake')}
           {...actionButtonStyle(activeAction === 'Stake')}
@@ -285,6 +288,15 @@ export default function Page() {
           {...actionButtonStyle(activeAction === 'Withdraw')}
         >
           Withdraw
+        </Button>
+        <Button 
+          onClick={() => {
+            setValue(formatUnits(withdrawableAmount, 27))
+            setActiveAction('Restake')
+          }}
+          {...actionButtonStyle(activeAction === 'Restake')}
+        >
+          Restake
         </Button>
         <Link 
           ml="auto" 
@@ -326,14 +338,14 @@ export default function Page() {
 
         <Flex mb={'15px'} align="center" justifyContent={'space-between'}  flexDir={'row'} h={'90px'}>
           {
-            activeAction === 'Withdraw' ?
+            activeAction === 'Withdraw' || activeAction === 'Restake' ?
             <Flex
               fontSize={'30px'}
               fontFamily={'Open Sans'}
               fontWeight={600}
               ml={'15px'}
             >
-              {formatUnits(withdrawableAmount, 27)}
+              {formatUnits(activeAction === 'Withdraw' ? withdrawableAmount : pendingUnstaked, 27)}
             </Flex>
             :
             <BalanceInput 
@@ -364,7 +376,8 @@ export default function Page() {
             value !== '0.00' && value && value !== '0' 
               ? activeAction === 'Stake' ? 'Stake'
               : activeAction === 'Unstake' ? 'Unstake'
-              : 'Withdraw'
+              : activeAction === 'Withdraw' ? 'Withdraw'
+              : 'Restake'
               : 'Enter an amount'
           } 
         </Button>
