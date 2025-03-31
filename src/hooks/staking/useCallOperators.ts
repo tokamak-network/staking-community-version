@@ -1,7 +1,7 @@
 // hooks/useCallOperators.ts
 import { useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { operatorsListState, operatorsLoadingState, Operator } from "recoil/operator";
+import { operatorsListState, operatorsLoadingState, Operator } from "@/recoil/staking/operator";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { getContract, isAddress } from "viem";
 import { BigNumber } from "ethers";
@@ -23,7 +23,7 @@ export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
   const [totalStaked, setTotalStaked] = useState('0');
   const [loading, setLoading] = useRecoilState(operatorsLoadingState);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); // 기본값은 내림차순
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); 
   const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
@@ -31,8 +31,6 @@ export default function useCallOperators() {
   
   const { operators: operatorAddresses, isLoading } = useAllOperators();
   // console.log(operators)
-  
-  const { result: numLayer2Result } = useCallL2Registry("numLayer2s");
   
   const compareTotalStaked = (a: Operator, b: Operator, direction: SortDirection): number => {
     try {
@@ -87,12 +85,10 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        // if (operatorsList.length > 0) {
-        //   setLoading(false);
-        //   return;
-        // }
-
-        if (!numLayer2Result?.data || !publicClient) return;
+        if (operatorsList.length > 0) {
+          setLoading(false);
+          return;
+        }
         
         setLoading(true);
 
@@ -267,11 +263,6 @@ export default function useCallOperators() {
     try {
       setLoading(true);
       
-      if (!publicClient || !numLayer2Result?.data) {
-        return false;
-      }
-      
-      const numLayer2 = Number(numLayer2Result.data);
       const layer2RegistryContract = getContract({
         address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
         abi: Layer2Registry,
@@ -280,9 +271,9 @@ export default function useCallOperators() {
       
       const operators: Operator[] = [];
       
-      for (let i = 0; i < numLayer2; i++) {
+      for (let i = 0; i < operatorAddresses.length; i++) {
         try {
-          const candidateAddress = await layer2RegistryContract.read.layer2ByIndex([i]);
+          const candidateAddress = operatorAddresses[i];
           
           if (!candidateAddress) continue;
           

@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useRecoilValue } from 'recoil';
-import { filteredOperatorsState } from '@/recoil/operator';
+import { filteredOperatorsState } from '@/recoil/staking/operator';
 import { getAvatarBgColor, getInitials } from '@/utils/color/getAvatarInfo';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 

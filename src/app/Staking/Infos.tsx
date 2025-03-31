@@ -11,14 +11,15 @@ import { useState, useEffect } from 'react';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 import Image from 'next/image';
 import { StakingInfo } from './components/StakingInfo';
-import { useStakingInformation, SupplyValueProps } from '@/hooks/info/useStakingInfo';
+import { useStakingInformation } from '@/hooks/info/useStakingInfo';
+import { SupplyValueProps } from 'recoil/staking/info';
 
 export default function Infos() {
   const [isLoading, setIsLoading] = useState(true);
   const { stakingInfo } = useStakingInformation();
 
   useEffect(() => {
-    if (stakingInfo && stakingInfo.length > 0 && stakingInfo[0].value !== 0) {
+    if (stakingInfo && stakingInfo.length > 0 && stakingInfo[0].value !== 0 && stakingInfo[0].value !== Infinity) {
       setIsLoading(false);
     }
   }, [stakingInfo]);

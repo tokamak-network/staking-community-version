@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
-import { Operator } from 'recoil/operator';
+import { Operator } from '@/recoil/staking/operator';
 import React from 'react';
 import { getAvatarBgColor, getInitials } from '@/utils/color/getAvatarInfo';
 

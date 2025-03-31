@@ -19,7 +19,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAccount, useBalance } from 'wagmi';
 // import StakingCalculator from '@/components/StakingCalculator';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import { operatorsListState, filteredOperatorsState, Operator } from "recoil/operator";
+import { operatorsListState, filteredOperatorsState, Operator } from "@/recoil/staking/operator";
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
 import CONTRACT_ADDRESS from '@/constant/contracts';
@@ -41,6 +41,8 @@ import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
 import { useTONBalance, useUserStakeAmount, useOperatorStake } from '@ton-staking-sdk/react-kit';
+import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
+import { format } from 'path';
 
 const {
   TON_ADDRESS,
@@ -84,13 +86,13 @@ export default function Page() {
     accountAddress: address  as `0x${string}` 
   })
   // console.log(operatorStake)
-
+  const { withdrawableLength, withdrawableAmount } = useWithdrawableLength(currentOperator?.address as `0x${string}`);
   const { stakeTON: _stakeTON, stakeWTON, unstake, withdraw, restake, updateSeig } = useStakeTON();
 
   useEffect(() => {
 
   }, [currentOperator]);
-
+  // console.log(activeAction)
   const onClick = useCallback(() => {
     const amount = floatParser(value);
     console.log(amount, activeAction)
@@ -117,12 +119,15 @@ export default function Page() {
             args: [operatorAddress, rayAmouont]
           })
         case 'Withdraw':
+          return withdraw({
+            args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+          })
         case 'Restake':
         default:
           return console.error("action mode is not found");
       }
     }
-  }, [])
+  }, [activeAction, withdrawableLength, value])
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -273,7 +278,10 @@ export default function Page() {
           Unstake
         </Button>
         <Button 
-          onClick={() => setActiveAction('Withdraw')}
+          onClick={() => {
+            setValue(formatUnits(withdrawableAmount, 27))
+            setActiveAction('Withdraw')
+          }}
           {...actionButtonStyle(activeAction === 'Withdraw')}
         >
           Withdraw
@@ -316,14 +324,25 @@ export default function Page() {
           </Text>
         </Flex>
 
-        {/* 금액 입력 */}
-        <Flex mb={'15px'} align="center"  flexDir={'row'} h={'90px'}>
-          <BalanceInput 
-            placeHolder={'0.00'}
-            type={'staking'}
-            // maxValue={stakedAmount ? stakedAmount.replace(/\,/g,'') : '0.00'}
-            maxValue={'0.00'}
-          />
+        <Flex mb={'15px'} align="center" justifyContent={'space-between'}  flexDir={'row'} h={'90px'}>
+          {
+            activeAction === 'Withdraw' ?
+            <Flex
+              fontSize={'30px'}
+              fontFamily={'Open Sans'}
+              fontWeight={600}
+              ml={'15px'}
+            >
+              {formatUnits(withdrawableAmount, 27)}
+            </Flex>
+            :
+            <BalanceInput 
+              placeHolder={'0.00'}
+              type={'staking'}
+              // maxValue={stakedAmount ? stakedAmount.replace(/\,/g,'') : '0.00'}
+              maxValue={formatUnits(tonBalance, 18)}
+            />
+          }
           <Flex align="center" mr={'15px'}>
             <Image src={ activeToken === 'TON' ? TON_SYMBOL : WTON_SYMBOL} alt={''}/>
             <Text 

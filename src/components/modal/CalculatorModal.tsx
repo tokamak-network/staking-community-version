@@ -32,8 +32,6 @@ function CalculatorModal() {
   const tonBalance = useTokenBalance('TON');
 
   const { data: totalStaked, isLoading, error } = useAllOperatorsTotalStaked();
-  
-  const { stakingInfo } = useStakingInformation();
 
   const closeThisModal = useCallback(() => {
     setType('calculate');

@@ -2,7 +2,6 @@
 import { atom, selector } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
-// 오퍼레이터 타입 정의
 export interface Operator {
   name: string;
   address: string;
@@ -18,14 +17,12 @@ const { persistAtom } = recoilPersist({
   storage: typeof window === 'undefined' ? undefined : window.localStorage  // Next.js 서버 사이드 렌더링 고려
 });
 
-// 오퍼레이터 리스트를 위한 atom
 export const operatorsListState = atom<Operator[]>({
   key: 'operatorsListState', 
   default: [], 
   effects_UNSTABLE: [persistAtom],
 });
 
-// 오퍼레이터 로딩 상태를 위한 atom
 export const operatorsLoadingState = atom<boolean>({
   key: 'operatorsLoadingState',
   default: true,

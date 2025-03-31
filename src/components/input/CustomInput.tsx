@@ -57,25 +57,28 @@ function BalanceInput(props: InputProp) {
   };
 
   const getButtonPosition = () => {
-    if (!value || value.length <= 5) return "76px";
+    if (!value || value.length <= 5) return "86px";
     
-    const charWidth = 17;
+    const charWidth = 16.5;
     const maxChars = 20;
-    const basePos = 76;
+    const basePos = 86;
     const charsToConsider = Math.min(value.length - 5, maxChars);
-    
-    return `${basePos + (charsToConsider * charWidth)}px`;
+
+    const maxPosition = basePos + (charsToConsider * charWidth) > 310 ? 310 : basePos + (charsToConsider * charWidth)
+    return `${maxPosition}px`;
   };
 
   const inputStaking = () => ({
-    fontSize:'32px',
+    fontSize:'30px',
     height:'100%',
     borderRadius: 0,
     textAlign:'center',
     overflow:'auto',
-    fontWeight:600,
+    fontWeight: 600,
+    fontFamily: 'Open Sans',
     _placeholder:{ color: '#304156' },
     border: '',
+    mt: '4.5px',
     ml:'15px',
   })
 
@@ -103,39 +106,9 @@ function BalanceInput(props: InputProp) {
     marginLeft: '5px',
     marginTop: '1px',
   })
-
-  const maxStaking = () => ({
-    // pos: 'absolute',
-    // right:'-60px',
-    w:'50px',
-    h:'26px',
-    mt:'10px',
-    bg:'none',
-    fontSize:'12px',
-    color:'#2a72e5',
-    fontWeight:'normal',
-    cursor:'pointer',
-    border: '1px solid #2a72e5',
-    _hover:{
-      border: '1px solid #2a72e5',
-    },
-  })
-  const maxCalc = () => ({
-    h: '32px',
-    w: '56px',
-    ml: '5px',
-    border: '1px solid #dfe4ee',
-    _hover:{
-      border: '1px solid #dfe4ee',
-    },
-    bg:'none',
-    fontSize: '12px',
-    fontWeight: 'normal',
-    color: '#86929d',
-  })
   
   return (
-    <Flex alignItems="center" position="relative" w="100%" justifyContent="flex-start">
+    <Flex alignItems="center" position="relative" justifyContent="flex-start">
       <NumberInput
         isInvalid={isError}
         w={type === 'staking' ? "auto" : '118px'}
@@ -149,10 +122,7 @@ function BalanceInput(props: InputProp) {
       >
         <Flex>
           <NumberInputField
-            // fontSize={'30px'}
-            // fontWeight={600}
-            color="gray.400"
-            // border="none"
+            color="#1c1c1c"
             p={0}
             pl={0}
             {...(
