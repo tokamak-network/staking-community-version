@@ -11,7 +11,6 @@ import CandidateAddon from "@/abis/CandidateAddon.json";
 import OperatorManager from "@/abis/OperatorManager.json";
 import SeigManager from "@/abis/SeigManager.json";
 import WTON from "@/abis/WTON.json";
-import CandidateAddOn from "@/abis/CandidateAddon.json";
 import Layer2Manager from "@/abis/Layer2Manager.json";
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
@@ -30,7 +29,6 @@ export default function useCallOperators() {
   // const walletClient = useWalletClient();
   
   const { operators: operatorAddresses, isLoading } = useAllOperators();
-  // console.log(operators)
   
   const compareTotalStaked = (a: Operator, b: Operator, direction: SortDirection): number => {
     try {
@@ -85,7 +83,7 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        if (operatorsList.length > 0) {
+        if (operatorsList.length > 0 && operatorAddresses.length === operatorsList.length) {
           setLoading(false);
           return;
         }
@@ -108,7 +106,7 @@ export default function useCallOperators() {
         let totalStakedAmount = BigNumber.from(0);
 
         const layer2manager = getContract({
-          address: '0x53faC2e379cBfFd4C32D2b6FBBA83De102DDA2E5',
+          address: '0x58B4C2FEf19f5CDdd944AadD8DC99cCC71bfeFDc',
           abi: Layer2Manager,
           publicClient: publicClient
         });
@@ -224,7 +222,7 @@ export default function useCallOperators() {
   const refreshOperator = async (candidateAddress: string) => {
     try {
       if (!publicClient) return;
-      
+      console.log('aaa')
       const candidateContract = getContract({
         address: candidateAddress as `0x${string}`,
         abi: Candidates.abi,
@@ -234,7 +232,7 @@ export default function useCallOperators() {
       const [totalStaked, memo, stakeOf] = await Promise.all([
         candidateContract.read.totalStaked(),
         candidateContract.read.memo(),
-        candidateContract.read.stakedOf({ account: address })
+        candidateContract.read.stakedOf([address])
       ]);
       
       const operatorIndex = (operatorsList as Operator[]).findIndex(op => op.address === candidateAddress);
@@ -245,7 +243,8 @@ export default function useCallOperators() {
           newList[operatorIndex] = {
             name: typeof memo === 'string' ? memo : prevList[operatorIndex].name,
             address: prevList[operatorIndex].address,
-            totalStaked: totalStaked?.toString() || prevList[operatorIndex].totalStaked
+            totalStaked: totalStaked?.toString() || prevList[operatorIndex].totalStaked,
+            yourStaked: stakeOf?.toString() || "0",
           };
           
           return newList.sort((a, b) => compareTotalStaked(a, b, sortDirection));
@@ -262,12 +261,11 @@ export default function useCallOperators() {
   const refreshAllOperators = async () => {
     try {
       setLoading(true);
-      
-      const layer2RegistryContract = getContract({
-        address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
-        abi: Layer2Registry,
-        publicClient: publicClient,
-      });
+      // const layer2RegistryContract = getContract({
+      //   address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
+      //   abi: Layer2Registry,
+      //   publicClient: publicClient,
+      // });
       
       const operators: Operator[] = [];
       

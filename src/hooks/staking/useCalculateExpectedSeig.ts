@@ -19,6 +19,8 @@ import TON_ABI from '@/abis/TON.json';
 import WTON_ABI from '@/abis/WTON.json';
 import DepositManager_ABI from '@/abis/DepositManager.json';
 import SeigManager_ABI from '@/abis/SeigManager.json';
+import { useRecoilState } from 'recoil';
+import { txPendingStatus } from '@/recoil/transaction/tx';
 
 // Type definitions
 interface BalanceAndFactor {
@@ -211,14 +213,12 @@ export function useExpectedSeig(
     enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
+  const [txPending, ] = useRecoilState(txPendingStatus);
+
   // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
    
-      // if (!isDataReady(dataInputs)) {
-      //   return;
-      // }
-
       try {
         // Tot contract reads
         const [totTotalSupply, totFactor, totBalanceAndFactorResult] = await Promise.all([
@@ -295,7 +295,7 @@ export function useExpectedSeig(
         const _seigOfLayer = nextBalanceOfLayerInTot - coinageTotalSupply;
         
         let seig: bigint;
-        const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
+      const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
         
         if (commissionRateValue !== BigInt(0)) {
           if (!isCommissionRateNegative) {
@@ -327,7 +327,7 @@ export function useExpectedSeig(
   }, [
     account, 
     candidateContract, 
-    // txPending, 
+    txPending, 
     stakedAmount,
   ]);
 

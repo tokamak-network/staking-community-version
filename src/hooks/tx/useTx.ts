@@ -1,0 +1,187 @@
+import { txDataStatus, txHashLog, txHashStatus, txPendingStatus } from "@/recoil/transaction/tx";
+import { useMemo } from "react";
+import { useEffect } from "react";
+import { useRecoilState } from "recoil";
+import { useNetwork, useWaitForTransaction } from "wagmi";
+import useCallOperators from "../staking/useCallOperators";
+import { inputState } from "@/recoil/input";
+import { useRef } from "react";
+
+
+export function useTransaction() {
+  const [txData] = useRecoilState(txDataStatus);
+
+  const pendingTransactionToApprove = useMemo(() => {
+    if (txData)
+      return Object.entries(txData).filter(([, value]) => {
+        return (
+          value.transactionHash === undefined
+        );
+      });
+  }, [txData]);
+
+  const pendingTransaction = useMemo(() => {
+    if (txData)
+      return Object.entries(txData).filter(([, value]) => {
+        return value.transactionHash === undefined;
+      });
+    return undefined;
+  }, [txData]);
+
+  const isPending = useMemo(() => {
+    if (pendingTransaction && pendingTransaction.length > 0) {
+      return true;
+    }
+    return false;
+  }, [pendingTransaction, txData]);
+
+  const confirmedTransaction = useMemo(() => {
+    if (txData)
+      return Object.entries(txData).filter(([, value]) => {
+        return value.transactionHash !== undefined ? value : undefined;
+      });
+  }, [txData]);
+
+  const confirmedApproveTransaction = useMemo(() => {
+    if (txData) {
+      const filteredData = Object.entries(txData).filter(([, value]) => {
+        return (
+          value.transactionState === "success"
+        );
+      })[0];
+      if (filteredData && filteredData[1]) {
+        return filteredData[1];
+      }
+    }
+  }, [txData]);
+
+  const confirmedRevokeTransaction = useMemo(() => {
+    if (txData) {
+      const filteredData = Object.entries(txData).filter(([, value]) => {
+        return (
+          value.transactionState === "success"
+        );
+      })[0];
+      if (filteredData && filteredData[1]) {
+        return filteredData[1];
+      }
+    }
+  }, [txData]);
+
+  // useEffect(() => {
+  //   setTxData(undefined);
+  // }, [connectedChainId]);
+
+  return {
+    allTransaction: txData,
+    pendingTransaction,
+    isPending,
+    pendingTransactionToApprove,
+    confirmedTransaction,
+    confirmedApproveTransaction,
+    confirmedRevokeTransaction,
+  };
+}
+
+export function useTx(params: {
+  hash: `0x${string}` | undefined;
+  layer2: `0x${string}`;
+  // actionSort?: ActionSort;
+}) {
+  const { hash, layer2 } = params;
+  const { chain: connectedChainId } = useNetwork();
+  const { data, isLoading, isSuccess, isError } = useWaitForTransaction({
+    hash,
+    chainId: connectedChainId?.id,
+  });
+
+  const [, setTxData] = useRecoilState(txDataStatus);
+  const [, setTxPending] = useRecoilState(txPendingStatus);
+  const [, setTxHash] = useRecoilState(txHashStatus);
+  const [, setValue] = useRecoilState(inputState);
+
+  const { refreshOperator } = useCallOperators();
+  
+  // 트랜잭션 상태 추적을 위한 ref
+  const refreshedRef = useRef(false);
+
+  useEffect(() => {
+    if (isLoading && !isError) {
+      return setTxPending(true);
+    }
+    setValue('');
+    return setTxPending(false);
+  }, [isLoading, connectedChainId, isError, setTxPending]);
+
+  const { confirmedTransaction } = useTransaction();
+
+  useEffect(() => {
+    if (data?.transactionHash) return setTxHash(data.transactionHash);
+  }, [data, setTxHash]);
+
+  useEffect(() => {
+    if (hash === undefined) return setTxPending(false);
+  }, [hash, setTxPending]);
+
+  //initialize txData when chainId is changed
+  useEffect(() => {
+    setTxData(undefined);
+    // 체인 변경 시 refreshed 상태 초기화
+    refreshedRef.current = false;
+  }, [connectedChainId, setTxData]);
+
+  useEffect(() => {
+    if (isLoading && connectedChainId && hash) {
+      // 새 트랜잭션이 로딩될 때 refreshed 상태 초기화
+      refreshedRef.current = false;
+      
+      return setTxData({
+        [hash]: {
+          transactionHash: undefined,
+          transactionState: undefined,
+          network: connectedChainId.id,
+          isToasted: false,
+        },
+      });
+    }
+  }, [isLoading, hash, connectedChainId, setTxData]);
+
+  useEffect(() => {
+    const handleSuccess = async () => {
+      if (isSuccess && data && connectedChainId && hash && !refreshedRef.current) {
+        const { transactionHash } = data;
+
+        // 트랜잭션 상태 업데이트
+        setTxData({
+          [hash]: {
+            transactionHash,
+            transactionState: "success",
+            network: connectedChainId.id,
+            isToasted: false,
+          },
+        });
+        
+        refreshedRef.current = true;
+        
+        if (layer2) {
+          console.log('Transaction successful, refreshing operator data...');
+          try {
+            const success = await refreshOperator(layer2);
+            console.log('Refresh result:', success ? 'Success' : 'Failed');
+          } catch (error) {
+            console.error('Error refreshing operator:', error);
+          }
+        }
+      }
+    };
+    handleSuccess();
+  }, [isSuccess, data, connectedChainId, hash, layer2, refreshOperator, setTxData]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      console.log('Transaction successful:', hash);
+    }
+  }, [isSuccess, hash]);
+  
+  return { isLoading };
+}

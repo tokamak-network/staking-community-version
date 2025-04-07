@@ -32,7 +32,7 @@ import Image from 'next/image';
 import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
 import { inputState } from '@/recoil/input';
 // import useTokenBalance from '@/hooks/balance/useTonBalance';
-import useStakeTON from '@/hooks/staking/useStaking';
+import useStakeTON from '@/hooks/staking/useStakeTON';
 import { marshalString, unmarshalString } from '@/utils/format/marshalString';
 import { padLeft } from 'web3-utils';
 import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert';
@@ -43,6 +43,13 @@ import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
 import { useTONBalance, useUserStakeAmount, useOperatorStake } from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
 import { format } from 'path';
+import useCallOperators from '@/hooks/staking/useCallOperators';
+import useStakeWTON from '@/hooks/staking/useStakeWTON';
+import useRestake from '@/hooks/staking/useRestake';
+import useUpdateSeig from '@/hooks/staking/useUpdateSeig';
+import useWithdraw from '@/hooks/staking/useWithdraw';
+import useUnstake from '@/hooks/staking/useUnstake';
+import { txPendingStatus } from '@/recoil/transaction/tx';
 
 const {
   TON_ADDRESS,
@@ -63,6 +70,8 @@ export default function Page() {
 
   const [value, setValue] = useRecoilState(inputState);
   const { onOpenSelectModal } = useSelectOperatorModal()
+  const [txPending, ] = useRecoilState(txPendingStatus);
+  const { refreshOperator } = useCallOperators();
   
   useEffect(() => {  
     if (operatorAddress && operators.length > 0) {
@@ -70,7 +79,7 @@ export default function Page() {
       setCurrentOperator(operator || null);
       console.log(currentOperator)
     }
-  }, [operatorAddress, operators]);
+  }, [operatorAddress, operators, txPending]);
   
   const { expectedSeig, lastSeigBlock } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
 
@@ -87,10 +96,15 @@ export default function Page() {
   })
   // console.log(operatorStake)
   const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(currentOperator?.address as `0x${string}`);
-  const { stakeTON: _stakeTON, stakeWTON, unstake, withdraw, restake, updateSeig } = useStakeTON();
+  const { stakeTON: _stakeTON } = useStakeTON(currentOperator?.address || '');
+  const { stakeWTON } = useStakeWTON(currentOperator?.address || '');
+  const { unstake } = useUnstake(currentOperator?.address || '');
+  const { restake } = useRestake(currentOperator?.address || '');
+  const { withdraw } = useWithdraw(currentOperator?.address || '');
+  const { updateSeig } = useUpdateSeig(currentOperator?.address || '');
 
   useEffect(() => {
-
+    // ref
   }, [currentOperator]);
   // console.log(activeAction)
   const onClick = useCallback(() => {
@@ -106,7 +120,8 @@ export default function Page() {
           
           return activeToken === 'TON' ? 
             _stakeTON({
-              args: [WTON_ADDRESS, weiAmount, marshalData]
+              args: [WTON_ADDRESS, weiAmount, marshalData],
+              
             }) :
             stakeWTON({
               args: [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
@@ -415,7 +430,7 @@ export default function Page() {
               { 
                 formatUnits(expectedSeig, 27) !== '0' && (
                   <Flex 
-                    onClick={() => updateSeig({args: [operatorAddress]})}
+                    onClick={() => updateSeig()}
                     {...updateSeigniorageStyle}
                   >
                     Update Seigniorage
