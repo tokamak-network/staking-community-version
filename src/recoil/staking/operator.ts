@@ -9,6 +9,7 @@ export interface Operator {
   yourStaked?: string;
   isL2?: boolean;
   sequencerSeig?: string;
+  lockedInL2?: string;
 }
 
 

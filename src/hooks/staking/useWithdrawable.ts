@@ -70,7 +70,7 @@ export function useWithdrawableLength(
     } finally {
       setIsLoading(false);
     }
-  }, [layer2, account, currentBlockNumber]);
+  }, [layer2, account]);
 
   useEffect(() => {
     fetchWithdrawableLength();

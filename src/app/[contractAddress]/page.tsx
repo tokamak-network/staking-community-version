@@ -50,6 +50,9 @@ import useUpdateSeig from '@/hooks/staking/useUpdateSeig';
 import useWithdraw from '@/hooks/staking/useWithdraw';
 import useUnstake from '@/hooks/staking/useUnstake';
 import { txPendingStatus } from '@/recoil/transaction/tx';
+import { useRef } from 'react';
+import { useMemo } from 'react';
+import useTokenBalance from '@/hooks/balance/useTonBalance';
 
 const {
   TON_ADDRESS,
@@ -62,7 +65,7 @@ export default function Page() {
   const params = useParams();
   const operatorAddress = params?.contractAddress as `0x${string}`;
   
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const toast = useToast();
   
   const operators = useRecoilValue(filteredOperatorsState);
@@ -71,15 +74,16 @@ export default function Page() {
   const [value, setValue] = useRecoilState(inputState);
   const { onOpenSelectModal } = useSelectOperatorModal()
   const [txPending, ] = useRecoilState(txPendingStatus);
+  const prevTxPendingRef = useRef(txPending);
+  
   const { refreshOperator } = useCallOperators();
   
   useEffect(() => {  
     if (operatorAddress && operators.length > 0) {
       const operator = operators.find(op => op.address === operatorAddress);
       setCurrentOperator(operator || null);
-      console.log(currentOperator)
     }
-  }, [operatorAddress, operators, txPending]);
+  }, [operatorAddress, operators]);
   
   const { expectedSeig, lastSeigBlock } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
 
@@ -88,28 +92,40 @@ export default function Page() {
   
   const { openCalculatorModal, isOpen } = useCalculatorModal();
 
+  // const { data: tokenBalance} = useTokenBalance(activeToken);
+  // //@ts-ignore
+  // const { data.parsedBalance: tokenBalance } = useTokenBalance(activeToken);
+  // console.log(tokenBalance)
+  // const { data: operatorStake } = useOperatorStake({ layer2Address: (currentOperator?.address || '') as `0x${string}` })
+  // const { data: stakedAmount } = useUserStakeAmount({
+  //   layer2Address: (currentOperator?.address || '') as `0x${string}`, 
+  //   accountAddress: address  as `0x${string}` 
+  // })
+
   const { data: tonBalance } = useTONBalance({ account: address });
-  const { data: operatorStake } = useOperatorStake({ layer2Address: (currentOperator?.address || '') as `0x${string}` })
-  const { data: stakedAmount } = useUserStakeAmount({
-    layer2Address: (currentOperator?.address || '') as `0x${string}`, 
-    accountAddress: address  as `0x${string}` 
-  })
-  // console.log(operatorStake)
-  const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(currentOperator?.address as `0x${string}`);
-  const { stakeTON: _stakeTON } = useStakeTON(currentOperator?.address || '');
-  const { stakeWTON } = useStakeWTON(currentOperator?.address || '');
-  const { unstake } = useUnstake(currentOperator?.address || '');
-  const { restake } = useRestake(currentOperator?.address || '');
-  const { withdraw } = useWithdraw(currentOperator?.address || '');
-  const { updateSeig } = useUpdateSeig(currentOperator?.address || '');
+  
+  const operatorAddressForHooks = useMemo(() => currentOperator?.address || '', [currentOperator?.address]);
+  
+  const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(operatorAddressForHooks as `0x${string}`);
+  const { stakeTON: _stakeTON } = useStakeTON(operatorAddressForHooks);
+  const { stakeWTON } = useStakeWTON(operatorAddressForHooks);
+  const { unstake } = useUnstake(operatorAddressForHooks);
+  const { restake } = useRestake(operatorAddressForHooks);
+  const { withdraw } = useWithdraw(operatorAddressForHooks);
+  const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
 
   useEffect(() => {
-    // ref
-  }, [currentOperator]);
-  // console.log(activeAction)
+    if (prevTxPendingRef.current === true && txPending === false) {
+      if (operatorAddress) {
+        refreshOperator(operatorAddress);
+      }
+    }
+    prevTxPendingRef.current = txPending;
+  }, [txPending, operatorAddress]);
+  
   const onClick = useCallback(() => {
     const amount = floatParser(value);
-    console.log(amount, activeAction)
+
     if (amount) {
       switch (activeAction) {
         case 'Stake':
@@ -227,8 +243,8 @@ export default function Page() {
   };
 
   return (
-    <Container maxW="515px" py={5}>
-      <Flex mb={6} align="center" justifyContent={'space-between'}>
+    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
+      <Flex mb={6} align="start" justifyContent={'space-between'}>
         <Flex alignItems={'center'} onClick={() => router.push('/')} cursor="pointer">
           <IconButton
             aria-label="Back"
@@ -272,7 +288,7 @@ export default function Page() {
         />
         <HeadInfo 
           title="Total staked" 
-          value={`${formatUnits(operatorStake, 27) } TON`}
+          value={`${formatUnits(currentOperator?.totalStaked || '0', 27)} TON`}
           label=""
         />
         <HeadInfo 
@@ -347,7 +363,7 @@ export default function Page() {
             fontSize={'12px'}
             fontWeight={400}
           >
-            Balance: {formatUnits(tonBalance, 18) || '0'} TON
+            Balance: {formatUnits(tonBalance || '0', 18)} TON
           </Text>
         </Flex>
 
@@ -402,7 +418,7 @@ export default function Page() {
             <Text >Your Staked amount</Text>
             <VStack spacing={0} align="end">
               <Text fontSize={'14px'}>
-                {formatUnits(stakedAmount || '0', 27)} TON
+                {formatUnits(currentOperator?.yourStaked || '0', 27)} TON
               </Text>
             </VStack>
           </Flex>
@@ -467,7 +483,7 @@ export default function Page() {
                 <Text>TON Bridged to L2</Text>
                 <VStack spacing={0} align="end">
                   <Text fontSize={'14px'}>
-                    {formatUnits(stakedAmount || '0', 27)} TON
+                    {formatUnits(currentOperator?.lockedInL2 || '0', 27)} TON
                   </Text>
                 </VStack>
               </Flex>
@@ -503,21 +519,12 @@ export default function Page() {
           </Box>
         </VStack> : ''
       }
-      
-
       { 
         activeAction === 'Stake' &&
-        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400}>
+        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
           <Text as="span" color={'#FF2D78'}>Warning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
         </Text>
       }
-      
-      {/* <StakingCalculator
-        isOpen={isOpen}
-        onClose={onClose}
-        apy={stakingInfo.apy}
-        tokenPrice={1.42} // 예시 가격
-      /> */}
-    </Container>
+    </Flex>
   );
 };

@@ -11,7 +11,9 @@ import CandidateAddon from "@/abis/CandidateAddon.json";
 import OperatorManager from "@/abis/OperatorManager.json";
 import SeigManager from "@/abis/SeigManager.json";
 import WTON from "@/abis/WTON.json";
+import TON from "@/abis/TON.json";
 import Layer2Manager from "@/abis/Layer2Manager.json";
+import SystemConfig from "@/abis/SystemConfig.json"
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
 import { useAllOperators } from '@ton-staking-sdk/react-kit';
@@ -83,7 +85,7 @@ export default function useCallOperators() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        if (operatorsList.length > 0 && operatorAddresses.length === operatorsList.length) {
+        if (operatorsList.length > 0 && operatorAddresses.length < operatorsList.length) {
           setLoading(false);
           return;
         }
@@ -108,6 +110,17 @@ export default function useCallOperators() {
         const layer2manager = getContract({
           address: '0x58B4C2FEf19f5CDdd944AadD8DC99cCC71bfeFDc',
           abi: Layer2Manager,
+          publicClient: publicClient
+        });
+
+        const rollupConfig = getContract({
+          address: CONTRACT_ADDRESS.RollupConfig_ADDRESS,
+          abi: SystemConfig,
+          publicClient: publicClient
+        });
+        const tonContract = getContract({
+          address: CONTRACT_ADDRESS.TON_ADDRESS,
+          abi: TON,
           publicClient: publicClient
         });
         
@@ -157,29 +170,32 @@ export default function useCallOperators() {
               publicClient: publicClient
             });
             
-            let rollupConfig;
+            let rollupConfigAddress;
             try {
-              rollupConfig = await operatorManager.read.rollupConfig();
+              rollupConfigAddress = await operatorManager.read.rollupConfig();
             } catch (error) {
-              // console.log(`rollupConfig function not available for operator: ${operatorAddress}`);
-              rollupConfig = null;
+              console.log(`rollupConfig function not available for operator: ${operatorAddress}`);
+              rollupConfigAddress = null;
             }
 
             let bridgeDetail = null;
             let isL2 = false;
             let sequencerSeig;
-            if (rollupConfig) {
+            let lockedInL2 = '';
+            if (rollupConfigAddress) {
               try {
-                bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfig]);
-              
+                bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfigAddress]);
+                
                 if (Array.isArray(bridgeDetail)) {
                   isL2 = bridgeDetail[5] === 1 ? true : false;
                   if (isL2) {
                     const blockNumber = await publicClient.getBlockNumber();
-                    
                     const wtonBalanceOfM = await wtonContract.read.balanceOf([operatorAddress]);
-                    
                     const estimatedDistribution = await seigManagerContract.read.estimatedDistribute([Number(blockNumber.toString()) + 1, operatorAddresses[i], true]) as { layer2Seigs: bigint };
+                    // console.log(rollupConfigAddress);
+                    const bridgeAddress = await rollupConfig.read.optimismPortal();
+                    const lockedInBridge = await tonContract.read.balanceOf([bridgeAddress]);
+                    lockedInL2 = (lockedInBridge as bigint).toString();
                     
                     //@ts-ignore
                     const addedWton = wtonBalanceOfM + estimatedDistribution[7];
@@ -199,7 +215,8 @@ export default function useCallOperators() {
               totalStaked: totalStaked?.toString() || "0",
               yourStaked: stakeOf?.toString() || "0",
               isL2: isL2,
-              sequencerSeig: sequencerSeig
+              sequencerSeig: sequencerSeig,
+              lockedInL2: lockedInL2 
             };
             
             operators.push(operatorInfo);
