@@ -353,7 +353,7 @@ const WalletConnector: React.FC = () => {
                   </Text>
                   <Link 
                     target="_blank" 
-                    rel="noopener noreferrer" 
+                  rel="noopener noreferrer" 
                     href="https://ethereum.org/wallets/"
                     color={'#2a72e5'}
                   >

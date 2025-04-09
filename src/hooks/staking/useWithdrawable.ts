@@ -23,6 +23,12 @@ export function useWithdrawableLength(
   const [pendingUnstaked, setPendingUnstaked] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
 
+  const depositManagerContract = getContract({
+    address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
+    abi: DepositManager,
+    publicClient: publicClient,
+  });
+
   const fetchWithdrawableLength = useCallback(async () => {
     if (!layer2 || !account || !publicClient || !currentBlockNumber ) {
       return;
@@ -32,18 +38,9 @@ export function useWithdrawableLength(
       setIsLoading(true);
       const initial = BigNumber.from('0');
 
-      // Create contract instance
-      const depositManagerContract = getContract({
-        address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
-        abi: DepositManager,
-        publicClient: publicClient,
-      });
-
       // Get number of pending requests and request index
       const numPendingRequests = await depositManagerContract.read.numPendingRequests([layer2, account]);
-      
       let requestIndex = await depositManagerContract.read.withdrawalRequestIndex([layer2, account]);
-
       const pendingUnstaked = await depositManagerContract.read.pendingUnstaked([layer2, account]) as bigint;
 
       // Collect all pending requests
@@ -70,7 +67,7 @@ export function useWithdrawableLength(
     } finally {
       setIsLoading(false);
     }
-  }, [layer2, account]);
+  }, [layer2, account, publicClient]);
 
   useEffect(() => {
     fetchWithdrawableLength();

@@ -13,8 +13,13 @@ import {
   Link,
   useDisclosure,
   useToast,
+  Select,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
-import { ArrowBackIcon, InfoIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, InfoIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { useRouter, useParams } from "next/navigation";
 import { useAccount, useBalance } from 'wagmi';
 // import StakingCalculator from '@/components/StakingCalculator';
@@ -39,6 +44,8 @@ import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert'
 import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
+import ETH from '@/assets/images/eth.svg';
+import ARROW from '@/assets/images/right_arrow.svg';
 import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
 import { useTONBalance, useUserStakeAmount, useOperatorStake } from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
@@ -53,12 +60,19 @@ import { txPendingStatus } from '@/recoil/transaction/tx';
 import { useRef } from 'react';
 import { useMemo } from 'react';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
+import useWithdrawL2 from '@/hooks/staking/useWithdrawL2';
 
 const {
   TON_ADDRESS,
   WTON_ADDRESS,
   DepositManager_ADDRESS,
 } = CONTRACT_ADDRESS;
+
+const useOperatorData = () => {
+  const { refreshOperator } = useCallOperators();
+  
+  return { refreshOperator };
+};
 
 export default function Page() {
   const router = useRouter();
@@ -76,7 +90,7 @@ export default function Page() {
   const [txPending, ] = useRecoilState(txPendingStatus);
   const prevTxPendingRef = useRef(txPending);
   
-  const { refreshOperator } = useCallOperators();
+  const { refreshOperator } = useOperatorData();
   
   useEffect(() => {  
     if (operatorAddress && operators.length > 0) {
@@ -89,6 +103,9 @@ export default function Page() {
 
   const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
+  // L2 withdrawal target selection
+  const [withdrawTarget, setWithdrawTarget] = useState<string>('Ethereum');
+  const [showWithdrawOptions, setShowWithdrawOptions] = useState<boolean>(false);
   
   const { openCalculatorModal, isOpen } = useCalculatorModal();
 
@@ -112,6 +129,7 @@ export default function Page() {
   const { unstake } = useUnstake(operatorAddressForHooks);
   const { restake } = useRestake(operatorAddressForHooks);
   const { withdraw } = useWithdraw(operatorAddressForHooks);
+  const { withdrawL2 } = useWithdrawL2(operatorAddressForHooks);
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
 
   useEffect(() => {
@@ -123,16 +141,25 @@ export default function Page() {
     prevTxPendingRef.current = txPending;
   }, [txPending, operatorAddress]);
   
+  // Handle withdraw action for L2
+  useEffect(() => {
+    if (activeAction === 'WithdrawL2' || activeAction === 'WithdrawL1' && currentOperator?.isL2) {
+      setShowWithdrawOptions(true);
+    } else {
+      setShowWithdrawOptions(false);
+    }
+  }, [activeAction, currentOperator?.isL2]);
+  
   const onClick = useCallback(() => {
     const amount = floatParser(value);
 
     if (amount) {
+      const weiAmount = convertToWei(amount.toString());
+      const rayAmount = convertToRay(amount.toString());
       switch (activeAction) {
         case 'Stake':
           const marshalData = getData();
           const wtonMarshalData = getDataForWton();
-          const weiAmount = convertToWei(amount.toString());
-          const rayAmount = convertToRay(amount.toString());
           
           return activeToken === 'TON' ? 
             _stakeTON({
@@ -153,6 +180,14 @@ export default function Page() {
           return withdraw({
             args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
           })
+        case 'WithdrawL1':
+          return withdraw({
+            args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+          })
+        case 'WithdrawL2':
+          return withdrawL2({
+            args: [operatorAddress, rayAmount]
+          })
         case 'Restake':
           return restake({
             args: [operatorAddress, pendingRequests]
@@ -161,7 +196,7 @@ export default function Page() {
           return console.error("action mode is not found");
       }
     }
-  }, [activeAction, withdrawableLength, value])
+  }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2])
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -191,7 +226,7 @@ export default function Page() {
     )
   }, [])
   
-  const isL2 = currentOperator?.name.toLowerCase().includes('sepolia');
+  const isL2 = currentOperator?.isL2 || false;
 
   const actionButtonStyle = (isActive: boolean) => ({
     h: '32px',
@@ -199,7 +234,7 @@ export default function Page() {
     border: '1px',
     borderColor: '#E7EBF2',
     bgColor: isActive ? '#2a72e5' : 'white',
-    w: '80px',
+    // w: '80px',
     fontSize: '12px',
     fontWeight: 600,
     color: isActive ? 'white' : '#808992',
@@ -240,6 +275,42 @@ export default function Page() {
       textDecoration: 'underline'
     },
     transition: 'all 0.2s ease'
+  };
+
+  const withdrawOptionButtonStyle = (isSelected: boolean) => ({
+    bgColor: 'white',
+    color: "#808992",
+    border: 'none',
+    w: '94px',
+    fontWeight: 600,
+    fontSize: '12px',
+    justifyContent: "start",
+    _hover: {
+      color: '#2a72e5'
+    },
+  });
+
+
+  // Get button text based on current state
+  const getButtonText = () => {
+    if (value === '0.00' || !value || value === '0') return 'Enter an amount';
+    
+    switch (activeAction) {
+      case 'Stake':
+        return 'Stake';
+      case 'Unstake':
+        return 'Unstake';
+      case 'Withdraw':
+        return 'Withdraw';
+      case 'WithdrawL1':
+        return 'Withdraw';
+      case 'WithdrawL2':
+        return 'Withdraw to L2';
+      case 'Restake':
+        return 'Restake';
+      default:
+        return 'Submit';
+    }
   };
 
   return (
@@ -311,15 +382,76 @@ export default function Page() {
         >
           Unstake
         </Button>
-        <Button 
-          onClick={() => {
-            setValue(formatUnits(withdrawableAmount, 27))
-            setActiveAction('Withdraw')
-          }}
-          {...actionButtonStyle(activeAction === 'Withdraw')}
-        >
-          Withdraw
-        </Button>
+        {
+          isL2 ?
+          <Menu>
+            <MenuButton
+              w={
+                activeAction === 'WithdrawL1' || activeAction === 'WithdrawL2'
+                ? '126px' 
+                : '97px'
+              }
+              {...actionButtonStyle(activeAction === 'Withdraw')}
+            >
+              <Flex flexDir={'row'} justifyContent={'center'}>
+                <Flex mr={'5px'}>
+                  {
+                    activeAction === 'WithdrawL1' 
+                    ? 'Withdraw - Eth' 
+                    : activeAction === 'WithdrawL2' 
+                    ? 'Withdraw - L2'
+                    : 'Withdraw'
+                  }
+                </Flex>
+                <Flex w={'10px'} cursor={'pointer'} _hover={{ transform: 'scale(1.05)' }}>
+                  <Image src={LIST_ARROW} alt={''} />
+                </Flex>
+
+              </Flex>
+            </MenuButton>
+            <MenuList
+              bgColor={'transparent'}
+              boxShadow={'none'}
+              border={'none'}
+              // zIndex={-1}
+            >
+              <Box 
+                maxW={'96px'} 
+                bgColor={'white'} 
+                zIndex={100}
+                borderRadius={'60x'}
+                border={'1px solid #e7ebf2'}
+              >
+                <MenuItem
+                  onClick={() => {
+                    setValue(formatUnits(withdrawableAmount, 27))
+                    setActiveAction('WithdrawL1')
+                  }}
+                  // maxW={'73px'}
+                  {...withdrawOptionButtonStyle(withdrawTarget === 'Ethereum')}
+                >
+                  Ethereum
+                </MenuItem>
+                <MenuItem
+                  onClick={() => setActiveAction('WithdrawL2')}
+                  // w={'73px'}
+                  {...withdrawOptionButtonStyle(withdrawTarget === 'L2')}
+                >
+                  L2
+                </MenuItem>
+              </Box>
+            </MenuList>
+          </Menu> :
+          <Button 
+            onClick={() => {
+              setValue(formatUnits(withdrawableAmount, 27))
+              setActiveAction('Withdraw')
+            }}
+            {...actionButtonStyle(activeAction === 'Withdraw')}
+          >
+            Withdraw
+          </Button>
+        }
         <Button 
           onClick={() => {
             setValue(formatUnits(withdrawableAmount, 27))
@@ -340,10 +472,9 @@ export default function Page() {
             textDecoration: "underline"
           }}
         >
-          Staking Calculator
+          Simulator
         </Link>
       </HStack>
-
       <Box 
         border="1px" 
         borderColor={'#E7EBF2'} 
@@ -353,12 +484,37 @@ export default function Page() {
         mb={6}
       >
         <Flex mb={5} flexWrap="wrap" gap={2}>
-          <TokenTypeSelector 
-            tab={activeToken}
-            setTab={setActiveToken}
-          />
+          {
+            activeAction === 'WithdrawL2' ?
+            <Flex
+              color={'#1c1c1c'}
+              fontFamily={'Open Sans'}
+              fontSize={'12px'}
+              fontWeight={600}
+              alignItems={'center'}
+              h={'28px'}
+            >
+              <Flex alignItems={'center'}>
+                <Flex w={'28px'} mr={'6px'}>
+                  <Image src={ETH} alt={''} />
+                </Flex>
+                Ethereum
+              </Flex>
+              <Flex w={'18px'} mx={'6px'}>
+                <Image src={ARROW} alt={''} />
+              </Flex>
+              <Flex>
+                {currentOperator?.name}
+              </Flex>
+            </Flex> :
+            <TokenTypeSelector 
+              tab={activeToken}
+              setTab={setActiveToken}
+            />
+          }
           <Text 
-            ml="auto" 
+            ml="auto"
+            mt={'3px'}
             color={'#7E7E8F'}
             fontSize={'12px'}
             fontWeight={400}
@@ -369,14 +525,14 @@ export default function Page() {
 
         <Flex mb={'15px'} align="center" justifyContent={'space-between'}  flexDir={'row'} h={'90px'}>
           {
-            activeAction === 'Withdraw' || activeAction === 'Restake' ?
+            activeAction === 'Withdraw' || activeAction === 'Restake' || activeAction === 'WithdrawL1' ?
             <Flex
               fontSize={'30px'}
               fontFamily={'Open Sans'}
               fontWeight={600}
               ml={'15px'}
             >
-              {formatUnits(activeAction === 'Withdraw' ? withdrawableAmount : pendingUnstaked, 27)}
+              {formatUnits(activeAction === 'Withdraw' || activeAction === 'WithdrawL1'  ? withdrawableAmount : pendingUnstaked, 27)}
             </Flex>
             :
             <BalanceInput 
@@ -403,14 +559,7 @@ export default function Page() {
           onClick={() => onClick()}
           {...mainButtonStyle}
         >
-          {
-            value !== '0.00' && value && value !== '0' 
-              ? activeAction === 'Stake' ? 'Stake'
-              : activeAction === 'Unstake' ? 'Unstake'
-              : activeAction === 'Withdraw' ? 'Withdraw'
-              : 'Restake'
-              : 'Enter an amount'
-          } 
+          {getButtonText()}
         </Button>
 
         <VStack spacing={6} align="stretch">
@@ -467,7 +616,7 @@ export default function Page() {
             justifyContent={'center'} 
             w={'100%'}
           >
-              Sequencer seigniorage
+            Sequencer seigniorage
           </Flex>
           <Box
             border="1px" 
@@ -525,6 +674,18 @@ export default function Page() {
           <Text as="span" color={'#FF2D78'}>Warning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
         </Text>
       }
+      {/* {
+        isL2 && activeAction === 'Withdraw' && withdrawTarget === 'L2' && 
+        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+          <Text as="span" color={'#257EEE'}>Note:</Text> Withdrawing to L2 is faster but may have different fee structures compared to Ethereum Mainnet.
+        </Text>
+      }
+      {
+        isL2 && activeAction === 'Withdraw' && withdrawTarget === 'Ethereum' && 
+        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+          <Text as="span" color={'#FF2D78'}>Wargning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
+        </Text>
+      } */}
     </Flex>
   );
 };

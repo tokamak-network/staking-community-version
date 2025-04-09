@@ -125,14 +125,14 @@ export function useExpectedSeig(
   const { address: account } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const { data: blockNumber } = useBlockNumber({ watch: true }) as { data: bigint | undefined };
+  const { data: blockNumber } = useBlockNumber();
 
   // SeigManager contract reads
   const { data: lastSeigBlock } = useContractRead({
     address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
     abi: SeigManager_ABI,
     functionName: 'lastSeigBlock',
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
     
 
@@ -140,21 +140,21 @@ export function useExpectedSeig(
     address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
     abi: SeigManager_ABI,
     functionName: 'seigPerBlock',
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const { data: relativeSeigRate } = useContractRead({
     address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
     abi: SeigManager_ABI,
     functionName: 'relativeSeigRate',
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const { data: tot } = useContractRead({
     address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
     abi: SeigManager_ABI,
     functionName: 'tot',
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) ;
 
   const { data: commissionRates } = useContractRead({
@@ -162,7 +162,7 @@ export function useExpectedSeig(
     abi: SeigManager_ABI,
     functionName: 'commissionRates',
     args: [candidateContract as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   });
 
   const { data: isCommissionRateNegative } = useContractRead({
@@ -170,7 +170,7 @@ export function useExpectedSeig(
     abi: SeigManager_ABI,
     functionName: 'isCommissionRateNegative',
     args: [candidateContract as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   });
 
   const { data: coinageAddress } = useContractRead({
@@ -178,7 +178,7 @@ export function useExpectedSeig(
     abi: SeigManager_ABI,
     functionName: 'coinages',
     args: [candidateContract as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   });
 
   // TON contract reads
@@ -186,7 +186,7 @@ export function useExpectedSeig(
     address: CONTRACT_ADDRESS.TON_ADDRESS as `0x${string}`,
     abi: TON_ABI,
     functionName: 'totalSupply',
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const { data: tonBalanceOfWTON } = useContractRead({
@@ -194,7 +194,7 @@ export function useExpectedSeig(
     abi: TON_ABI,
     functionName: 'balanceOf',
     args: [CONTRACT_ADDRESS.WTON_ADDRESS as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const { data: tonBalanceOfZero } = useContractRead({
@@ -202,7 +202,7 @@ export function useExpectedSeig(
     abi: TON_ABI,
     functionName: 'balanceOf',
     args: [CONSTANTS.ZERO_ADDRESS as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const { data: tonBalanceOfOne } = useContractRead({
@@ -210,7 +210,7 @@ export function useExpectedSeig(
     abi: TON_ABI,
     functionName: 'balanceOf',
     args: [CONSTANTS.ONE_ADDRESS as `0x${string}`],
-    enabled: !!candidateContract,
+    // enabled: !!candidateContract,
   }) as { data: bigint | undefined };
 
   const [txPending, ] = useRecoilState(txPendingStatus);
@@ -328,7 +328,7 @@ export function useExpectedSeig(
     account, 
     candidateContract, 
     txPending, 
-    stakedAmount,
+    stakedAmount
   ]);
 
   return { expectedSeig, seigOfLayer, lastSeigBlock: lastSeigBlock?.toString() || '' };

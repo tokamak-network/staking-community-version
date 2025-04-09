@@ -1,8 +1,8 @@
 // hooks/useCallOperators.ts
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { operatorsListState, operatorsLoadingState, Operator } from "@/recoil/staking/operator";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
 import { getContract, isAddress } from "viem";
 import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
@@ -20,6 +20,9 @@ import { useAllOperators } from '@ton-staking-sdk/react-kit';
 
 type SortDirection = "asc" | "desc";
 
+// 캐시 객체 생성
+const contractCache = new Map<string, any>();
+
 export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
   const [totalStaked, setTotalStaked] = useState('0');
@@ -28,9 +31,41 @@ export default function useCallOperators() {
   const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
-  // const walletClient = useWalletClient();
+  const { data: blockNumber } = useBlockNumber();
   
   const { operators: operatorAddresses, isLoading } = useAllOperators();
+  
+  // 계약 인스턴스 생성 및 캐싱 함수
+  const getContractInstance = useMemo(() => {
+    return (contractAddress: string, abi: any): any => {
+      const cacheKey = `${contractAddress}-${abi.contractName || 'unknown'}`;
+      
+      if (contractCache.has(cacheKey)) {
+        return contractCache.get(cacheKey);
+      }
+      
+      const contract = getContract({
+        address: contractAddress as `0x${string}`,
+        abi: abi.abi || abi,
+        publicClient: publicClient
+      });
+      
+      contractCache.set(cacheKey, contract);
+      return contract;
+    };
+  }, [publicClient]);
+  
+  // 메모이제이션된 공통 컨트랙트 인스턴스
+  const commonContracts = useMemo(() => {
+    if (!publicClient) return null;
+    
+    return {
+      seigManager: getContractInstance(CONTRACT_ADDRESS.SeigManager_ADDRESS, SeigManager),
+      wton: getContractInstance(CONTRACT_ADDRESS.WTON_ADDRESS, WTON),
+      layer2manager: getContractInstance(CONTRACT_ADDRESS.Layer2Manager_ADDRESS, Layer2Manager),
+      ton: getContractInstance(CONTRACT_ADDRESS.TON_ADDRESS, TON)
+    };
+  }, [publicClient, getContractInstance]);
   
   const compareTotalStaked = (a: Operator, b: Operator, direction: SortDirection): number => {
     try {
@@ -38,7 +73,6 @@ export default function useCallOperators() {
       const bBN = BigNumber.from(b.totalStaked || "0");
       
       if (aBN.eq(bBN)) return 0;
-      
       
       if (direction === "asc") {
         return aBN.lt(bBN) ? -1 : 1;
@@ -67,165 +101,145 @@ export default function useCallOperators() {
     setSortDirection(direction);
   };
   
+  // 필수적인 경우에만 컨트랙트 존재 여부 확인
   const checkContractExists = async (address: string): Promise<boolean> => {
     try {
       if (!isAddress(address)) return false;
+      
+      // 캐시 키
+      const cacheKey = `exists-${address}`;
+      if (contractCache.has(cacheKey)) {
+        return contractCache.get(cacheKey);
+      }
       
       const code = await publicClient.getBytecode({
         address: address as `0x${string}`
       });
       
-      return code !== null && code !== undefined && code !== '0x';
+      const exists = code !== null && code !== undefined && code !== '0x';
+      contractCache.set(cacheKey, exists);
+      return exists;
     } catch (error) {
       console.error(`Error checking contract at ${address}:`, error);
       return false;
     }
   };
   
+  
+  const batchReadCalls = async (contract: any, methods: Array<{method: string, args?: any[]}>) => {
+    return Promise.all(
+      methods.map(({ method, args = [] }) => {
+        return contract.read[method](args.length > 0 ? args : undefined);
+      })
+    );
+  };
+  
   useEffect(() => {
     const fetchOperators = async () => {
+      console.log(operatorAddresses.length, operatorsList.length, blockNumber)
+      if (!publicClient || !commonContracts || operatorAddresses.length === 0 || !blockNumber) return;
       try {
-        if (operatorsList.length > 0 && operatorAddresses.length < operatorsList.length) {
+        if (operatorsList.length > 0 ) {
           setLoading(false);
           return;
         }
         
         setLoading(true);
-
-        const seigManagerContract = getContract({
-          address: CONTRACT_ADDRESS.SeigManager_ADDRESS,
-          abi: SeigManager,
-          publicClient: publicClient
-        })
-
-        const wtonContract = getContract({
-          address: CONTRACT_ADDRESS.WTON_ADDRESS,
-          abi: WTON,
-          publicClient: publicClient
-        })
+        
+        const { seigManager, wton, layer2manager, ton } = commonContracts;
         
         const operators: Operator[] = [];
         let totalStakedAmount = BigNumber.from(0);
-
-        const layer2manager = getContract({
-          address: '0x58B4C2FEf19f5CDdd944AadD8DC99cCC71bfeFDc',
-          abi: Layer2Manager,
-          publicClient: publicClient
-        });
-
-        const rollupConfig = getContract({
-          address: CONTRACT_ADDRESS.RollupConfig_ADDRESS,
-          abi: SystemConfig,
-          publicClient: publicClient
-        });
-        const tonContract = getContract({
-          address: CONTRACT_ADDRESS.TON_ADDRESS,
-          abi: TON,
-          publicClient: publicClient
-        });
         
-        for (let i = 0; i < operatorAddresses.length; i++) {
+        
+        const operatorPromises = operatorAddresses.map(async (opAddress, index) => {
           try {
+            const candidateContract = getContractInstance(opAddress as string, Candidates);
             
-            // console.log(operatorAddresses[i])
-            const candidateContract = getContract({
-              address: operatorAddresses[i] as `0x${string}`,
-              abi: Candidates.abi,
-              publicClient: publicClient,
-            });
-
             const [totalStaked, memo, stakeOf] = await Promise.all([
               candidateContract.read.totalStaked(),
               candidateContract.read.memo(),
-              candidateContract.read.stakedOf([address])
+              address ? candidateContract.read.stakedOf([address]) : Promise.resolve("0")
             ]);
-
-            const candidateAddon = getContract({
-              address: operatorAddresses[i]  as `0x${string}`,
-              abi: CandidateAddon,
-              publicClient: publicClient,
-            });
-
+            
+            const candidateAddon = getContractInstance(opAddress as string, CandidateAddon);
             const operatorAddress = await candidateAddon.read.operator();
-          
+            
+            const operatorInfo: Operator = {
+              name: typeof memo === 'string' ? memo : opAddress as string,
+              address: opAddress,
+              totalStaked: totalStaked?.toString() || "0",
+              yourStaked: stakeOf?.toString() || "0",
+              isL2: false
+            };
+            
             const operatorContractExists = await checkContractExists(operatorAddress as string);
             if (!operatorContractExists) {
-            
               totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
-              
-              operators.push({
-                name: typeof memo === 'string' ? memo : operatorAddresses[i] as string,
-                address: operatorAddresses[i],
-                totalStaked: totalStaked?.toString() || "0",
-                yourStaked: stakeOf?.toString() || "0",
-                isL2: false
-              });
-              
-              continue;
+              return operatorInfo;
             }
             
-            const operatorManager = getContract({
-              address: operatorAddress as `0x${string}`,
-              abi: OperatorManager,
-              publicClient: publicClient
-            });
+            const operatorManager = getContractInstance(operatorAddress as string, OperatorManager);
             
             let rollupConfigAddress;
             try {
               rollupConfigAddress = await operatorManager.read.rollupConfig();
             } catch (error) {
-              console.log(`rollupConfig function not available for operator: ${operatorAddress}`);
               rollupConfigAddress = null;
             }
-
-            let bridgeDetail = null;
+            
             let isL2 = false;
             let sequencerSeig;
             let lockedInL2 = '';
+            
             if (rollupConfigAddress) {
               try {
-                bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfigAddress]);
+                const rollupConfig = getContractInstance(rollupConfigAddress as string, SystemConfig);
+                
+                const bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfigAddress]);
                 
                 if (Array.isArray(bridgeDetail)) {
                   isL2 = bridgeDetail[5] === 1 ? true : false;
+                  // console.log(bridgeDetail, memo, isL2, rollupConfigAddress)
                   if (isL2) {
-                    const blockNumber = await publicClient.getBlockNumber();
-                    const wtonBalanceOfM = await wtonContract.read.balanceOf([operatorAddress]);
-                    const estimatedDistribution = await seigManagerContract.read.estimatedDistribute([Number(blockNumber.toString()) + 1, operatorAddresses[i], true]) as { layer2Seigs: bigint };
-                    // console.log(rollupConfigAddress);
                     const bridgeAddress = await rollupConfig.read.optimismPortal();
-                    const lockedInBridge = await tonContract.read.balanceOf([bridgeAddress]);
-                    lockedInL2 = (lockedInBridge as bigint).toString();
                     
-                    //@ts-ignore
+                    const lockedInBridge = await ton.read.balanceOf([bridgeAddress]);
+                    console.log(lockedInBridge)
+                    lockedInL2 = lockedInBridge.toString();
+                    
+                    const [wtonBalanceOfM, estimatedDistribution] = await Promise.all([
+                      wton.read.balanceOf([operatorAddress]),
+                      seigManager.read.estimatedDistribute([Number(blockNumber.toString()) + 1, opAddress, true])
+                    ]);
+                    
+                    // @ts-ignore
                     const addedWton = wtonBalanceOfM + estimatedDistribution[7];
                     sequencerSeig = addedWton.toString();
+                    
+                    operatorInfo.isL2 = true;
+                    operatorInfo.sequencerSeig = sequencerSeig;
+                    operatorInfo.lockedInL2 = lockedInL2;
                   }
-                }  
+                }
               } catch (error) {
                 console.log(`Failed to get bridge details: ${error}`);
               }
             }
-
+            
             totalStakedAmount = totalStakedAmount.add(BigNumber.from(totalStaked?.toString() || '0'));
-            
-            const operatorInfo: Operator = {
-              name: typeof memo === 'string' ? memo : operatorAddresses[i] as unknown as string,
-              address: operatorAddresses[i],
-              totalStaked: totalStaked?.toString() || "0",
-              yourStaked: stakeOf?.toString() || "0",
-              isL2: isL2,
-              sequencerSeig: sequencerSeig,
-              lockedInL2: lockedInL2 
-            };
-            
-            operators.push(operatorInfo);
+            return operatorInfo;
           } catch (error) {
-            console.error(`Error fetching operator at index ${i}:`, error);
+            // console.error(`Error fetching operator at index ${index}:`, error);
+            return null;
           }
-        }
+        });
+        
+        const results = await Promise.all(operatorPromises);
+        const validOperators = results.filter(Boolean) as Operator[];
+        
         setTotalStaked(totalStakedAmount.toString());
-        setOperatorsList(operators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
+        setOperatorsList(validOperators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
       } catch (error) {
         console.error("Error fetching operators:", error);
       } finally {
@@ -234,32 +248,29 @@ export default function useCallOperators() {
     };
     
     fetchOperators();
-  }, [operatorAddresses, publicClient, isLoading, setLoading, sortDirection]);
+  }, [operatorAddresses, publicClient, isLoading, commonContracts, setLoading]);
   
   const refreshOperator = async (candidateAddress: string) => {
     try {
-      if (!publicClient) return;
-      console.log('aaa')
-      const candidateContract = getContract({
-        address: candidateAddress as `0x${string}`,
-        abi: Candidates.abi,
-        publicClient: publicClient,
-      });
+      if (!publicClient || !address) return false;
       
+      const candidateContract = getContractInstance(candidateAddress, Candidates);
+      
+      // 개별 호출로 변경
       const [totalStaked, memo, stakeOf] = await Promise.all([
         candidateContract.read.totalStaked(),
         candidateContract.read.memo(),
-        candidateContract.read.stakedOf([address])
+        address ? candidateContract.read.stakedOf([address]) : Promise.resolve("0")
       ]);
       
-      const operatorIndex = (operatorsList as Operator[]).findIndex(op => op.address === candidateAddress);
+      const operatorIndex = operatorsList.findIndex(op => op.address === candidateAddress);
       
       if (operatorIndex !== -1) {
         setOperatorsList((prevList: Operator[]) => {
           const newList = [...prevList];
           newList[operatorIndex] = {
+            ...newList[operatorIndex],
             name: typeof memo === 'string' ? memo : prevList[operatorIndex].name,
-            address: prevList[operatorIndex].address,
             totalStaked: totalStaked?.toString() || prevList[operatorIndex].totalStaked,
             yourStaked: stakeOf?.toString() || "0",
           };
@@ -277,45 +288,40 @@ export default function useCallOperators() {
   
   const refreshAllOperators = async () => {
     try {
+      if (!publicClient || !address) return false;
+      
       setLoading(true);
-      // const layer2RegistryContract = getContract({
-      //   address: CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
-      //   abi: Layer2Registry,
-      //   publicClient: publicClient,
-      // });
       
-      const operators: Operator[] = [];
-      
-      for (let i = 0; i < operatorAddresses.length; i++) {
+      // 모든 운영자 데이터를 병렬로 새로고침
+      const refreshPromises = operatorAddresses.map(async (candidateAddress) => {
         try {
-          const candidateAddress = operatorAddresses[i];
+          if (!candidateAddress) return null;
           
-          if (!candidateAddress) continue;
+          const candidateContract = getContractInstance(candidateAddress as string, Candidates);
           
-          const candidateContract = getContract({
-            address: candidateAddress as `0x${string}`,
-            abi: Candidates.abi,
-            publicClient: publicClient,
-          });
-
-          
-          const [totalStaked, memo] = await Promise.all([
+          // 개별 호출로 변경
+          const [totalStaked, memo, stakeOf] = await Promise.all([
             candidateContract.read.totalStaked(),
             candidateContract.read.memo(),
-            candidateContract.read.stakedOf({ account: address })
+            address ? candidateContract.read.stakedOf([address]) : Promise.resolve("0")
           ]);
           
-          operators.push({
+          return {
             name: typeof memo === 'string' ? memo : candidateAddress as string,
-            address: candidateAddress as `0x${string}`,
+            address: candidateAddress as string,
             totalStaked: totalStaked?.toString() || "0",
-          });
+            yourStaked: stakeOf?.toString() || "0",
+          };
         } catch (error) {
-          console.error(`Error refreshing operator at index ${i}:`, error);
+          console.error(`Error refreshing operator ${candidateAddress}:`, error);
+          return null;
         }
-      }
+      });
       
-      setOperatorsList(operators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
+      const results = await Promise.all(refreshPromises);
+      const validOperators = results.filter(Boolean) as Operator[];
+      
+      setOperatorsList(validOperators.sort((a, b) => compareTotalStaked(a, b, sortDirection)));
       return true;
     } catch (error) {
       console.error("Error refreshing all operators:", error);
