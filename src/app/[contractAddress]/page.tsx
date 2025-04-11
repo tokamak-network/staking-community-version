@@ -97,7 +97,7 @@ export default function Page() {
       const operator = operators.find(op => op.address === operatorAddress);
       setCurrentOperator(operator || null);
     }
-  }, [operatorAddress, operators]);
+  }, [operatorAddress]);
   
   const { expectedSeig, lastSeigBlock } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
 

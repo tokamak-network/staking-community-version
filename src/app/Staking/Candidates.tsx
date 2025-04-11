@@ -14,7 +14,7 @@ import React from 'react';
 import { OperatorItem } from './components/OperatorItem';
 
 const Candidates: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 

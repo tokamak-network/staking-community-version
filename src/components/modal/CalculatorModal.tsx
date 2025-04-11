@@ -3,15 +3,12 @@ import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
 import { useCallback, useMemo, useState } from 'react';
 import { ModalHeader } from './components/ModalHeader';
 import { CalculatorBody } from './components/CalculatorBody';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { Duration, durationState } from '@/recoil/duration/duration';
-import { inputCalculatorBalanceState } from '@/recoil/input';
-import { calculateRoi, calculateRoiBasedonCompound } from '@/utils/apy/calculateRoi';
-
-import useCallOperators from '@/hooks/staking/useCallOperators';
+import { useRecoilState } from 'recoil';
+import { durationState } from '@/recoil/duration/duration';
+import { calculatorInputState } from '@/recoil/input';
+import { calculateRoiBasedonCompound } from '@/utils/apy/calculateRoi';
 import { ethers } from 'ethers';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
-import { useStakingInformation } from '@/hooks/info/useStakingInfo';
 import useCallSeigManager from '@/hooks/contracts/useCallSeigManager';
 import { useAllOperatorsTotalStaked, useOperatorStake } from '@ton-staking-sdk/react-kit';
 
@@ -21,12 +18,12 @@ function CalculatorModal() {
   const { closeSelectModal, isOpen } = useCalculatorModal();
 
   const [duration, setDuration] = useRecoilState(durationState);
-  const input = useRecoilValue(inputCalculatorBalanceState);
+  const [input, setInput] = useRecoilState(calculatorInputState);
 
   const { result: totalSupplyResult } = useCallSeigManager('totalSupplyOfTon');
 
   const [type, setType] = useState<'calculate' | 'result'>('calculate');
-  const [roi, setROI] = useState('0');
+  const [roi, setROI] = useState<number>(0);
   const [rewardTON, setRewardTON] = useState('0.00');
 
   const tonBalance = useTokenBalance('TON');
@@ -36,12 +33,12 @@ function CalculatorModal() {
   const closeThisModal = useCallback(() => {
     setType('calculate');
     setDuration('1-year');
+    setInput('')
     closeSelectModal();
   }, [closeSelectModal]);
 
   const calButton = useCallback(async () => {
     const inputBalance = Number(input.replace(/,/g, ''));
-    console.log(totalStaked)
     
     if (totalStaked) {
       const totalStakedString = totalStaked ? ethers.utils.formatUnits(totalStaked, 27) : '0';
@@ -49,18 +46,13 @@ function CalculatorModal() {
       
       const totalSupplyString = totalSupplyResult?.data ? 
           ethers.utils.formatUnits(totalSupplyResult.data.toString(), 27) : '0';
-      // console.log(total, totalSupplyString, totalStakedString)
       const returnRate = calculateRoiBasedonCompound({ totalStakedAmount: total, totalSupply: Number(totalSupplyString), duration });
-      // console.log(returnRate)
       const expectedSeig = inputBalance * (returnRate / 100);
 
-      // const roi = returnRate.toLocaleString(undefined, { maximumFractionDigits: 2 });
       const rewardTON = expectedSeig.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
       setRewardTON(rewardTON);
-      setROI(
-        returnRate.toString()
-      );
+      setROI(returnRate);
       setType('result');
     }
   }, [totalStaked, duration, input]);
@@ -131,7 +123,7 @@ function CalculatorModal() {
                       </Flex>
                       <Flex
                         flexDir={'row'}
-                        justifyContent={'space-between'}
+                        justifyContent={'center'}
                         mt={'30px'}
                         mb={'36px'}
                         h={'16px'}
@@ -139,7 +131,7 @@ function CalculatorModal() {
                         fontSize={'12px'}
                         color={'#808992'}
                       >
-                        <Text>{roi}%</Text> 
+                        <Text>{roi.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})}%</Text> 
                       </Flex>
                     </Flex>
                   )}
@@ -156,13 +148,13 @@ function CalculatorModal() {
                   </Button>
                 ) : (
                   <Flex flexDir={'row'}>
-                    <Button
+                    {/* <Button
                       {...actionButtonStyle(true)}
                       mr={'10px'}
                       // onClick={() => toStakeButton()}
                     >
                       Stake
-                    </Button>
+                    </Button> */}
                     <Button
                       {...actionButtonStyle(true)}
                       onClick={() => recalcButton()}

@@ -218,7 +218,7 @@ export function useExpectedSeig(
   // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
-   
+      if (expectedSeig > '0') return;
       try {
         // Tot contract reads
         const [totTotalSupply, totFactor, totBalanceAndFactorResult] = await Promise.all([
@@ -295,7 +295,7 @@ export function useExpectedSeig(
         const _seigOfLayer = nextBalanceOfLayerInTot - coinageTotalSupply;
         
         let seig: bigint;
-      const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
+        const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
         
         if (commissionRateValue !== BigInt(0)) {
           if (!isCommissionRateNegative) {
@@ -315,7 +315,7 @@ export function useExpectedSeig(
         } else {
           seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
         }
-
+        console.log(seig)
         setSeigOfLayer(_seigOfLayer.toString());
         setExpectedSeig(seig.toString());
       } catch (e) {
@@ -328,7 +328,8 @@ export function useExpectedSeig(
     account, 
     candidateContract, 
     txPending, 
-    stakedAmount
+    stakedAmount,
+    blockNumber
   ]);
 
   return { expectedSeig, seigOfLayer, lastSeigBlock: lastSeigBlock?.toString() || '' };
