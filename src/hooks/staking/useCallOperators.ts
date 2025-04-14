@@ -16,7 +16,7 @@ import Layer2Manager from "@/abis/Layer2Manager.json";
 import SystemConfig from "@/abis/SystemConfig.json"
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
-import { useAllOperators } from '@ton-staking-sdk/react-kit';
+import { useAllCandidates } from '@ton-staking-sdk/react-kit';
 
 type SortDirection = "asc" | "desc";
 
@@ -35,7 +35,7 @@ export default function useCallOperators() {
   const publicClient = usePublicClient();
   const { data: blockNumber } = useBlockNumber();
   
-  const { operators: operatorAddresses, isLoading } = useAllOperators();
+  const { candidates: operatorAddresses, isLoading } = useAllCandidates();
   
   // 메모이제이션된 계약 인스턴스 생성 함수
   const getContractInstance = useCallback((contractAddress: string, abi: any): any => {

@@ -6,8 +6,15 @@ import useCallSeigManager from '../contracts/useCallSeigManager';
 import useCallOperators from '../staking/useCallOperators';
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
-import { useAllOperatorsTotalStaked } from '@ton-staking-sdk/react-kit';
+import { useAllCandidatesTotalStaked } from '@ton-staking-sdk/react-kit';
 
+  /**
+   * A hook to fetch and update staking information, such as total staked
+   * amount, total supply of TON, and staking APY.
+   * 
+   * @returns An object containing the staking information and
+   * the current ROI.
+   */
 export function useStakingInformation() {
   // Use Recoil state
   const [stakingInfo, setStakingInfo] = useRecoilState(stakingInfoState);
@@ -18,7 +25,7 @@ export function useStakingInformation() {
   const prevTotalSupplyRef = useRef<string>('0');
   const isInitializedRef = useRef<boolean>(false);
 
-  const { data: totalStaked, isLoading, error } = useAllOperatorsTotalStaked();
+  const { data: totalStaked, isLoading, error } = useAllCandidatesTotalStaked();
   const { result: totalSupplyResult } = useCallSeigManager('totalSupplyOfTon');
   
   // Memoize the update function to avoid recreating it on each render

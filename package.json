@@ -18,7 +18,7 @@
     "@fontsource/roboto": "^5.2.5",
     "@fontsource/titillium-web": "^5.2.5",
     "@tanstack/react-query": "5.45.1",
-    "@ton-staking-sdk/react-kit": "^0.0.3",
+    "@ton-staking-sdk/react-kit": "^0.0.8",
     "decimal.js": "^10.5.0",
     "ethers": "^5.7.2",
     "framer-motion": "^10.12.10",

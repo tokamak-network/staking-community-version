@@ -218,42 +218,40 @@ export function useExpectedSeig(
   // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
+      console.log(expectedSeig, expectedSeig > '0')
       if (expectedSeig > '0') return;
       try {
         // Tot contract reads
-        const [totTotalSupply, totFactor, totBalanceAndFactorResult] = await Promise.all([
-          publicClient.readContract({
-            address: tot as `0x${string}`,
-            abi: RefactorCoinageSnapshotABI,
-            functionName: 'totalSupply',
-          }) as Promise<bigint>,
-          publicClient.readContract({
-            address: tot as `0x${string}`,
-            abi: RefactorCoinageSnapshotABI,
-            functionName: 'factor',
-          }) as Promise<bigint>,
-          publicClient.readContract({
-            address: tot as `0x${string}`,
-            abi: RefactorCoinageSnapshotABI,
-            functionName: 'getBalanceAndFactor',
-            args: [candidateContract as `0x${string}`],
-          }) as Promise<BalanceAndFactor[]>
-        ]);
-
+        const totTotalSupply = await publicClient.readContract({
+          address: tot as `0x${string}`,
+          abi: RefactorCoinageSnapshotABI,
+          functionName: 'totalSupply',
+        }) as bigint
+        const totFactor = await publicClient.readContract({
+          address: tot as `0x${string}`,
+          abi: RefactorCoinageSnapshotABI,
+          functionName: 'factor',
+        }) as bigint
+        const totBalanceAndFactorResult = await publicClient.readContract({
+          address: tot as `0x${string}`,
+          abi: RefactorCoinageSnapshotABI,
+          functionName: 'getBalanceAndFactor',
+          args: [candidateContract as `0x${string}`],
+        }) as BalanceAndFactor[]
+       
         // Coinage contract reads
-        const [coinageTotalSupply, userStaked] = await Promise.all([
-          publicClient.readContract({
-            address: coinageAddress as `0x${string}`,
-            abi: Coinage,
-            functionName: 'totalSupply',
-          }) as Promise<bigint>,
-          publicClient.readContract({
-            address: coinageAddress as `0x${string}`,
-            abi: Coinage,
-            functionName: 'balanceOf',
-            args: [account as `0x${string}`],
-          }) as Promise<bigint>
-        ]);
+        const coinageTotalSupply = await publicClient.readContract({
+          address: coinageAddress as `0x${string}`,
+          abi: Coinage,
+          functionName: 'totalSupply',
+        }) as bigint;
+
+        const userStaked = await publicClient.readContract({
+          address: coinageAddress as `0x${string}`,
+          abi: Coinage,
+          functionName: 'balanceOf',
+          args: [account as `0x${string}`],
+        }) as bigint
 
         // Calculation steps
         // 1. Calculate tos
@@ -293,7 +291,7 @@ export function useExpectedSeig(
 
         // 7. Final seig calculation
         const _seigOfLayer = nextBalanceOfLayerInTot - coinageTotalSupply;
-        
+        console.log(_seigOfLayer)
         let seig: bigint;
         const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
         

@@ -69,6 +69,7 @@ export function useWithdrawableLength(
     }
   }, [layer2, account, publicClient, currentBlockNumber]);
 
+  
   useEffect(() => {
     fetchWithdrawableLength();
   }, [fetchWithdrawableLength]);

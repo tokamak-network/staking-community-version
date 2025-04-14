@@ -47,7 +47,7 @@ import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 import ETH from '@/assets/images/eth.svg';
 import ARROW from '@/assets/images/right_arrow.svg';
 import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
-import { useTONBalance, useUserStakeAmount, useOperatorStake } from '@ton-staking-sdk/react-kit';
+import { useTONBalance, useUserStakeAmount } from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
 import { format } from 'path';
 import useCallOperators from '@/hooks/staking/useCallOperators';
@@ -61,6 +61,7 @@ import { useRef } from 'react';
 import { useMemo } from 'react';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
 import useWithdrawL2 from '@/hooks/staking/useWithdrawL2';
+import { ValueSection } from './components/ValueSection';
 
 const {
   TON_ADDRESS,
@@ -563,47 +564,18 @@ export default function Page() {
         </Button>
 
         <VStack spacing={6} align="stretch">
-          <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
-            <Text >Your Staked amount</Text>
-            <VStack spacing={0} align="end">
-              <Text fontSize={'14px'}>
-                {formatUnits(currentOperator?.yourStaked || '0', 27)} TON
-              </Text>
-            </VStack>
-          </Flex>
-          
+          <ValueSection 
+            title={'Your Staked amount'}
+            value={currentOperator?.yourStaked || '0'}      
+          />
           <Divider />
-          
-          <Flex justify="space-between">
-            <VStack align="start" spacing={1}>
-              <Text fontWeight={600} color={'#1c1c1c'}>Unclaimed Staking Reward</Text>
-              <Text fontSize="12px" color="#808992">
-                Seigniorage is updated {
-                lastSeigBlock
-                }.
-              </Text>
-            </VStack>
-            <VStack>
-              <Text 
-                fontSize={'14px'} 
-                fontWeight={600}
-                textAlign={'right'} 
-                w={'100%'}
-              >
-                {formatUnits(expectedSeig, 27)} TON
-              </Text>
-              { 
-                formatUnits(expectedSeig, 27) !== '0' && (
-                  <Flex 
-                    onClick={() => updateSeig()}
-                    {...updateSeigniorageStyle}
-                  >
-                    Update Seigniorage
-                  </Flex>
-                )
-              }
-            </VStack>
-          </Flex>
+          <ValueSection 
+            title={'Unclaimed Staking Reward'}
+            value={expectedSeig}
+            onClaim={() => updateSeig()}
+            seigUpdated={lastSeigBlock}
+          />
+        
         </VStack>
       </Box>
       {
@@ -628,42 +600,16 @@ export default function Page() {
             w={'100%'}
           >
             <VStack spacing={6} align="stretch">
-              <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
-                <Text>TON Bridged to L2</Text>
-                <VStack spacing={0} align="end">
-                  <Text fontSize={'14px'}>
-                    {formatUnits(currentOperator?.lockedInL2 || '0', 27)} TON
-                  </Text>
-                </VStack>
-              </Flex>
-              
+              <ValueSection 
+                title={'TON Bridged to L2'}
+                value={currentOperator?.lockedInL2 || '0'}
+              />
               <Divider />
-              
-              <Flex justify="space-between">
-                <VStack align="start" spacing={1}>
-                  <Text fontWeight={600} color={'#1c1c1c'}>Claimable seigniorage</Text>
-                </VStack>
-                <VStack>
-                  <Text 
-                    fontSize={'14px'} 
-                    fontWeight={600}
-                    textAlign={'right'}
-                    w={'100%'}
-                  >
-                    {formatUnits(currentOperator?.sequencerSeig || '0', 27)} TON
-                  </Text>
-                  { 
-                    formatUnits(currentOperator?.sequencerSeig || '0', 27) !== '0' && (
-                      <Flex 
-                        onClick={() => updateSeig({args: [operatorAddress]})}
-                        {...updateSeigniorageStyle}
-                      >
-                        Claim
-                      </Flex>
-                    )
-                  }
-                </VStack>
-              </Flex>
+              <ValueSection 
+                title={'Claimable seigniorage'}
+                value={currentOperator?.sequencerSeig || '0'}
+                onClaim={() => updateSeig({args: [operatorAddress]})}
+              />
             </VStack>
           </Box>
         </VStack> : ''

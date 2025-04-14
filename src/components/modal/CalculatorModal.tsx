@@ -10,7 +10,7 @@ import { calculateRoiBasedonCompound } from '@/utils/apy/calculateRoi';
 import { ethers } from 'ethers';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
 import useCallSeigManager from '@/hooks/contracts/useCallSeigManager';
-import { useAllOperatorsTotalStaked, useOperatorStake } from '@ton-staking-sdk/react-kit';
+import { useAllCandidatesTotalStaked } from '@ton-staking-sdk/react-kit';
 
 function CalculatorModal() {
   const theme = useTheme();
@@ -28,7 +28,7 @@ function CalculatorModal() {
 
   const tonBalance = useTokenBalance('TON');
 
-  const { data: totalStaked, isLoading, error } = useAllOperatorsTotalStaked();
+  const { data: totalStaked, isLoading, error } = useAllCandidatesTotalStaked();
 
   const closeThisModal = useCallback(() => {
     setType('calculate');
