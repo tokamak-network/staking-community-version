@@ -14,8 +14,8 @@ import { sepolia } from 'viem/chains';
 import { Header } from "@/components/header";
 import Modals from "./Modal";
 import { TONStakingProvider } from '@ton-staking-sdk/react-kit';
-import { createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts"
+import { createWalletClient, custom } from "viem";
+import { TONStakingSDK, Chain } from '@ton-staking-sdk/core';
 
 // const DynamicHeader = dynamic(() => import("@/components/header/Index"), {
 //   loading: () => <></>,
@@ -42,11 +42,15 @@ export default function Entry({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   
-  
-  const wallet = createWalletClient({
+  const client = createWalletClient({
     chain: sepolia,
-    transport: http(),
-});
+    transport: custom(window.ethereum!)
+  })
+
+  const sdk = new TONStakingSDK(
+    process.env.NEXT_PUBLIC_SEPOLIA_RPC as string,
+    11155111,
+  );
 
   return (
     <>
@@ -54,7 +58,6 @@ export default function Entry({ children }: { children: React.ReactNode }) {
         <TONStakingProvider
           rpcUrl={process.env.NEXT_PUBLIC_SEPOLIA_RPC as string}
           chainId={11155111}
-          // walletClient={wallet} // Optional: Include for write operations
         >
           <ChakraProvidersForNextJs>
             <Flex flexDir={"column"} h={"100vh"}>
