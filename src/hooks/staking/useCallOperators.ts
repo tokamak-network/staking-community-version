@@ -374,7 +374,7 @@ export default function useCallOperators() {
   // 모든 오퍼레이터 새로고침 함수
   const refreshAllOperators = useCallback(async () => {
     try {
-      if (!publicClient || operatorAddresses.length === 0) return false;
+      if (!publicClient) return false;
       
       setLoading(true);
       
