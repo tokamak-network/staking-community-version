@@ -17,6 +17,7 @@ import SystemConfig from "@/abis/SystemConfig.json"
 import Candidates from "@/abis/Candidate.json";
 import CONTRACT_ADDRESS from "@/constant/contracts";
 import { useAllCandidates } from '@ton-staking-sdk/react-kit';
+import trimAddress from "@/utils/trim/trim";
 
 type SortDirection = "asc" | "desc";
 
@@ -37,7 +38,6 @@ export default function useCallOperators() {
   
   const { candidates: operatorAddresses, isLoading } = useAllCandidates();
   
-  // 메모이제이션된 계약 인스턴스 생성 함수
   const getContractInstance = useCallback((contractAddress: string, abi: any): any => {
     if (!publicClient || !contractAddress) return null;
     
@@ -161,9 +161,9 @@ export default function useCallOperators() {
     if (!opAddress || !publicClient || !commonContracts) return null;
     
     try {
-      if (operatorDataCache.has(opAddress) && !address) {
-        return operatorDataCache.get(opAddress) as Operator;
-      }
+      // if (operatorDataCache.has(opAddress) && !address) {
+      //   return operatorDataCache.get(opAddress) as Operator;
+      // }
       
       const candidateContract = getContractInstance(opAddress, Candidates);
       if (!candidateContract) return null;
@@ -183,9 +183,14 @@ export default function useCallOperators() {
       } catch (error) {
         operatorAddress = null;
       }
-      
+      console.log(memo)
       const operatorInfo: Operator = {
-        name: typeof memo === 'string' ? memo : opAddress,
+        name: typeof memo === 'string' ? memo : trimAddress({
+          address: opAddress as string,
+          firstChar: 7,
+          lastChar: 4,
+          dots: '....',
+        }),
         address: opAddress,
         totalStaked: totalStaked?.toString() || "0",
         yourStaked: stakeOf?.toString() || "0",

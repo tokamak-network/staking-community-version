@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     description:
       "TON Staking community version offers a simple interface for customized UI/UX.",
   },
-  icons: {
-    icon: [{ url: "/favicon.ico" }],
-  },
+  // icons: {
+  //   icon: [{ url: "/favicon.ico" }],
+  // },
 };
 
 export default function RootLayout({

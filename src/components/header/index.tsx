@@ -313,6 +313,7 @@ const WalletConnector: React.FC = () => {
             borderColor={'#D7D9DF'}
             borderRadius={'17.5px'}
             color={'#86929d'}
+            fontFamily={'TitilliumWeb'}
           >
             Connect Wallet
           </MenuButton>
@@ -380,7 +381,11 @@ const WalletConnector: React.FC = () => {
               <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
                 <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
               </span>
-              <Text textAlign={'left'} fontWeight={'normal'}>
+              <Text 
+                textAlign={'left'} 
+                fontWeight={'normal'}
+                fontFamily={'TitilliumWeb'}
+              >
                 {trimAddress({
                   address: address as string,
                   firstChar: 7,
