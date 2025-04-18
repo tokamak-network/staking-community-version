@@ -15,7 +15,7 @@ export default function StakingDashboard() {
       <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'} mr={'100px'} h={'1056px'}>
         <Info />
       </Flex>
-      <Box mt={8}>
+      <Box mt={8} minW={'510px'}>
         <Candidates />
       </Box>
     </Flex>

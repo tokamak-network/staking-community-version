@@ -134,50 +134,24 @@ export default function useCallOperators() {
     setSortDirection(direction);
   }, [sortDirection, compareTotalStaked, setOperatorsList]);
   
-  // 배치 호출 함수 최적화
-  const batchReadCalls = useCallback(async (contract: any, methods: Array<{method: string, args?: any[]}>) => {
-    if (!contract) return [];
-    
-    try {
-      return await Promise.all(
-        methods.map(({ method, args = [] }) => {
-          if (!contract.read || !contract.read[method]) {
-            console.error(`Method ${method} not found on contract`);
-            return Promise.resolve(null);
-          }
-          return contract.read[method](args.length > 0 ? args : undefined).catch((err: any) => {
-            console.error(`Error calling ${method}:`, err);
-            return null;
-          });
-        })
-      );
-    } catch (error) {
-      console.error("Error in batch read calls:", error);
-      return [];
-    }
-  }, []);
-  
   const fetchOperatorData = useCallback(async (opAddress: string): Promise<Operator | null> => {
     if (!opAddress || !publicClient || !commonContracts) return null;
     
     try {
-      // if (operatorDataCache.has(opAddress) && !address) {
-      //   return operatorDataCache.get(opAddress) as Operator;
-      // }
-      
       const candidateContract = getContractInstance(opAddress, Candidates);
       if (!candidateContract) return null;
+
+      const memo = await candidateContract.read.memo().catch(() => trimAddress({
+        address: opAddress as string,
+        firstChar: 7,
+        lastChar: 4,
+        dots: '....',
+      }));
       
-      const [totalStaked, memo, stakeOf] = await Promise.all([
-        candidateContract.read.totalStaked().catch(() => "0"),
-        candidateContract.read.memo().catch(() => trimAddress({
-          address: opAddress as string,
-          firstChar: 7,
-          lastChar: 4,
-          dots: '....',
-        })),
-        address ? candidateContract.read.stakedOf([address]).catch(() => "0") : Promise.resolve("0")
-      ]);
+      // const [totalStaked, stakeOf] = await Promise.all([
+      //   candidateContract.read.totalStaked().catch(() => "0"),
+      //   address ? candidateContract.read.stakedOf([address]).catch(() => "0") : Promise.resolve("0")
+      // ]);
       
       const candidateAddon = getContractInstance(opAddress, CandidateAddon);
       if (!candidateAddon) return null;
@@ -197,8 +171,8 @@ export default function useCallOperators() {
           dots: '....',
         }),
         address: opAddress,
-        totalStaked: totalStaked?.toString() || "0",
-        yourStaked: stakeOf?.toString() || "0",
+        totalStaked: "0",
+        yourStaked: "0",
         isL2: false
       };
       
@@ -371,17 +345,14 @@ export default function useCallOperators() {
     }
   }, [publicClient, fetchOperatorData, compareTotalStaked, sortDirection, setOperatorsList]);
   
-  // 모든 오퍼레이터 새로고침 함수
   const refreshAllOperators = useCallback(async () => {
     try {
       if (!publicClient) return false;
       
       setLoading(true);
       
-      // 캐시 초기화
       operatorDataCache.clear();
       
-      // 청크 단위로 병렬 처리
       const chunkSize = 10;
       const operators: Operator[] = [];
       let totalStakedAmount = BigNumber.from(0);

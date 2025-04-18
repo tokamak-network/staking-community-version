@@ -7,7 +7,8 @@ import {
   VStack,
   Badge,
   Center,
-  HStack
+  HStack,
+  Spinner
 } from '@chakra-ui/react';
 import useCallOperators from '@/hooks/staking/useCallOperators';
 import React from 'react';
@@ -117,8 +118,8 @@ const Candidates: React.FC = () => {
           style={{ willChange: 'transform' }}
         >
           {loading ? (
-            <Flex>
-              <LoadingDots />
+            <Flex justifyContent={'center'} alignItems={"center"} h="856px">
+              <Spinner size="lg" color="#2a72e5" />
             </Flex>
           ) : (
             repeatedOperators.map((operator, index) => (

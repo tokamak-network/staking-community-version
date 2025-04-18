@@ -15,7 +15,13 @@ import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
 import { Operator } from '@/recoil/staking/operator';
 import React from 'react';
+import {
+  useCandidateStake,
+  useUserStakeAmount,
+} from '@ton-staking-sdk/react-kit';
 import { getAvatarBgColor, getInitials } from '@/utils/color/getAvatarInfo';
+import { LoadingDots } from '@/components/Loader/LoadingDots';
+import { useAccount } from 'wagmi';
 
 interface OperatorItemProps {
   operator: Operator;
@@ -23,6 +29,14 @@ interface OperatorItemProps {
 
 export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator }) => {
   const isL2 = operator.isL2;
+  const { address } = useAccount();
+  const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
+    layer2Address: operator.address as `0x${string}`
+  })
+  const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
+    layer2Address: operator.address as `0x${string}`,
+    accountAddress: address as `0x${string}`
+  })
 
   const navigateToOperatorDetail = () => {
      window.location.href = `/${operator.address}`
@@ -85,21 +99,30 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
           
           <Flex align="center" color={'#86929D'} fontSize={'13px'} fontWeight={400}>
             <Text>Total Staked</Text>
-            <Text ml={2} fontWeight="medium">
-              {operator.totalStaked 
-                ? commafy(ethers.utils.formatUnits(operator.totalStaked, 27), 2) 
-                : commafy(Math.random() * 1000000, 2)} TON
-            </Text>
+            <Flex ml={2} fontWeight="medium" flexDir={'row'} alignItems={'center'}>
+              {
+                candidateStakeLoading ?
+                <Flex mr={'px'}>
+                  <LoadingDots size={'small'} /> 
+                </Flex>:
+                commafy(ethers.utils.formatUnits(candidateStaked ? candidateStaked.toString() : '0', 27), 2)
+              } 
+                TON
+            </Flex>
           </Flex>
           
-          {operator.yourStaked && operator.yourStaked !== '0' && (
+          {userStaked && userStaked !== '0' && (
             <Flex align="center" color={'#304156'} fontSize={'13px'} fontWeight={400}>
               <Text>Your Staked</Text>
-              <Text ml={2} fontWeight="medium" >
-              {operator.yourStaked 
-                ? commafy(ethers.utils.formatUnits(operator.yourStaked, 27), 2) 
-                : ''} TON
-              </Text>
+              <Flex ml={2} fontWeight="medium" flexDir={'row'} alignItems={'center'}>
+              {
+                userStakedLoading ?
+                <Flex mr={'px'}>
+                  <LoadingDots size={'small'} /> 
+                </Flex>:
+                commafy(ethers.utils.formatUnits(userStaked ? userStaked.toString() : '0', 27), 2)
+              }  TON
+              </Flex>
             </Flex>
           )}
         </Flex>
