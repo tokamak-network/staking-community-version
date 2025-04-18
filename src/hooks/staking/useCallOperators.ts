@@ -8,7 +8,7 @@ import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
 import OperatorManager from "@/abis/OperatorManager.json";
-import CandidateAddon from "@/abis/CandidateAddon.json";
+import CandidateAddon from "@/constant/abis/CandidateAddOn.json";
 import SeigManager from "@/abis/SeigManager.json";
 import WTON from "@/abis/WTON.json";
 import TON from "@/abis/TON.json";
