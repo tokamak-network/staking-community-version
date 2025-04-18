@@ -170,7 +170,12 @@ export default function useCallOperators() {
       
       const [totalStaked, memo, stakeOf] = await Promise.all([
         candidateContract.read.totalStaked().catch(() => "0"),
-        candidateContract.read.memo().catch(() => opAddress),
+        candidateContract.read.memo().catch(() => trimAddress({
+          address: opAddress as string,
+          firstChar: 7,
+          lastChar: 4,
+          dots: '....',
+        })),
         address ? candidateContract.read.stakedOf([address]).catch(() => "0") : Promise.resolve("0")
       ]);
       
@@ -183,7 +188,7 @@ export default function useCallOperators() {
       } catch (error) {
         operatorAddress = null;
       }
-      console.log(memo)
+      console.log(memo )
       const operatorInfo: Operator = {
         name: typeof memo === 'string' ? memo : trimAddress({
           address: opAddress as string,
