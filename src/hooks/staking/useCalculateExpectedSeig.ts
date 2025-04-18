@@ -55,6 +55,7 @@ interface SeigResult {
   expectedSeig: string;
   seigOfLayer: string;
   lastSeigBlock: string;
+  commissionRate: string;
 }
 
 // Constants
@@ -112,13 +113,14 @@ const applyFactor = (
  * @param candidate - The candidate address
  * @returns Expected seig and layer seig
  */
-export function useExpectedSeig(
+export function useExpectedSeigs(
   candidateContract: `0x${string}` | undefined, 
   stakedAmount: string, 
   // candidate: string
 ): SeigResult {
   const [expectedSeig, setExpectedSeig] = useState<string>('');
   const [seigOfLayer, setSeigOfLayer] = useState<string>('');
+  const [commissionRate, setCommissionRate] = useState<string>('');
   // State management commented out
   // const [txPending, setTxPending] = useRecoilState(txState);
   
@@ -218,8 +220,8 @@ export function useExpectedSeig(
   // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
-      console.log(expectedSeig, expectedSeig > '0')
-      if (expectedSeig > '0') return;
+      // console.log(expectedSeig, expectedSeig > '0')
+      // if (expectedSeig > '0') return;
       try {
         // Tot contract reads
         const totTotalSupply = await publicClient.readContract({
@@ -291,7 +293,8 @@ export function useExpectedSeig(
 
         // 7. Final seig calculation
         const _seigOfLayer = nextBalanceOfLayerInTot - coinageTotalSupply;
-        console.log(_seigOfLayer)
+        // console.log(commissionRates);
+        setCommissionRate(formatUnits(commissionRates as bigint, 27));
         let seig: bigint;
         const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
         
@@ -313,7 +316,7 @@ export function useExpectedSeig(
         } else {
           seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
         }
-        console.log(seig)
+        // console.log(seig)
         setSeigOfLayer(_seigOfLayer.toString());
         setExpectedSeig(seig.toString());
       } catch (e) {
@@ -330,5 +333,5 @@ export function useExpectedSeig(
     blockNumber
   ]);
 
-  return { expectedSeig, seigOfLayer, lastSeigBlock: lastSeigBlock?.toString() || '' };
+  return { expectedSeig, seigOfLayer, commissionRate, lastSeigBlock: lastSeigBlock?.toString() || '' };
 }

@@ -41,13 +41,13 @@ import useStakeTON from '@/hooks/staking/useStakeTON';
 import { marshalString, unmarshalString } from '@/utils/format/marshalString';
 import { padLeft } from 'web3-utils';
 import { convertToRay, convertToWei, floatParser } from '@/utils/number/convert';
-import { useExpectedSeig } from '@/hooks/staking/useCalculateExpectedSeig';
+import { useExpectedSeigs } from '@/hooks/staking/useCalculateExpectedSeig';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
 import ETH from '@/assets/images/eth.svg';
 import ARROW from '@/assets/images/right_arrow.svg';
 import useCalculatorModal from '@/hooks/modal/useCalculatorModal';
-import { useTONBalance, useUserStakeAmount } from '@ton-staking-sdk/react-kit';
+import { useTONBalance, useUserStakeAmount, useExpectedSeig, useLayer2RewardInfo, useClaimableL2Seigniorage, useCheckCandidateType } from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
 import { format } from 'path';
 import useCallOperators from '@/hooks/staking/useCallOperators';
@@ -62,6 +62,7 @@ import { useMemo } from 'react';
 import useTokenBalance from '@/hooks/balance/useTonBalance';
 import useWithdrawL2 from '@/hooks/staking/useWithdrawL2';
 import { ValueSection } from './components/ValueSection';
+import { useStakingInformation } from '@/hooks/info/useStakingInfo';
 
 const {
   TON_ADDRESS,
@@ -90,6 +91,9 @@ export default function Page() {
   const { onOpenSelectModal } = useSelectOperatorModal()
   const [txPending, ] = useRecoilState(txPendingStatus);
   const prevTxPendingRef = useRef(txPending);
+  const { roi } = useStakingInformation();
+
+  const { commissionRate } = useExpectedSeigs(currentOperator?.address as `0x${string}`, address as `0x${string}`);
   
   const { refreshOperator } = useOperatorData();
   
@@ -100,7 +104,15 @@ export default function Page() {
     }
   }, [operatorAddress]);
   
-  const { expectedSeig, lastSeigBlock } = useExpectedSeig(operatorAddress as `0x${string}`, currentOperator?.totalStaked || '0');
+  const { expectedSeig, lastSeigBlock, isLoading: seigLoading } = useExpectedSeig(
+    operatorAddress as `0x${string}`, 
+    BigInt(currentOperator?.totalStaked || '0'),
+    address as `0x${string}`,
+  );
+
+  const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: operatorAddress as `0x${string}` });
+  const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: operatorAddress as `0x${string}` });
+  // const { candidateType } = useCheckCandidateType({ candidateAddress: operatorAddress as `0x${string}` });
 
   const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
@@ -355,7 +367,7 @@ export default function Page() {
       <Flex justify="space-between" mb={8} flexWrap="wrap" gap={4} px={'15px'}>
         <HeadInfo 
           title="Staking APY" 
-          value={'34.56 %'}
+          value={roi.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' %'}
           label=""
         />
         <HeadInfo 
@@ -365,7 +377,7 @@ export default function Page() {
         />
         <HeadInfo 
           title="Commission rate" 
-          value={'10 %'}
+          value={commissionRate.toString() + ' %'}
           label=""
         />
       </Flex>
@@ -573,7 +585,8 @@ export default function Page() {
             title={'Unclaimed Staking Reward'}
             value={expectedSeig}
             onClaim={() => updateSeig()}
-            seigUpdated={lastSeigBlock}
+            isLoading={seigLoading}
+            seigUpdated={lastSeigBlock ?? undefined}
           />
         
         </VStack>
@@ -602,12 +615,12 @@ export default function Page() {
             <VStack spacing={6} align="stretch">
               <ValueSection 
                 title={'TON Bridged to L2'}
-                value={currentOperator?.lockedInL2 || '0'}
+                value={layer2Reward?.layer2Tvl.toString() || '0'}
               />
               <Divider />
               <ValueSection 
                 title={'Claimable seigniorage'}
-                value={currentOperator?.sequencerSeig || '0'}
+                value={claimableAmount?.toString() || '0'}
                 onClaim={() => updateSeig({args: [operatorAddress]})}
               />
             </VStack>

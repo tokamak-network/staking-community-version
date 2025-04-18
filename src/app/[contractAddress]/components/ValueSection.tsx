@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/Loader/LoadingDots";
 import commafy from "@/utils/trim/commafy";
 import { Flex, Text, VStack } from "@chakra-ui/react";
 import { ethers } from "ethers";
@@ -7,11 +8,11 @@ type ValueSectionProps = {
   title: string;
   value: string;
   seigUpdated?: string;
-  
+  isLoading?: boolean;
   onClaim?: () => void;
 }
 export const ValueSection = (args: ValueSectionProps) => {
-  const { title, value, seigUpdated, onClaim } = args;
+  const { title, value, seigUpdated, onClaim, isLoading } = args;
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
       return commafy(ethers.utils.formatUnits(amount, unit), 2);
@@ -46,12 +47,22 @@ export const ValueSection = (args: ValueSectionProps) => {
       </VStack>
       <VStack spacing={0} align="end">
         <Text fontSize={'14px'}>
-          {formatUnits(value || '0', 27)} TON
+          <Flex justifyContent={'flex-end'} alignItems={'center'}>
+            {
+              isLoading ? (
+                <Flex mr={'3px'}>
+                  <LoadingDots size={'small'} />
+                </Flex>
+              ) :
+              (formatUnits(value || '0', 27))
+            } TON
+          </Flex>
           { 
             onClaim && (
               <Flex 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}
+                justifyContent={'flex-end'}
               >
                 {seigUpdated ? 'Update seigniorage' : 'Claim'}
               </Flex>

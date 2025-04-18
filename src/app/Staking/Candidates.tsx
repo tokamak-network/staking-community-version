@@ -12,6 +12,7 @@ import {
 import useCallOperators from '@/hooks/staking/useCallOperators';
 import React from 'react';
 import { OperatorItem } from './components/OperatorItem';
+import { LoadingDots } from '@/components/Loader/LoadingDots';
 
 const Candidates: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,7 +118,9 @@ const Candidates: React.FC = () => {
           style={{ willChange: 'transform' }}
         >
           {loading ? (
-            <Center py={10}>Loading operators...</Center>
+            <Flex>
+              <LoadingDots />
+            </Flex>
           ) : (
             repeatedOperators.map((operator, index) => (
               <OperatorItem 
