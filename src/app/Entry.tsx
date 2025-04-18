@@ -41,14 +41,11 @@ import { privateKeyToAccount } from "viem/accounts"
 export default function Entry({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
-  const testAccount = privateKeyToAccount(
-    `0x${process.env.NEXT_PUBLIC_PK}` as `0x${string}`
-  );
+  
   
   const wallet = createWalletClient({
     chain: sepolia,
     transport: http(),
-    account: testAccount
 });
 
   return (
