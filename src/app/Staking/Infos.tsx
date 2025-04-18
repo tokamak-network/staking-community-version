@@ -6,6 +6,7 @@ import {
   HStack,
   Tooltip,
   Spinner,
+  Button,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
@@ -13,10 +14,12 @@ import Image from 'next/image';
 import { StakingInfo } from './components/StakingInfo';
 import { useStakingInformation } from '@/hooks/info/useStakingInfo';
 import { SupplyValueProps } from 'recoil/staking/info';
+import useCallOperators from '@/hooks/staking/useCallOperators';
 
 export default function Infos() {
   const [isLoading, setIsLoading] = useState(true);
   const { stakingInfo } = useStakingInformation();
+  const { refreshAllOperators } = useCallOperators();
 
   useEffect(() => {
     if (stakingInfo && stakingInfo.length > 0 && stakingInfo[0].value !== 0 && stakingInfo[0].value !== Infinity) {
@@ -26,15 +29,21 @@ export default function Infos() {
 
   return (
     <Flex alignItems="center" justifyContent={"center"} h="100%" flexDir="column" w="500px">
-      <Text 
-        fontSize="45px" 
-        fontWeight={700} 
-        textAlign="left" 
-        mb="24px"
-        w="100%"
-      >
-        TON Staking
-      </Text>
+      <Flex mt={'10px'} flexDir={'row'} justifyContent={'space-between'} >
+        <Text 
+          fontSize="45px" 
+          fontWeight={700} 
+          textAlign="left" 
+          mb="24px"
+          w="100%"
+        >
+          TON Staking
+        </Text>
+        <Button onClick={() => refreshAllOperators()}>
+          refresh
+        </Button>
+
+      </Flex>
           
       <Text color="#252525" fontSize="15px" fontWeight={300} maxW="container.md">
         Stake your TON with a DAO candidate to earn seigniorage rewards while

@@ -19,7 +19,6 @@ const Candidates: React.FC = () => {
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-
   const filteredOperators = operatorsList.filter(op => 
     op.name.toLowerCase().includes(searchTerm.toLowerCase())
   );

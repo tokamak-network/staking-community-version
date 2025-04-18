@@ -572,18 +572,6 @@ export default function Page() {
           <Text as="span" color={'#FF2D78'}>Warning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
         </Text>
       }
-      {/* {
-        isL2 && activeAction === 'Withdraw' && withdrawTarget === 'L2' && 
-        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
-          <Text as="span" color={'#257EEE'}>Note:</Text> Withdrawing to L2 is faster but may have different fee structures compared to Ethereum Mainnet.
-        </Text>
-      }
-      {
-        isL2 && activeAction === 'Withdraw' && withdrawTarget === 'Ethereum' && 
-        <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
-          <Text as="span" color={'#FF2D78'}>Wargning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
-        </Text>
-      } */}
     </Flex>
   );
 };
