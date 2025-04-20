@@ -21,7 +21,6 @@ import trimAddress from "@/utils/trim/trim";
 
 type SortDirection = "asc" | "desc";
 
-// 글로벌 캐시 객체 - 컴포넌트 리렌더링에 영향받지 않음
 const contractCache = new Map<string, any>();
 const contractExistsCache = new Map<string, boolean>();
 const operatorDataCache = new Map<string, Operator>();

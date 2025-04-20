@@ -17,6 +17,9 @@ import { Operator } from '@/recoil/staking/operator';
 import React from 'react';
 import {
   useCandidateStake,
+  useCheckCandidateType,
+  useIsCandidateAddon,
+  useOperatorManager,
   useUserStakeAmount,
 } from '@ton-staking-sdk/react-kit';
 import { getAvatarBgColor, getInitials } from '@/utils/color/getAvatarInfo';
@@ -37,6 +40,11 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
     layer2Address: operator.address as `0x${string}`,
     accountAddress: address as `0x${string}`
   })
+
+  const { candidateType } = useCheckCandidateType({ candidateAddress: operator.address as `0x${string}` });
+    const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operator.address as `0x${string}` });
+  const { operatorManagerAddress } = useOperatorManager({ candidateAddress: operator.address as `0x${string}` });
+    console.log(operator.name, candidateType, isCandidateAddon, operatorManagerAddress);
 
   const navigateToOperatorDetail = () => {
      window.location.href = `/${operator.address}`

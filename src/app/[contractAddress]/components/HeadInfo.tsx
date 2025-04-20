@@ -1,15 +1,17 @@
 import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
-import { Heading, HStack, Tooltip, VStack, Text } from "@chakra-ui/react"
+import { LoadingDots } from '@/components/Loader/LoadingDots';
+import { Heading, HStack, Tooltip, VStack, Text, Flex } from "@chakra-ui/react"
 import Image from 'next/image';
 
 type HedInfoType = {
   title: string,
   value: string,
   label?: string
+  isLoading?: boolean
 }
 
 export const HeadInfo = (args: HedInfoType) => {
-  const { title, value, label } = args
+  const { title, value, label, isLoading } = args
 
   return (
     <VStack align="center" spacing={1}>
@@ -22,7 +24,15 @@ export const HeadInfo = (args: HedInfoType) => {
           </Tooltip>
         }
       </HStack>
-      <Heading fontSize={'21px'}>{value}</Heading>
+      <Heading fontSize={'21px'}>
+        {
+          isLoading ? (
+           <Flex mr={'3px'} mt={'5px'}>
+              <LoadingDots size={'small'} />
+            </Flex>
+          ) : value
+        }
+      </Heading>
     </VStack>
   )
 }
