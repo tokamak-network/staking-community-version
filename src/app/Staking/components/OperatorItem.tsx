@@ -34,10 +34,10 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
   const isL2 = operator.isL2;
   const { address } = useAccount();
   const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
-    layer2Address: operator.address as `0x${string}`
+    candidateAddress: operator.address as `0x${string}`
   })
   const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
-    layer2Address: operator.address as `0x${string}`,
+    candidateAddress: operator.address as `0x${string}`,
     accountAddress: address as `0x${string}`
   })
 

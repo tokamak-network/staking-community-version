@@ -35,7 +35,17 @@ import { useExpectedSeigs } from '@/hooks/staking/useCalculateExpectedSeig';
 import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 import ETH from '@/assets/images/eth.svg';
 import ARROW from '@/assets/images/right_arrow.svg';
-import { useTONBalance, useUserStakeAmount, useExpectedSeig, useLayer2RewardInfo, useClaimableL2Seigniorage, useCheckCandidateType, useCandidateStake, useIsCandidateAddon } from '@ton-staking-sdk/react-kit';
+import { 
+  useTONBalance,
+  useWTONBalance, 
+  useUserStakeAmount, 
+  useExpectedSeig, 
+  useLayer2RewardInfo, 
+  useClaimableL2Seigniorage, 
+  useCheckCandidateType, 
+  useCandidateStake, 
+  useIsCandidateAddon 
+} from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
 import useCallOperators from '@/hooks/staking/useCallOperators';
 import useStakeWTON from '@/hooks/staking/useStakeWTON';
@@ -83,7 +93,7 @@ export default function Page() {
   const prevTxPendingRef = useRef(txPending);
   const { roi } = useStakingInformation();
 
-  const { commissionRate } = useExpectedSeigs(operatorAddress as `0x${string}`, address as `0x${string}`);
+  // const { commissionRate } = useExpectedSeigs(operatorAddress as `0x${string}`, address as `0x${string}`);
   
   const { refreshOperator } = useOperatorData();
   
@@ -94,7 +104,7 @@ export default function Page() {
     }
   }, [operatorAddress]);
   
-  const { expectedSeig, lastSeigBlock, isLoading: seigLoading } = useExpectedSeig(
+  const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
     operatorAddress as `0x${string}`, 
     BigInt(currentOperator?.totalStaked || '0'),
     address as `0x${string}`,
@@ -103,11 +113,11 @@ export default function Page() {
   const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: operatorAddress as `0x${string}` });
   const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: operatorAddress as `0x${string}` });
   const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
-    layer2Address: operatorAddress as `0x${string}`,
+    candidateAddress: operatorAddress as `0x${string}`,
     accountAddress: address as `0x${string}`
   })
   const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
-    layer2Address: operatorAddress as `0x${string}`
+    candidateAddress: operatorAddress as `0x${string}`
   })
   // const { candidateType } = useCheckCandidateType({ candidateAddress: operatorAddress as `0x${string}` });
   // const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operatorAddress as `0x${string}` });
@@ -120,6 +130,7 @@ export default function Page() {
   const [showWithdrawOptions, setShowWithdrawOptions] = useState<boolean>(false);
 
   const { data: tonBalance } = useTONBalance({ account: address });
+  const { data: wtonBalance } = useWTONBalance({ account: address });
   
   const operatorAddressForHooks = useMemo(() => operatorAddress || '', [operatorAddress]);
   
@@ -282,7 +293,7 @@ export default function Page() {
         />
         <HeadInfo 
           title="Commission rate" 
-          value={commissionRate.toString() + ' %'}
+          value={(commissionRates ?? 0).toString() + ' %'}
           label=""
         />
       </Flex>
@@ -336,7 +347,11 @@ export default function Page() {
             fontSize={'12px'}
             fontWeight={400}
           >
-            Balance: {formatUnits(tonBalance || '0', 18)} TON
+            Balance: {
+              formatUnits(
+                activeToken === 'TON' ? tonBalance : wtonBalance || '0', 
+                activeToken === 'TON' ? 18 : 27)
+            } {activeToken}
           </Text>
         </Flex>
         {/* Balance Section */}

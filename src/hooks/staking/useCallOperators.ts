@@ -146,11 +146,8 @@ export default function useCallOperators() {
         lastChar: 4,
         dots: '....',
       }));
-      
-      // const [totalStaked, stakeOf] = await Promise.all([
-      //   candidateContract.read.totalStaked().catch(() => "0"),
-      //   address ? candidateContract.read.stakedOf([address]).catch(() => "0") : Promise.resolve("0")
-      // ]);
+
+      const totalStaked = await candidateContract.read.totalStaked().catch(() => "0");
       
       const candidateAddon = getContractInstance(opAddress, CandidateAddon);
       if (!candidateAddon) return null;
@@ -170,7 +167,7 @@ export default function useCallOperators() {
           dots: '....',
         }),
         address: opAddress,
-        totalStaked: "0",
+        totalStaked: totalStaked,
         yourStaked: "0",
         isL2: false
       };
