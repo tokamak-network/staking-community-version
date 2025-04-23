@@ -63,6 +63,7 @@ import { mainButtonStyle } from '@/style/buttonStyle';
 import { getButtonText } from '@/utils/button/getButtonText';
 import { ActionSection } from './components/ActionSection';
 import { boxStyle } from '@/style/boxStyle';
+import useClaim from '@/hooks/staking/useClaim';
 
 const {
   TON_ADDRESS,
@@ -142,6 +143,7 @@ export default function Page() {
   const { withdraw } = useWithdraw(operatorAddressForHooks);
   const { withdrawL2 } = useWithdrawL2(operatorAddressForHooks);
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
+  const { claim } = useClaim(operatorAddressForHooks);
 
   useEffect(() => {
     if (prevTxPendingRef.current === true && txPending === false) {
@@ -370,7 +372,11 @@ export default function Page() {
             <BalanceInput 
               placeHolder={'0.00'}
               type={'staking'}
-              maxValue={formatUnits(tonBalance, 18)}
+              maxValue={
+                activeAction === 'Stake' ?
+                formatUnits(tonBalance, 18) :
+                formatUnits(userStaked, 27)
+              }
             />
           }
           <Flex align="center" mr={'15px'}>
@@ -436,7 +442,7 @@ export default function Page() {
               <ValueSection 
                 title={'Claimable seigniorage'}
                 value={claimableAmount?.toString() || '0'}
-                onClaim={() => updateSeig({args: [operatorAddress]})}
+                onClaim={() => claim({args: [1]})}
               />
             </VStack>
           </Box>

@@ -29,7 +29,7 @@ export default function Infos() {
 
   return (
     <Flex alignItems="center" justifyContent={"center"} h="100%" flexDir="column" w="500px">
-      <Flex mt={'10px'} flexDir={'row'} justifyContent={'space-between'} >
+      <Flex mt={'10px'} flexDir={'row'} justifyContent={'space-between'} alignItems={'center'} w={'100%'}>
         <Text 
           fontSize="45px" 
           fontWeight={700} 
@@ -39,10 +39,11 @@ export default function Infos() {
         >
           TON Staking
         </Text>
-        <Button onClick={() => refreshAllOperators()}>
-          refresh
-        </Button>
-
+        <Flex mr={'20px'} mb={'5px'}>
+          <Button onClick={() => refreshAllOperators()}>
+            refresh
+          </Button>
+        </Flex>
       </Flex>
           
       <Text color="#252525" fontSize="15px" fontWeight={300} maxW="container.md">

@@ -24,6 +24,7 @@ type SortDirection = "asc" | "desc";
 const contractCache = new Map<string, any>();
 const contractExistsCache = new Map<string, boolean>();
 const operatorDataCache = new Map<string, Operator>();
+// const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
@@ -184,15 +185,15 @@ export default function useCallOperators() {
             } catch (error) {
               rollupConfigAddress = null;
             }
-            
-            if (rollupConfigAddress) {
+            // console.log(memo, rollupConfigAddress && memo !== "Thanos Sepolia", rollupConfigAddress, operatorAddress)
+            if (rollupConfigAddress && memo !== "Thanos Sepolia") {
               try {
                 const { layer2manager, seigManager, wton, ton } = commonContracts;
                 const rollupConfig = getContractInstance(rollupConfigAddress as string, SystemConfig);
                 
                 if (rollupConfig && layer2manager) {
                   const bridgeDetail = await layer2manager.read.checkL1BridgeDetail([rollupConfigAddress]);
-                  
+                  // console.log(memo, bridgeDetail, rollupConfigAddress);
                   if (Array.isArray(bridgeDetail) && bridgeDetail[5] === 1) {
                     operatorInfo.isL2 = true;
                     
@@ -260,32 +261,35 @@ export default function useCallOperators() {
     const fetchOperators = async () => {
       try {
         setLoading(true);
-        
-        // 청크 단위로 병렬 처리 (10개씩 나누어 처리)
+  
         const chunkSize = 10;
         let totalStakedAmount = BigNumber.from(0);
         const operators: Operator[] = [];
-        
+  
         for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
           const chunk = operatorAddresses.slice(i, i + chunkSize);
-          
-          // 각 청크를 병렬로 처리
+  
           const chunkResults = await Promise.all(
             chunk.map(opAddress => fetchOperatorData(opAddress as string))
           );
-          
-          // 유효한 결과만 필터링하고 집계
           const validResults = chunkResults.filter(Boolean) as Operator[];
           operators.push(...validResults);
-          
-          // totalStaked 집계
+  
           validResults.forEach(op => {
-            totalStakedAmount = totalStakedAmount.add(BigNumber.from(op.totalStaked || "0"));
+            totalStakedAmount = totalStakedAmount.add(
+              BigNumber.from(op.totalStaked || "0")
+            );
           });
+  
+          // // 다음 청크로 넘어가기 전에 300ms 대기
+          // if (i + chunkSize < operatorAddresses.length) {
+          //   await sleep(300);
+          // }
         }
-        
-        // 전체 결과 정렬 및 상태 업데이트
-        const sortedOperators = [...operators].sort((a, b) => compareTotalStaked(a, b, sortDirection));
+  
+        const sortedOperators = [...operators].sort((a, b) =>
+          compareTotalStaked(a, b, sortDirection)
+        );
         setTotalStaked(totalStakedAmount.toString());
         setOperatorsList(sortedOperators);
       } catch (error) {
@@ -310,16 +314,13 @@ export default function useCallOperators() {
     loading
   ]);
   
-  // 개별 오퍼레이터 새로고침 함수
   const refreshOperator = useCallback(async (candidateAddress: string) => {
     try {
       if (!publicClient || !candidateAddress) return false;
       
-      // 오퍼레이터 데이터 새로 가져오기
       const updatedOperator = await fetchOperatorData(candidateAddress);
       if (!updatedOperator) return false;
       
-      // 목록 업데이트
       setOperatorsList((prevList: Operator[]) => {
         const operatorIndex = prevList.findIndex(op => op.address === candidateAddress);
         
@@ -331,7 +332,6 @@ export default function useCallOperators() {
         return newList.sort((a, b) => compareTotalStaked(a, b, sortDirection));
       });
       
-      // 캐시 업데이트
       operatorDataCache.delete(candidateAddress);
       
       return true;
@@ -352,10 +352,10 @@ export default function useCallOperators() {
       const chunkSize = 10;
       const operators: Operator[] = [];
       let totalStakedAmount = BigNumber.from(0);
-      
+      console.log('a', operatorAddresses.length)
       for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
         const chunk = operatorAddresses.slice(i, i + chunkSize);
-        
+        console.log('b')
         // 각 청크를 병렬로 처리
         const chunkResults = await Promise.all(
           chunk.map(opAddress => fetchOperatorData(opAddress as string))

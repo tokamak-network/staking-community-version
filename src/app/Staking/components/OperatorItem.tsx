@@ -41,10 +41,10 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
     accountAddress: address as `0x${string}`
   })
 
-  const { candidateType } = useCheckCandidateType({ candidateAddress: operator.address as `0x${string}` });
-    const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operator.address as `0x${string}` });
-  const { operatorManagerAddress } = useOperatorManager({ candidateAddress: operator.address as `0x${string}` });
-    console.log(operator.name, candidateType, isCandidateAddon, operatorManagerAddress);
+  // const { candidateType } = useCheckCandidateType({ candidateAddress: operator.address as `0x${string}` });
+  //   const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operator.address as `0x${string}` });
+  // const { operatorManagerAddress } = useOperatorManager({ candidateAddress: operator.address as `0x${string}` });
+    // console.log(operator.name, candidateType, isCandidateAddon, operatorManagerAddress);
 
   const navigateToOperatorDetail = () => {
      window.location.href = `/${operator.address}`
