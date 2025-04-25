@@ -10,6 +10,7 @@ export interface Operator {
   isL2?: boolean;
   sequencerSeig?: string;
   lockedInL2?: string;
+  manager?: string;
 }
 
 

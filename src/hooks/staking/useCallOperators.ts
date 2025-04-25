@@ -159,7 +159,7 @@ export default function useCallOperators() {
       } catch (error) {
         operatorAddress = null;
       }
-      console.log(memo )
+      // console.log(memo )
       const operatorInfo: Operator = {
         name: typeof memo === 'string' ? memo : trimAddress({
           address: opAddress as string,
@@ -184,6 +184,13 @@ export default function useCallOperators() {
               rollupConfigAddress = await operatorManager.read.rollupConfig();
             } catch (error) {
               rollupConfigAddress = null;
+            }
+            let manager;
+            try {
+              manager = await operatorManager.read.manager();
+              operatorInfo.manager = manager;
+            } catch (error) {
+              manager = null;
             }
             // console.log(memo, rollupConfigAddress && memo !== "Thanos Sepolia", rollupConfigAddress, operatorAddress)
             if (rollupConfigAddress && memo !== "Thanos Sepolia") {
@@ -356,22 +363,19 @@ export default function useCallOperators() {
       for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
         const chunk = operatorAddresses.slice(i, i + chunkSize);
         console.log('b')
-        // 각 청크를 병렬로 처리
+
         const chunkResults = await Promise.all(
           chunk.map(opAddress => fetchOperatorData(opAddress as string))
         );
         
-        // 유효한 결과만 필터링하고 집계
         const validResults = chunkResults.filter(Boolean) as Operator[];
         operators.push(...validResults);
         
-        // totalStaked 집계
         validResults.forEach(op => {
           totalStakedAmount = totalStakedAmount.add(BigNumber.from(op.totalStaked || "0"));
         });
       }
       
-      // 전체 결과 정렬 및 상태 업데이트
       const sortedOperators = [...operators].sort((a, b) => compareTotalStaked(a, b, sortDirection));
       setTotalStaked(totalStakedAmount.toString());
       setOperatorsList(sortedOperators);

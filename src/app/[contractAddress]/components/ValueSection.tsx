@@ -3,16 +3,19 @@ import commafy from "@/utils/trim/commafy";
 import { Flex, Text, VStack } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useCallback } from "react";
+import { useAccount } from "wagmi";
 
 type ValueSectionProps = {
   title: string;
   value: string;
   seigUpdated?: string;
   isLoading?: boolean;
+  manager?: string;
   onClaim?: () => void;
 }
 export const ValueSection = (args: ValueSectionProps) => {
   const { title, value, seigUpdated, onClaim, isLoading } = args;
+  const { address } = useAccount();
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
       return commafy(ethers.utils.formatUnits(amount, unit), 2);
@@ -58,7 +61,7 @@ export const ValueSection = (args: ValueSectionProps) => {
             } TON
           </Flex>
           { 
-            onClaim && (
+            (onClaim) && (
               <Flex 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}

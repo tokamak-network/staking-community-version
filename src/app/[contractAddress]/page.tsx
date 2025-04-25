@@ -106,8 +106,6 @@ export default function Page() {
       setCurrentOperator(operator || null);
     }
   }, [operatorAddress, operators.length]);
-
-  
   
   const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
     operatorAddress as `0x${string}`, 
@@ -446,7 +444,8 @@ export default function Page() {
               <ValueSection 
                 title={'Claimable seigniorage'}
                 value={claimableAmount?.toString() || '0'}
-                onClaim={() => claim({args: [1]})}
+                // onClaim={() => claim({args: [1]})}
+                // manager={''}
               />
             </VStack>
           </Box>
