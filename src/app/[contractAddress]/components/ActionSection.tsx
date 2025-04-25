@@ -2,6 +2,7 @@ import { actionButtonStyle, withdrawOptionButtonStyle } from "@/style/buttonStyl
 import { Box, Button, Flex, HStack, Link, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import Image from "next/image";
 import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
+import LIST_ARROW_WHITE from '@/assets/images/list-arrow_icon_white.svg';
 import { formatUnits } from "viem";
 import useCalculatorModal from "@/hooks/modal/useCalculatorModal";
 
@@ -40,7 +41,7 @@ export const ActionSection = (args: ActionSectionProps) => {
                 ? '126px' 
                 : '97px'
               }
-              {...actionButtonStyle(activeAction === 'Withdraw')}
+              {...actionButtonStyle(activeAction === 'WithdrawL1' || activeAction === 'WithdrawL2' )}
             >
               <Flex flexDir={'row'} justifyContent={'center'}>
                 <Flex mr={'5px'}>
@@ -53,7 +54,7 @@ export const ActionSection = (args: ActionSectionProps) => {
                   }
                 </Flex>
                 <Flex w={'10px'} cursor={'pointer'} _hover={{ transform: 'scale(1.05)' }}>
-                  <Image src={LIST_ARROW} alt={''} />
+                  <Image src={activeAction === 'WithdrawL1' || activeAction === 'WithdrawL2' ? LIST_ARROW_WHITE : LIST_ARROW} alt={''} />
                 </Flex>
 
               </Flex>

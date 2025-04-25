@@ -99,11 +99,15 @@ export default function Page() {
   const { refreshOperator } = useOperatorData();
   
   useEffect(() => {  
+    console.log(operatorAddress && operators.length > 0, operatorAddress, operators)
     if (operatorAddress && operators.length > 0) {
       const operator = operators.find(op => op.address === operatorAddress);
+      console.log(operators)
       setCurrentOperator(operator || null);
     }
-  }, [operatorAddress]);
+  }, [operatorAddress, operators.length]);
+
+  
   
   const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
     operatorAddress as `0x${string}`, 
