@@ -48,7 +48,7 @@ import {
 } from '@ton-staking-sdk/react-kit';
 import { useWithdrawableLength } from '@/hooks/staking/useWithdrawable';
 import useCallOperators from '@/hooks/staking/useCallOperators';
-import useStakeWTON from '@/hooks/staking/useStakeWTON';
+// import useStakeWTON from '@/hooks/staking/useStakeWTON';
 import useRestake from '@/hooks/staking/useRestake';
 import useUpdateSeig from '@/hooks/staking/useUpdateSeig';
 import useWithdraw from '@/hooks/staking/useWithdraw';
@@ -66,6 +66,8 @@ import { boxStyle } from '@/style/boxStyle';
 import useClaim from '@/hooks/staking/useClaim';
 import { useWriteContract } from 'wagmi'
 import TON from '@/abis/TON.json';
+import { useStakeWTON } from '@/hooks/staking/useStakeWTON';
+import { useTx } from '@/hooks/tx/useTx';
 
 const {
   TON_ADDRESS,
@@ -139,7 +141,7 @@ export default function Page() {
   
   const operatorAddressForHooks = useMemo(() => operatorAddress || '', [operatorAddress]);
 
-  const { writeContract } = useWriteContract()
+  const { writeContractAsync, data } = useWriteContract()
   
   const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(operatorAddressForHooks as `0x${string}`);
   // const { stakeTON: _stakeTON } = useStakeTON(operatorAddressForHooks);
@@ -151,7 +153,7 @@ export default function Page() {
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
   const { claim } = useClaim(operatorAddressForHooks);
 
-  let tx;
+  
 
   useEffect(() => {
     if (prevTxPendingRef.current === true && txPending === false) {
@@ -171,9 +173,9 @@ export default function Page() {
     }
   }, [activeAction, currentOperator?.isL2]);
   
-  const onClick = useCallback(() => {
+  const onClick = useCallback(async () => {
     const amount = floatParser(value);
-
+    let tx
     if (amount) {
       const weiAmount = convertToWei(amount.toString());
       const rayAmount = convertToRay(amount.toString());
@@ -184,47 +186,47 @@ export default function Page() {
           const wtonMarshalData = getDataForWton();
           
           tx = activeToken === 'TON' ? 
-          writeContract({
+          writeContractAsync({
             address: TON_ADDRESS,
             abi: TON,
             functionName: "approveAndCall",
             args: [WTON_ADDRESS, weiAmount, marshalData],
           })
             :
-            stakeWTON({
-              args: [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
-            });
-          
+            stakeWTON(
+              [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
+            );
+            
           return tx;
         
         case 'Unstake':
           const rayAmouont = convertToRay(amount.toString());
 
-          return unstake({
-            args: [operatorAddress, rayAmouont]
-          })
+          return unstake(
+            [operatorAddress, rayAmouont]
+          )
         case 'Withdraw':
-          return withdraw({
-            args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          })
+          return withdraw(
+            [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+          )
         case 'WithdrawL1':
-          return withdraw({
-            args: [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          })
+          return withdraw(
+            [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+          )
         case 'WithdrawL2':
-          return withdrawL2({
-            args: [operatorAddress, rayAmount]
-          })
+          return withdrawL2(
+            [operatorAddress, rayAmount]
+          )
         case 'Restake':
-          return restake({
-            args: [operatorAddress, pendingRequests]
-          })
+          return restake(
+            [operatorAddress, pendingRequests]
+          )
         default:
           return console.error("action mode is not found");
       }
     }
+    
   }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2])
-  console.log(tx)
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {

@@ -2,7 +2,7 @@ import CONTRACT_ADDRESS from "@/constant/contracts";
 import TON from '@/abis/TON.json';
 import WTON from '@/abis/WTON.json';
 import DepositManager from '@/abis/DepositManager.json';
-import { useAccount, usePublicClient, useContractWrite } from "wagmi";;
+import { useWriteContract } from "wagmi";;
 import { useTx } from "../tx/useTx";
 
 
@@ -13,16 +13,23 @@ const {
 
 export default function useWithdrawL2(layer2: string) {
   
-  const {
-    data: withdrawL2Data,
-    write: withdrawL2
-  } = useContractWrite({
-    address: DepositManager_ADDRESS,
-    abi: DepositManager,
-    functionName: "withdrawAndDepositL2",
-  })
 
-  const {} = useTx({ hash: withdrawL2Data?.hash, layer2: layer2 as `0x${string}` });
+  const { data: txData, error: writeError, writeContract } = useWriteContract();
 
-  return { withdrawL2, withdrawL2Data }
+  const withdrawL2 = (args: any) => {
+    return writeContract({
+      address: DepositManager_ADDRESS,
+      abi: DepositManager,
+      functionName: 'withdrawAndDepositL2',
+      args: args
+    });
+  };
+
+  const {} = useTx({ hash: txData, layer2: layer2 as `0x${string}`});
+  
+  return {
+    withdrawL2,       
+    writeError,
+  };
+
 }
