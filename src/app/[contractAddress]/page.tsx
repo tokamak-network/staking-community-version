@@ -64,6 +64,8 @@ import { getButtonText } from '@/utils/button/getButtonText';
 import { ActionSection } from './components/ActionSection';
 import { boxStyle } from '@/style/boxStyle';
 import useClaim from '@/hooks/staking/useClaim';
+import { useWriteContract } from 'wagmi'
+import TON from '@/abis/TON.json';
 
 const {
   TON_ADDRESS,
@@ -99,10 +101,10 @@ export default function Page() {
   const { refreshOperator } = useOperatorData();
   
   useEffect(() => {  
-    console.log(operatorAddress && operators.length > 0, operatorAddress, operators)
+    // console.log(operatorAddress && operators.length > 0, operatorAddress, operators)
     if (operatorAddress && operators.length > 0) {
       const operator = operators.find(op => op.address === operatorAddress);
-      console.log(operators)
+      // console.log(operators)
       setCurrentOperator(operator || null);
     }
   }, [operatorAddress, operators.length]);
@@ -115,13 +117,13 @@ export default function Page() {
 
   const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: operatorAddress as `0x${string}` });
   const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: operatorAddress as `0x${string}` });
-  const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
-    candidateAddress: operatorAddress as `0x${string}`,
-    accountAddress: address as `0x${string}`
-  })
-  const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
-    candidateAddress: operatorAddress as `0x${string}`
-  })
+  // const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
+  //   candidateAddress: operatorAddress as `0x${string}`,
+  //   accountAddress: address as `0x${string}`
+  // })
+  // const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
+  //   candidateAddress: operatorAddress as `0x${string}`
+  // })
   // const { candidateType } = useCheckCandidateType({ candidateAddress: operatorAddress as `0x${string}` });
   // const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operatorAddress as `0x${string}` });
   // console.log(candidateType, isCandidateAddon);
@@ -136,9 +138,11 @@ export default function Page() {
   const { data: wtonBalance } = useWTONBalance({ account: address });
   
   const operatorAddressForHooks = useMemo(() => operatorAddress || '', [operatorAddress]);
+
+  const { writeContract } = useWriteContract()
   
   const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(operatorAddressForHooks as `0x${string}`);
-  const { stakeTON: _stakeTON } = useStakeTON(operatorAddressForHooks);
+  // const { stakeTON: _stakeTON } = useStakeTON(operatorAddressForHooks);
   const { stakeWTON } = useStakeWTON(operatorAddressForHooks);
   const { unstake } = useUnstake(operatorAddressForHooks);
   const { restake } = useRestake(operatorAddressForHooks);
@@ -146,6 +150,8 @@ export default function Page() {
   const { withdrawL2 } = useWithdrawL2(operatorAddressForHooks);
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
   const { claim } = useClaim(operatorAddressForHooks);
+
+  let tx;
 
   useEffect(() => {
     if (prevTxPendingRef.current === true && txPending === false) {
@@ -171,19 +177,25 @@ export default function Page() {
     if (amount) {
       const weiAmount = convertToWei(amount.toString());
       const rayAmount = convertToRay(amount.toString());
+      
       switch (activeAction) {
         case 'Stake':
           const marshalData = getData();
           const wtonMarshalData = getDataForWton();
           
-          return activeToken === 'TON' ? 
-            _stakeTON({
-              args: [WTON_ADDRESS, weiAmount, marshalData],
-              
-            }) :
+          tx = activeToken === 'TON' ? 
+          writeContract({
+            address: TON_ADDRESS,
+            abi: TON,
+            functionName: "approveAndCall",
+            args: [WTON_ADDRESS, weiAmount, marshalData],
+          })
+            :
             stakeWTON({
               args: [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
             });
+          
+          return tx;
         
         case 'Unstake':
           const rayAmouont = convertToRay(amount.toString());
@@ -212,6 +224,7 @@ export default function Page() {
       }
     }
   }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2])
+  console.log(tx)
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -291,9 +304,9 @@ export default function Page() {
         />
         <HeadInfo 
           title="Total staked" 
-          value={`${formatUnits(candidateStaked || '0', 27)} TON`}
+          value={`${formatUnits(currentOperator?.totalStaked || '0', 27)} TON`}
           label=""
-          isLoading={candidateStakeLoading}
+          // isLoading={candidateStakeLoading}
         />
         <HeadInfo 
           title="Commission rate" 
@@ -377,7 +390,7 @@ export default function Page() {
               maxValue={
                 activeAction === 'Stake' ?
                 formatUnits(tonBalance, 18) :
-                formatUnits(userStaked, 27)
+                formatUnits(currentOperator?.yourStaked || '0', 27)
               }
             />
           }
@@ -404,8 +417,8 @@ export default function Page() {
         <VStack spacing={6} align="stretch">
           <ValueSection 
             title={'Your Staked amount'}
-            value={userStaked}    
-            isLoading={userStakedLoading}  
+            value={currentOperator?.yourStaked || '0'}    
+            // isLoading={userStakedLoading}  
           />
           <Divider />
           <ValueSection 

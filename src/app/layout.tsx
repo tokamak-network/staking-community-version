@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import RecoilRootWrapper from "@/app/Staking/components/RecoilWrapper";
-import { WagmiProviders } from "@/providers/wagmiProvider";
+import { WagmiConfig } from "wagmi";
+import { wagmiConfig } from "@/providers/wagmiProvider";
 import Entry from "./Entry";
 
 export const metadata: Metadata = {
@@ -28,9 +29,9 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ maxHeight: "100vh", margin: 0, padding: 0 }}>
         <RecoilRootWrapper>
-          <WagmiProviders>
+          <WagmiConfig config={wagmiConfig}>
             <Entry children={children} />
-          </WagmiProviders>
+          </WagmiConfig>
         </RecoilRootWrapper>
       </body>
     </html>

@@ -42,7 +42,7 @@ const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, onClick }) =
       borderRadius="md"
       onClick={() => onClick(address)}
     >
-      <Center 
+      {/* <Center 
         bg={getAvatarBgColor(name)}
         borderRadius="full"
         w="30px"
@@ -52,7 +52,7 @@ const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, onClick }) =
         fontWeight={500}
       >
         {getInitials(name)}
-      </Center>
+      </Center> */}
       <Text fontSize="16px" fontWeight={600} color={'#131315'}>{name}</Text>
     </Flex>
   );

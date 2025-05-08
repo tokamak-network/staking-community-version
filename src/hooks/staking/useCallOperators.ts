@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { operatorsListState, operatorsLoadingState, Operator } from "@/recoil/staking/operator";
 import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
-import { getContract, isAddress } from "viem";
+import { getContract, isAddress, PublicClient } from "viem";
 import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
 import Layer2Registry from "@/abis/Layer2Registry.json";
@@ -34,6 +34,7 @@ export default function useCallOperators() {
   const { address, isConnected } = useAccount();
   
   const publicClient = usePublicClient();
+  const { transport, chain } = publicClient as PublicClient;
   const { data: blockNumber } = useBlockNumber();
   
   const { candidates: operatorAddresses, isLoading } = useAllCandidates();
@@ -51,7 +52,7 @@ export default function useCallOperators() {
       const contract = getContract({
         address: contractAddress as `0x${string}`,
         abi: abi.abi || abi,
-        publicClient: publicClient
+        client: publicClient
       });
       
       contractCache.set(cacheKey, contract);
@@ -136,6 +137,7 @@ export default function useCallOperators() {
   
   const fetchOperatorData = useCallback(async (opAddress: string): Promise<Operator | null> => {
     if (!opAddress || !publicClient || !commonContracts) return null;
+    const { layer2manager, seigManager, wton, ton } = commonContracts;
     
     try {
       const candidateContract = getContractInstance(opAddress, Candidates);
@@ -147,6 +149,9 @@ export default function useCallOperators() {
         lastChar: 4,
         dots: '....',
       }));
+
+      const userStaked = await candidateContract.read.stakedOf([address]);
+      // console.log('userStaked', userStaked)
 
       const totalStaked = await candidateContract.read.totalStaked().catch(() => "0");
       
@@ -169,7 +174,7 @@ export default function useCallOperators() {
         }),
         address: opAddress,
         totalStaked: totalStaked,
-        yourStaked: "0",
+        yourStaked: userStaked,
         isL2: false
       };
       
@@ -195,7 +200,7 @@ export default function useCallOperators() {
             // console.log(memo, rollupConfigAddress && memo !== "Thanos Sepolia", rollupConfigAddress, operatorAddress)
             if (rollupConfigAddress && memo !== "Thanos Sepolia") {
               try {
-                const { layer2manager, seigManager, wton, ton } = commonContracts;
+                
                 const rollupConfig = getContractInstance(rollupConfigAddress as string, SystemConfig);
                 
                 if (rollupConfig && layer2manager) {
@@ -267,6 +272,11 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
+        console.log(operatorsList.length)
+        // if (operatorsList.length > 0) {
+        //   console.log('cc')
+        //   return;
+        // }
         setLoading(true);
   
         const chunkSize = 10;

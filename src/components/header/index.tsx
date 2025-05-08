@@ -41,8 +41,8 @@ import {
   useConnect, 
   useDisconnect, 
   useBalance,
-  useNetwork,
-  useSwitchNetwork
+  useSwitchChain,
+  useChains
 } from 'wagmi';
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon';
 import trimAddress from '@/utils/trim/trim';
@@ -190,8 +190,8 @@ const WalletConnector: React.FC = () => {
   const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
   
-  const { chain } = useNetwork();
-  const { chains, switchNetwork } = useSwitchNetwork();
+  // const chains as chain = useChains();
+  const { chains, switchChain } = useSwitchChain();
 
   useEffect(() => {
     if (isConnected && address) {
@@ -402,10 +402,10 @@ const WalletConnector: React.FC = () => {
             // position={'position'}
             right={'45px'}
           >
-            {connectError || (chain && chain.unsupported) ? (
+            {/* {connectError || (chain && chain.unsupported) ? (
               <>
                 <Box p={4}>
-                  {chain && chain.unsupported ? (
+                  {chains && chain.unsupported ? (
                     <Text>
                       Network not supported.
                       <br />
@@ -416,8 +416,8 @@ const WalletConnector: React.FC = () => {
                   )}
                 </Box>
                 <Box p={4} pb={6}>
-                  {chain && chain.unsupported ? (
-                    <Button onClick={() => switchNetwork?.(1)}>
+                  {chains && chains.unsupported ? (
+                    <Button onClick={() => switchChain?.(1)}>
                       Switch to Ethereum Mainnet
                     </Button>
                   ) : (
@@ -425,7 +425,7 @@ const WalletConnector: React.FC = () => {
                   )}
                 </Box>
               </>
-            ) : (
+            ) : ( */}
               <>
                 <Box fontFamily={'TitilliumWeb'} p={4}>
                   <Text>
@@ -476,7 +476,7 @@ const WalletConnector: React.FC = () => {
                   </Flex>
                 </Flex>
               </>
-            )}
+            {/* )} */}
           </MenuList>
         </Menu>
       )}

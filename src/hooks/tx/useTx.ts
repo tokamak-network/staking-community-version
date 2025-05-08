@@ -2,7 +2,7 @@ import { txDataStatus, txHashLog, txHashStatus, txPendingStatus } from "@/recoil
 import { useMemo } from "react";
 import { useEffect } from "react";
 import { useRecoilState } from "recoil";
-import { useNetwork, useWaitForTransaction } from "wagmi";
+import { useChainId, useWaitForTransactionReceipt } from "wagmi";
 import useCallOperators from "../staking/useCallOperators";
 import { inputState } from "@/recoil/input";
 import { useRef } from "react";
@@ -89,10 +89,10 @@ export function useTx(params: {
   // actionSort?: ActionSort;
 }) {
   const { hash, layer2 } = params;
-  const { chain: connectedChainId } = useNetwork();
-  const { data, isLoading, isSuccess, isError } = useWaitForTransaction({
+  const chainId  = useChainId();
+  const { data, isLoading, isSuccess, isError } = useWaitForTransactionReceipt({
     hash,
-    chainId: connectedChainId?.id,
+    chainId: chainId,
   });
 
   const [, setTxData] = useRecoilState(txDataStatus);
@@ -111,7 +111,7 @@ export function useTx(params: {
     }
     setValue('');
     return setTxPending(false);
-  }, [isLoading, connectedChainId, isError, setTxPending]);
+  }, [isLoading, chainId, isError, setTxPending]);
 
   const { confirmedTransaction } = useTransaction();
 
@@ -128,10 +128,10 @@ export function useTx(params: {
     setTxData(undefined);
     // 체인 변경 시 refreshed 상태 초기화
     refreshedRef.current = false;
-  }, [connectedChainId, setTxData]);
+  }, [chainId, setTxData]);
 
   useEffect(() => {
-    if (isLoading && connectedChainId && hash) {
+    if (isLoading && chainId && hash) {
       // 새 트랜잭션이 로딩될 때 refreshed 상태 초기화
       refreshedRef.current = false;
       
@@ -139,16 +139,16 @@ export function useTx(params: {
         [hash]: {
           transactionHash: undefined,
           transactionState: undefined,
-          network: connectedChainId.id,
+          network: chainId,
           isToasted: false,
         },
       });
     }
-  }, [isLoading, hash, connectedChainId, setTxData]);
+  }, [isLoading, hash, chainId, setTxData]);
 
   useEffect(() => {
     const handleSuccess = async () => {
-      if (isSuccess && data && connectedChainId && hash && !refreshedRef.current) {
+      if (isSuccess && data && chainId && hash && !refreshedRef.current) {
         const { transactionHash } = data;
 
         // 트랜잭션 상태 업데이트
@@ -156,7 +156,7 @@ export function useTx(params: {
           [hash]: {
             transactionHash,
             transactionState: "success",
-            network: connectedChainId.id,
+            network: chainId,
             isToasted: false,
           },
         });
@@ -175,7 +175,7 @@ export function useTx(params: {
       }
     };
     handleSuccess();
-  }, [isSuccess, data, connectedChainId, hash, layer2, refreshOperator, setTxData]);
+  }, [isSuccess, data, chainId, hash, layer2, refreshOperator, setTxData]);
 
   useEffect(() => {
     if (isSuccess) {
