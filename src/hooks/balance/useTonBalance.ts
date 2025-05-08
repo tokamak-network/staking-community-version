@@ -22,8 +22,8 @@ export default function useTokenBalance(
   const { data, error, isLoading, isSuccess } = useBalance({
     address: accountAddress,
     token: tokenAddress as "0x${string}" ?? null,
-    watch: true,
-    staleTime: 5000,
+  
+    // staleTime: 5000,
     // enabled: requireCall,
   });
 
