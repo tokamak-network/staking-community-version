@@ -175,7 +175,8 @@ export default function useCallOperators() {
         address: opAddress,
         totalStaked: totalStaked,
         yourStaked: userStaked,
-        isL2: false
+        isL2: false,
+        operatorAddress: operatorAddress
       };
       
       if (operatorAddress) {
@@ -272,7 +273,7 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
-        console.log(operatorsList.length)
+        // console.log(operatorsList.length)
         // if (operatorsList.length > 0) {
         //   console.log('cc')
         //   return;

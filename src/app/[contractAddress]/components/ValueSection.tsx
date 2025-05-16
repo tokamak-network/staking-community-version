@@ -14,7 +14,7 @@ type ValueSectionProps = {
   onClaim?: () => void;
 }
 export const ValueSection = (args: ValueSectionProps) => {
-  const { title, value, seigUpdated, onClaim, isLoading } = args;
+  const { title, value, seigUpdated, onClaim, isLoading, manager } = args;
   const { address } = useAccount();
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -61,7 +61,7 @@ export const ValueSection = (args: ValueSectionProps) => {
             } TON
           </Flex>
           { 
-            (onClaim) && (
+            ((onClaim && seigUpdated )|| (onClaim && manager === address)) && (
               <Flex 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}

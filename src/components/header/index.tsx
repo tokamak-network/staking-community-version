@@ -15,7 +15,7 @@ import {
   IconButton
 } from '@chakra-ui/react';
 import { CloseIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { Connector, useAccount } from 'wagmi';
+import { Connector, useAccount, useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -96,9 +96,9 @@ export const Header = () => {
       <Container maxW="container.xl">
         <Flex justifyContent="space-between" alignItems="center">
           <HStack spacing={3}>
-            <Heading as="h1" size="md">
-              Project Name-<Text as="span" color="blue.500">staking</Text>
-            </Heading>
+            <Flex as="h1" flexDir={'row'} fontSize={'24px'} fontWeight={800} fontFamily={'NanumSquare'}>
+              Tokamak <Text as="span" color="blue.500" ml={'3px'}> staking</Text> <Flex as="span" w={'62px'} ml={'3px'} fontSize={'11px'} lineHeight={'11px'}>Community  version</Flex>
+            </Flex>
           </HStack>
 
           <HStack>
@@ -185,13 +185,24 @@ const WalletConnector: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const [hasMounted, setHasMounted] = useState(false);
-  
+  const [chainSupport, setChainSupport] = useState<boolean>(false);
+
   const { address, isConnected, connector: activeConnector } = useAccount();
   const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
   
   // const chains as chain = useChains();
   const { chains, switchChain } = useSwitchChain();
+  const chain = useChains();
+  const chainId = useChainId();
+
+  useEffect(() => {
+    if (chainId !== 1 && chainId !== 11155111) {
+      setChainSupport(true)
+    } else {
+      setChainSupport(false)
+    }
+  }, [switchChain, chainId])
 
   useEffect(() => {
     if (isConnected && address) {
@@ -402,10 +413,10 @@ const WalletConnector: React.FC = () => {
             // position={'position'}
             right={'45px'}
           >
-            {/* {connectError || (chain && chain.unsupported) ? (
+            {/* {connectError || (chain && chain) ? (
               <>
                 <Box p={4}>
-                  {chains && chain.unsupported ? (
+                  {chains  ? (
                     <Text>
                       Network not supported.
                       <br />
@@ -416,8 +427,8 @@ const WalletConnector: React.FC = () => {
                   )}
                 </Box>
                 <Box p={4} pb={6}>
-                  {chains && chains.unsupported ? (
-                    <Button onClick={() => switchChain?.(1)}>
+                  {chains ? (
+                    <Button onClick={() => switchChain?.({ chainId })}>
                       Switch to Ethereum Mainnet
                     </Button>
                   ) : (

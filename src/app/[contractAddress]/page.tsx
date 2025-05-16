@@ -84,7 +84,7 @@ const useOperatorData = () => {
 export default function Page() {
   const router = useRouter();
   const params = useParams();
-  const operatorAddress = params?.contractAddress as `0x${string}`;
+  const candidateAddress = params?.contractAddress as `0x${string}`;
   
   const { address } = useAccount();
   const toast = useToast();
@@ -98,37 +98,41 @@ export default function Page() {
   const prevTxPendingRef = useRef(txPending);
   const { roi } = useStakingInformation();
 
-  // const { commissionRate } = useExpectedSeigs(operatorAddress as `0x${string}`, address as `0x${string}`);
+  // const { commissionRate } = useExpectedSeigs(candidateAddress as `0x${string}`, address as `0x${string}`);
   
   const { refreshOperator } = useOperatorData();
+
+  useEffect(() => {
+    if (!address) router.push('/');
+  }, [address])
   
   useEffect(() => {  
-    // console.log(operatorAddress && operators.length > 0, operatorAddress, operators)
-    if (operatorAddress && operators.length > 0) {
-      const operator = operators.find(op => op.address === operatorAddress);
+    // console.log(candidateAddress && operators.length > 0, candidateAddress, operators)
+    if (candidateAddress && operators.length > 0) {
+      const operator = operators.find(op => op.address === candidateAddress);
       // console.log(operators)
       setCurrentOperator(operator || null);
     }
-  }, [operatorAddress, operators.length]);
+  }, [candidateAddress, operators.length]);
   
   const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
-    operatorAddress as `0x${string}`, 
+    candidateAddress as `0x${string}`, 
     BigInt(currentOperator?.totalStaked || '0'),
     address as `0x${string}`,
   );
 
-  const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: operatorAddress as `0x${string}` });
-  const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: operatorAddress as `0x${string}` });
+  const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: candidateAddress as `0x${string}` });
+  const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: candidateAddress as `0x${string}` });
   // const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
-  //   candidateAddress: operatorAddress as `0x${string}`,
+  //   candidateAddress: candidateAddress as `0x${string}`,
   //   accountAddress: address as `0x${string}`
   // })
   // const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
-  //   candidateAddress: operatorAddress as `0x${string}`
+  //   candidateAddress: candidateAddress as `0x${string}`
   // })
-  // const { candidateType } = useCheckCandidateType({ candidateAddress: operatorAddress as `0x${string}` });
-  // const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: operatorAddress as `0x${string}` });
-  // console.log(candidateType, isCandidateAddon);
+  // const { candidateType } = useCheckCandidateType({ candidateAddress: candidateAddress as `0x${string}` });
+  // const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: currentOperator?.address as `0x${string}` });
+  // console.log(isCandidateAddon);
 
   const [activeToken, setActiveToken] = useState<string>('TON');
   const [activeAction, setActiveAction] = useState<string>('Stake'); 
@@ -139,30 +143,30 @@ export default function Page() {
   const { data: tonBalance } = useTONBalance({ account: address });
   const { data: wtonBalance } = useWTONBalance({ account: address });
   
-  const operatorAddressForHooks = useMemo(() => operatorAddress || '', [operatorAddress]);
+  const operatorAddressForHooks = useMemo(() => candidateAddress || '', [candidateAddress]);
 
   const { writeContractAsync, data } = useWriteContract()
   
   const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(operatorAddressForHooks as `0x${string}`);
-  // const { stakeTON: _stakeTON } = useStakeTON(operatorAddressForHooks);
+  
   const { stakeWTON } = useStakeWTON(operatorAddressForHooks);
   const { unstake } = useUnstake(operatorAddressForHooks);
   const { restake } = useRestake(operatorAddressForHooks);
   const { withdraw } = useWithdraw(operatorAddressForHooks);
   const { withdrawL2 } = useWithdrawL2(operatorAddressForHooks);
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
-  const { claim } = useClaim(operatorAddressForHooks);
+  const { claim } = useClaim(operatorAddressForHooks, currentOperator?.operatorAddress as `0x${string}`);
 
-  
+  console.log(currentOperator)
 
   useEffect(() => {
     if (prevTxPendingRef.current === true && txPending === false) {
-      if (operatorAddress) {
-        refreshOperator(operatorAddress);
+      if (candidateAddress) {
+        refreshOperator(candidateAddress);
       }
     }
     prevTxPendingRef.current = txPending;
-  }, [txPending, operatorAddress]);
+  }, [txPending, candidateAddress]);
   
   // Handle withdraw action for L2
   useEffect(() => {
@@ -203,23 +207,23 @@ export default function Page() {
           const rayAmouont = convertToRay(amount.toString());
 
           return unstake(
-            [operatorAddress, rayAmouont]
+            [candidateAddress, rayAmouont]
           )
         case 'Withdraw':
           return withdraw(
-            [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
           )
         case 'WithdrawL1':
           return withdraw(
-            [operatorAddress, withdrawableLength, activeToken === 'TON' ? true : false]
+            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
           )
         case 'WithdrawL2':
           return withdrawL2(
-            [operatorAddress, rayAmount]
+            [candidateAddress, rayAmount]
           )
         case 'Restake':
           return restake(
-            [operatorAddress, pendingRequests]
+            [candidateAddress, pendingRequests]
           )
         default:
           return console.error("action mode is not found");
@@ -237,19 +241,19 @@ export default function Page() {
   }, []);
 
   const getData = useCallback(() => {
-    if (operatorAddress)
+    if (candidateAddress)
       return marshalString(
         
-        [DepositManager_ADDRESS, operatorAddress]
+        [DepositManager_ADDRESS, candidateAddress]
           .map(unmarshalString)
           .map((str) => padLeft(str, 64))
           .join(''),
       );
-  }, [DepositManager_ADDRESS, operatorAddress]);
+  }, [DepositManager_ADDRESS, candidateAddress]);
   
   const getDataForWton = useCallback(() => {
-    if (operatorAddress) return marshalString(
-      [operatorAddress]
+    if (candidateAddress) return marshalString(
+      [candidateAddress]
         .map(unmarshalString)
         .map((str) => padLeft(str, 64))
         .join(''),
@@ -459,8 +463,8 @@ export default function Page() {
               <ValueSection 
                 title={'Claimable seigniorage'}
                 value={claimableAmount?.toString() || '0'}
-                // onClaim={() => claim({args: [1]})}
-                // manager={''}
+                onClaim={() => claim({args: [WTON_ADDRESS, claimableAmount]})}
+                manager={currentOperator?.manager}
               />
             </VStack>
           </Box>

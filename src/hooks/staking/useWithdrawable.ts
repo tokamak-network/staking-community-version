@@ -26,13 +26,14 @@ export function useWithdrawableLength(
   const fetchWithdrawableLength = useCallback(async () => {
     if (!layer2 || !account || !publicClient || !currentBlockNumber ) {
       return;
-    }
+    }       
 
     const depositManagerContract = getContract({
       address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
       abi: DepositManager,
       client: publicClient
     });
+    
     if (!layer2 || !account || !publicClient || !currentBlockNumber ) {
       return;
     }

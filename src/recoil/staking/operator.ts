@@ -11,6 +11,7 @@ export interface Operator {
   sequencerSeig?: string;
   lockedInL2?: string;
   manager?: string;
+  operatorAddress?: string;
 }
 
 
