@@ -50,6 +50,8 @@ import copy from 'copy-to-clipboard';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from 'assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from 'assets/images/etherscan_link_icon.png';
+import useWalletModal from '@/hooks/modal/useWalletModal';
+import { DEFAULT_NETWORK } from '@/constant';
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
@@ -85,6 +87,10 @@ export const SUPPORTED_WALLETS: { [key: string]: any } = {
 
 
 export const Header = () => {
+  const { onOpenSelectModal } = useWalletModal();
+  const { address, isConnected, connector: activeConnector } = useAccount();
+  const chainId = useChainId();
+
   return (
     <Box 
       as="header"
@@ -102,7 +108,40 @@ export const Header = () => {
           </HStack>
 
           <HStack>
-            <WalletConnector />
+            <Button
+              border="solid 1px #d7d9df"
+              color={'#86929d'}
+              w={151}
+              h={35}
+              fontSize={14}
+              fontWeight={600}
+              onClick={() => onOpenSelectModal()}
+              rounded={18}
+              bg={'white.100'}
+              zIndex={100}
+              _hover={{}}
+            >
+            {address && Number(DEFAULT_NETWORK) === chainId ? (
+              
+                <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
+                  <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
+                    <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
+                  </span>
+                  <Text textAlign={'left'} fontWeight={'normal'}>
+                    {trimAddress({
+                      address: address as string,
+                      firstChar: 7,
+                      lastChar: 4,
+                      dots: '....',
+                    })}
+                  </Text>
+                </Flex>
+              
+            ) : (
+              'Connect wallet'
+            )}
+        
+          </Button>
           </HStack>
         </Flex>
       </Container>
@@ -483,7 +522,7 @@ const WalletConnector: React.FC = () => {
                       onClose();
                     }}
                   >
-                    Logout
+                    {/* Logout */}
                   </Flex>
                 </Flex>
               </>

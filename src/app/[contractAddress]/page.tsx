@@ -157,8 +157,6 @@ export default function Page() {
   const { updateSeig } = useUpdateSeig(operatorAddressForHooks);
   const { claim } = useClaim(operatorAddressForHooks, currentOperator?.operatorAddress as `0x${string}`);
 
-  console.log(currentOperator)
-
   useEffect(() => {
     if (prevTxPendingRef.current === true && txPending === false) {
       if (candidateAddress) {

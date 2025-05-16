@@ -2,17 +2,21 @@
 
 import { Button, Flex } from "@chakra-ui/react";
 import Staking from "./Staking/index";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import Image from "next/image";
 import VECTOR from "@/assets/images/Vector.svg" 
+import { DEFAULT_NETWORK } from "@/constant";
+import useWalletModal from "@/hooks/modal/useWalletModal";
 
 export default function Page() {
   const { address } = useAccount();
+  const chainId = useChainId();
+  const { onOpenSelectModal } = useWalletModal();
   
   return (
     <Flex alignItems={"center"} h={"100%"} justifyContent={"center"}>
       {
-        address ? (
+        address && !(chainId && chainId !== Number(DEFAULT_NETWORK)) ? (
           <Staking />
         ) : (
           <Flex
@@ -48,6 +52,7 @@ export default function Page() {
               _hover={{
                 bgColor: '#1a5cbf',
               }}
+              onClick={() => onOpenSelectModal()}
             >
               Connect Wallet
             </Button>
