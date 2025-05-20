@@ -25,6 +25,7 @@ import {
 import { getAvatarBgColor, getInitials } from '@/utils/color/getAvatarInfo';
 import { LoadingDots } from '@/components/Loader/LoadingDots';
 import { useAccount } from 'wagmi';
+import { useRouter } from 'next/navigation';
 
 interface OperatorItemProps {
   operator: Operator;
@@ -33,6 +34,7 @@ interface OperatorItemProps {
 export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator }) => {
   const isL2 = operator.isL2;
   const { address } = useAccount();
+  const router = useRouter();
   // const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
   //   candidateAddress: operator.address as `0x${string}`
   // })
@@ -47,7 +49,8 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
     // console.log(operator.name, candidateType, isCandidateAddon, operatorManagerAddress);
 
   const navigateToOperatorDetail = () => {
-     window.location.href = `/${operator.address}`
+    //  window.location.href = `/${operator.address}`
+    router.push(`/${operator.address}`);
   };
 
   return (

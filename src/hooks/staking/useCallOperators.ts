@@ -260,7 +260,7 @@ export default function useCallOperators() {
       operatorsList.length > 0 ||
       !publicClient ||
       !commonContracts ||
-      operatorAddresses.length === 0 ||
+      // operatorAddresses.length === 0 ||
       !blockNumber ||
       isLoading
     ) {
@@ -269,7 +269,7 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
-        // console.log(operatorsList.length)
+        console.log(operatorsList.length)
         if (operatorsList.length > 0) {
           console.log('cc')
           return;
@@ -315,7 +315,7 @@ export default function useCallOperators() {
         const sortedOperators = [...operators].sort((a, b) =>
           compareTotalStaked(a, b, sortDirection)
         );
-        
+
         setTotalStaked(totalStakedAmount.toString());
         setOperatorsList(sortedOperators);
       } catch (error) {
@@ -329,7 +329,7 @@ export default function useCallOperators() {
   }, [
     publicClient, 
     commonContracts, 
-    operatorAddresses, 
+    // operatorAddresses, 
     blockNumber, 
     isLoading, 
     compareTotalStaked, 
@@ -408,7 +408,7 @@ export default function useCallOperators() {
     }
   }, [
     publicClient, 
-    operatorAddresses, 
+    // operatorAddresses, 
     fetchOperatorData, 
     compareTotalStaked, 
     sortDirection, 

@@ -108,11 +108,11 @@ export default function Page() {
   }, [address])
   
   useEffect(() => {  
-    console.log(operatorsList)
+    // console.log(operatorsList, candidateAddress)
     // console.log(candidateAddress && operators.length > 0, candidateAddress, operators)
     if (candidateAddress && operatorsList.length > 0) {
       const operator = operatorsList.find(op => op.address === candidateAddress);
-      // console.log(operators)
+      // console.log(operator)
       setCurrentOperator(operator || null);
     }
   }, [candidateAddress, operatorsList.length]);
