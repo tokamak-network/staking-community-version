@@ -7,6 +7,12 @@ import Image from "next/image";
 import VECTOR from "@/assets/images/Vector.svg" 
 import { DEFAULT_NETWORK } from "@/constant";
 import useWalletModal from "@/hooks/modal/useWalletModal";
+import dynamic from 'next/dynamic';
+
+const Candidates = dynamic(
+  () => import('./Staking/index'),
+  { ssr: false }       // ← client-only
+);
 
 export default function Page() {
   const { address } = useAccount();
@@ -17,7 +23,7 @@ export default function Page() {
     <Flex alignItems={"center"} h={"100%"} justifyContent={"center"}>
       {
         address && !(chainId && chainId !== Number(DEFAULT_NETWORK)) ? (
-          <Staking />
+          <Candidates />
         ) : (
           <Flex
             w={'338px'}

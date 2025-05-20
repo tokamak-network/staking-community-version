@@ -15,7 +15,7 @@ import { ArrowBackIcon } from '@chakra-ui/icons';
 import { useRouter, useParams } from "next/navigation";
 import { useAccount } from 'wagmi';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import { filteredOperatorsState, Operator } from "@/recoil/staking/operator";
+import { filteredOperatorsState, Operator, operatorsListState } from "@/recoil/staking/operator";
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
 import CONTRACT_ADDRESS from '@/constant/contracts';
@@ -90,6 +90,7 @@ export default function Page() {
   const toast = useToast();
   
   const operators = useRecoilValue(filteredOperatorsState);
+  const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
   const [currentOperator, setCurrentOperator] = useState<Operator | null>(null);
 
   const [value, setValue] = useRecoilState(inputState);
@@ -107,13 +108,14 @@ export default function Page() {
   }, [address])
   
   useEffect(() => {  
+    console.log(operatorsList)
     // console.log(candidateAddress && operators.length > 0, candidateAddress, operators)
-    if (candidateAddress && operators.length > 0) {
-      const operator = operators.find(op => op.address === candidateAddress);
+    if (candidateAddress && operatorsList.length > 0) {
+      const operator = operatorsList.find(op => op.address === candidateAddress);
       // console.log(operators)
       setCurrentOperator(operator || null);
     }
-  }, [candidateAddress, operators.length]);
+  }, [candidateAddress, operatorsList.length]);
   
   const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
     candidateAddress as `0x${string}`, 

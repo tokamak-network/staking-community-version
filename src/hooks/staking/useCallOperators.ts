@@ -28,6 +28,7 @@ const operatorDataCache = new Map<string, Operator>();
 
 export default function useCallOperators() {
   const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
+  const [operatorAddress, setOperatorAddress] = useState<any[]>();
   const [totalStaked, setTotalStaked] = useState('0');
   const [loading, setLoading] = useRecoilState(operatorsLoadingState);
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); 
@@ -63,7 +64,6 @@ export default function useCallOperators() {
     }
   }, [publicClient]);
   
-  // 메모이제이션된 공통 컨트랙트 인스턴스
   const commonContracts = useMemo(() => {
     if (!publicClient) return null;
     
@@ -75,12 +75,10 @@ export default function useCallOperators() {
     };
   }, [publicClient, getContractInstance]);
   
-  // 컨트랙트 존재 여부 확인 - 최적화를 위한 메모이제이션
   const checkContractExists = useCallback(async (address: string): Promise<boolean> => {
     try {
       if (!publicClient || !isAddress(address)) return false;
       
-      // 캐시에서 확인
       if (contractExistsCache.has(address)) {
         return contractExistsCache.get(address) as boolean;
       }
@@ -98,7 +96,6 @@ export default function useCallOperators() {
     }
   }, [publicClient]);
   
-  // 정렬 로직 최적화 - useCallback으로 함수 메모이제이션
   const compareTotalStaked = useCallback((a: Operator, b: Operator, direction: SortDirection): number => {
     try {
       const aBN = BigNumber.from(a.totalStaked || "0");
@@ -112,7 +109,6 @@ export default function useCallOperators() {
         return aBN.gt(bBN) ? -1 : 1;
       }
     } catch (error) {
-      // BigNumber 변환 실패시 일반 숫자로 비교
       const aNum = Number(a.totalStaked || "0");
       const bNum = Number(b.totalStaked || "0");
       
@@ -124,7 +120,6 @@ export default function useCallOperators() {
     }
   }, []);
   
-  // 정렬 함수 최적화
   const sortOperators = useCallback((direction: SortDirection = sortDirection): void => {
     setOperatorsList(prevList => {
       const newList = [...prevList];
@@ -198,7 +193,7 @@ export default function useCallOperators() {
             } catch (error) {
               manager = null;
             }
-            // console.log(memo, rollupConfigAddress && memo !== "Thanos Sepolia", rollupConfigAddress, operatorAddress)
+
             if (rollupConfigAddress && memo !== "Thanos Sepolia") {
               try {
                 
@@ -260,13 +255,14 @@ export default function useCallOperators() {
   }, [publicClient, commonContracts, address, blockNumber, getContractInstance, checkContractExists]);
   
   useEffect(() => {
+    
     if (
-      !publicClient || 
-      !commonContracts || 
-      operatorAddresses.length === 0 || 
-      !blockNumber || 
-      isLoading || 
-      (operatorsList.length > 0 && !loading)
+      operatorsList.length > 0 ||
+      !publicClient ||
+      !commonContracts ||
+      operatorAddresses.length === 0 ||
+      !blockNumber ||
+      isLoading
     ) {
       return;
     }
@@ -274,18 +270,29 @@ export default function useCallOperators() {
     const fetchOperators = async () => {
       try {
         // console.log(operatorsList.length)
-        // if (operatorsList.length > 0) {
-        //   console.log('cc')
-        //   return;
-        // }
+        if (operatorsList.length > 0) {
+          console.log('cc')
+          return;
+        }
         setLoading(true);
   
         const chunkSize = 10;
         let totalStakedAmount = BigNumber.from(0);
         const operators: Operator[] = [];
+        const layer2s = [];
+        const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
+
+        const numLayer2 = await l2Registry.read.numLayer2s();
+
+        for (let i = 0; i < numLayer2; i++) {
+          const layer2 = await l2Registry.read.layer2ByIndex([i]);
+          layer2s.push(layer2);
+        }
+        setOperatorAddress(layer2s);
+        // console.log('layer2s', layer2s)
   
-        for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
-          const chunk = operatorAddresses.slice(i, i + chunkSize);
+        for (let i = 0; i < layer2s.length; i += chunkSize) {
+          const chunk = layer2s.slice(i, i + chunkSize);
   
           const chunkResults = await Promise.all(
             chunk.map(opAddress => fetchOperatorData(opAddress as string))
@@ -308,6 +315,7 @@ export default function useCallOperators() {
         const sortedOperators = [...operators].sort((a, b) =>
           compareTotalStaked(a, b, sortDirection)
         );
+        
         setTotalStaked(totalStakedAmount.toString());
         setOperatorsList(sortedOperators);
       } catch (error) {

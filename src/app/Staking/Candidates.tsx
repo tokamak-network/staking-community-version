@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useRef, useState } from 'react';
 import {
   Box,
@@ -17,8 +18,13 @@ import { LoadingDots } from '@/components/Loader/LoadingDots';
 
 const Candidates: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [mounted, setMounted] = useState(false);
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filteredOperators = operatorsList.filter(op => 
     op.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -31,6 +37,7 @@ const Candidates: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (!mounted) return;
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -72,6 +79,7 @@ const Candidates: React.FC = () => {
         }, 100);
       }
     };
+
     const debouncedHandleScroll = () => {
       if (scrollTimer) clearTimeout(scrollTimer);
       scrollTimer = setTimeout(handleScroll, 10); 
@@ -90,6 +98,14 @@ const Candidates: React.FC = () => {
     };
   }, [filteredOperators.length]);
 
+  if (!mounted) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+          <Spinner size="lg" />
+      </Flex>
+    );
+  }
+  
   return (
     <Box h="1056px" w="100%" maxW="600px" mx="auto" px={4} position="relative" >
       <Box 

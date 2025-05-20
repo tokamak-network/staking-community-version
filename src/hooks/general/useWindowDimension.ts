@@ -43,5 +43,5 @@ export function useWindowDimensions() {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, []);
 
-  return [width, height, screen.width];
+  return [width, height];
 }
