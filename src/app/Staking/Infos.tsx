@@ -47,9 +47,9 @@ export default function Infos() {
       </Flex>
           
       <Text color="#252525" fontSize="15px" fontWeight={300} maxW="container.md">
-        Stake your TON with a DAO candidate to earn seigniorage rewards while
+        {`Stake your TON with a DAO candidate to earn seigniorage rewards while
         delegating your voting power to help shape Tokamak Network's
-        governance.
+        governance.`}
       </Text>
       
       <Flex my="18px" alignItems="start" w="100%" fontSize="11px" color="#304156" fontWeight={400}>

@@ -17,6 +17,12 @@ export const operatorSelectModalStatus = atom<boolean>({
   default: false,
 });
 
+export const walletModalStatus = atom<boolean>({
+  key: "walletStatus",
+  default: false,
+});
+
+
 export const transactionModalOpenStatus = atom<boolean>({
   key: "transactionModalOpenStatus",
   default: false,

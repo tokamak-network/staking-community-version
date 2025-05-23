@@ -1,22 +1,25 @@
-import CONTRACT_ADDRESS from "@/constant/contracts";
-import TON from '@/abis/TON.json';
-import SeigManager from '@/abis/SeigManager.json'
-import CandidateAddon from "@/constant/abis/CandidateAddOn.json";
-import { useAccount, usePublicClient, useContractWrite } from "wagmi";
+import OperatorManager from '@/constant/abis/OperatorManager.json'
+import { useWriteContract } from "wagmi";
 import { useTx } from "../tx/useTx";
 
 
-export default function useClaim(layer2: string) {
-  
-  const {
-    data: claimData,
-    write: claim
-  } = useContractWrite({
-    address: layer2 as `0x${string}`,
-    abi: CandidateAddon.abi,
-    functionName: "updateSeigniorage",
-  })
-  const {} = useTx({ hash: claimData?.hash, layer2: layer2 as `0x${string}`  });
+export default function useClaim(layer2: string, operatorAddress: string) {
+  const { data: txData, error: writeError, writeContract } = useWriteContract();
 
-  return { claim, claimData }
+  const claim = (args: any) => {
+
+    return writeContract({
+      address: operatorAddress as `0x${string}`,
+      abi: OperatorManager,
+      functionName: 'claimERC20',
+      args: args
+    });
+  };
+
+  const {} = useTx({ hash: txData, layer2: layer2 as `0x${string}`});
+  
+  return {
+    claim,       
+    writeError,
+  };
 }

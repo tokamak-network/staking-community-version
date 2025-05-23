@@ -14,7 +14,7 @@ export type SupplyValueProps = {
 const defaultStakingInfo: SupplyValueProps[] = [
   {
     title: "Staking APY",
-    tooltip: "Staking APY varies among DAO candidates. The rate depends on how frequently stakers update seigniorage for their chosen DAO candidate, since staking rewards compound with each update.",
+    tooltip: "This is the annual return assuming no seigniorage distribution; if seigniorage is distributed, the actual return may be higher.",
     value: 0,
     dollor: 0,
     unit: '%',

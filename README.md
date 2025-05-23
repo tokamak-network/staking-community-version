@@ -16,8 +16,8 @@ This document provides a step-by-step guide to set up and run the **staking-comm
 
 ## 🔧 Prerequisites
 
-- **Node.js** v18 or higher (LTS recommended)
-- **npm** v8 or higher (or **pnpm**)
+- **Node.js** v20 or higher (LTS recommended)
+- **npm** v10 or higher (or **pnpm**)
 - **Git** client
 
 > Check versions:

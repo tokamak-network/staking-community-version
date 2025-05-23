@@ -14,7 +14,7 @@ type ValueSectionProps = {
   onClaim?: () => void;
 }
 export const ValueSection = (args: ValueSectionProps) => {
-  const { title, value, seigUpdated, onClaim, isLoading } = args;
+  const { title, value, seigUpdated, onClaim, isLoading, manager } = args;
   const { address } = useAccount();
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -57,11 +57,11 @@ export const ValueSection = (args: ValueSectionProps) => {
                   <LoadingDots size={'small'} />
                 </Flex>
               ) :
-              (formatUnits(value || '0', 27))
+              (formatUnits(value || '0', title === 'TON Bridged to L2' ? 18 : 27))
             } TON
           </Flex>
           { 
-            (onClaim) && (
+            ((onClaim && seigUpdated )|| (onClaim && manager === address)) && (
               <Flex 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}

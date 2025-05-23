@@ -25,8 +25,10 @@ export function useStakingInformation() {
   const prevTotalSupplyRef = useRef<string>('0');
   const isInitializedRef = useRef<boolean>(false);
 
-  const { data: totalStaked, isLoading, error } = useAllCandidatesTotalStaked();
+  // const { data: totalStaked, isLoading, error } = useAllCandidatesTotalStaked();
+  const { result: totalStaked } = useCallSeigManager('stakeOfTotal');
   const { result: totalSupplyResult } = useCallSeigManager('totalSupplyOfTon');
+  // console.log(totalSupplyResult.data)
   
   // Memoize the update function to avoid recreating it on each render
   const updateStakingInfo = useCallback((calculatedRoi: number, totalStakedString: string) => {
@@ -62,11 +64,14 @@ export function useStakingInformation() {
   // Main effect for fetching and updating data
   useEffect(() => {
     // Skip if data dependencies aren't available yet
-    if (!totalStaked || !totalSupplyResult?.data) return;
+    // if (!totalStaked || !totalSupplyResult?.data) return;
+    if (!totalSupplyResult?.data) return;
 
     async function fetch() {
       try {
-        const totalStakedString = ethers.utils.formatUnits(totalStaked, 27);
+        if (!totalStaked?.data) return;
+        const totalStakedString = ethers.utils.formatUnits(totalStaked.data.toString(), 27);
+        // const totalStakedString = '0.00'
         const totalSupplyData = totalSupplyResult.data as bigint;
         const totalSupplyString = ethers.utils.formatUnits(totalSupplyData.toString(), 27);
 
@@ -84,7 +89,6 @@ export function useStakingInformation() {
             totalSupply: Number(totalSupplyString),
             duration: '1-year'
           });
-
           // Only update state if ROI has changed or it's the first initialization
           if (calculatedRoi !== roi || !isInitializedRef.current) {
             // console.log("Updating ROI:", calculatedRoi);
@@ -98,7 +102,7 @@ export function useStakingInformation() {
     }
     
     fetch();
-  }, [totalStaked, totalSupplyResult, updateStakingInfo, roi]);
+  }, [ totalSupplyResult, updateStakingInfo, roi]);
   
   return { 
     stakingInfo,

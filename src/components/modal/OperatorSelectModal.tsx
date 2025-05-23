@@ -22,6 +22,7 @@ import useSelectOperatorModal from '@/hooks/modal/useSelectOperatorModal';
 interface OperatorItemProps {
   name: string;
   address: string;
+  isL2?: boolean;
   onClick: (address: string) => void;
 }
 
@@ -30,7 +31,7 @@ interface OperatorSelectionModalProps {
   onClose: () => void;
 }
 
-const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, onClick }) => {
+const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, isL2, onClick }) => {
   return (
     <Flex 
       h={'58px'}
@@ -42,7 +43,7 @@ const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, onClick }) =
       borderRadius="md"
       onClick={() => onClick(address)}
     >
-      <Center 
+      {/* <Center 
         bg={getAvatarBgColor(name)}
         borderRadius="full"
         w="30px"
@@ -52,8 +53,26 @@ const OperatorItem: React.FC<OperatorItemProps> = ({ name, address, onClick }) =
         fontWeight={500}
       >
         {getInitials(name)}
-      </Center>
+      </Center> */}
       <Text fontSize="16px" fontWeight={600} color={'#131315'}>{name}</Text>
+      {
+          isL2 && (
+            <Flex 
+              bgColor={'#257eee'}
+              w={'34px'}
+              h={'18px'}
+              borderRadius={'3px'}
+              justifyContent={'center'}
+              fontSize={'12px'}
+              color={'#fff'}
+              fontWeight={600}
+              fontFamily={'Roboto'}
+              ml={'5px'}
+            >
+              L2
+            </Flex>
+          )
+        }
     </Flex>
   );
 };
@@ -91,6 +110,7 @@ const OperatorSelectionModal = () => {
                 key={key}
                 name={operator.name}
                 address={operator.address}
+                isL2={operator.isL2}
                 onClick={handleSelectOperator}
               />
             ))}

@@ -1,30 +1,29 @@
-import CONTRACT_ADDRESS from "@/constant/contracts";
-import TON from '@/abis/TON.json';
-import WTON from '@/abis/WTON.json';
-import { useAccount, usePublicClient, useContractWrite } from "wagmi";
-
-import { useTx } from "../tx/useTx";
-
+import { useWriteContract } from 'wagmi';
+import WTON_ABI from '@/abis/WTON.json'; 
+import { useTx } from '../tx/useTx';
+import CONTRACT_ADDRESS from '@/constant/contracts';
 
 const {
-  TON_ADDRESS,
   WTON_ADDRESS,
-  DepositManager_ADDRESS,
-  SeigManager_ADDRESS
 } = CONTRACT_ADDRESS;
 
-export default function useStakeWTON(layer2: string) {
-  const {
-    data: stakeWtonData,
-    write: stakeWTON
-  } = useContractWrite({
-    address: WTON_ADDRESS,
-    abi: WTON,
-    functionName: "approveAndCall",
-  })
+export function useStakeWTON(layer2: string) {
+  
+  const { data: txData, error: writeError, writeContract } = useWriteContract();
 
- const {} = useTx({ hash: stakeWtonData?.hash, layer2: layer2 as `0x${string}`  });
+  const stakeWTON = (args: any) => {
+    return writeContract({
+      address: WTON_ADDRESS,
+      abi: WTON_ABI,
+      functionName: 'approveAndCall',
+      args: args
+    });
+  };
 
-
-  return { stakeWTON, stakeWtonData }
+  const {} = useTx({ hash: txData, layer2: layer2 as `0x${string}`});
+  
+  return {
+    stakeWTON,       
+    writeError,
+  };
 }

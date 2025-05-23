@@ -1,10 +1,18 @@
+// providers/wagmi.ts
 "use client";
-import * as React from "react";
-import { WagmiConfig } from "wagmi";
-import { config } from "@/config/wagmi";
 
-export function WagmiProviders({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
-  return <WagmiConfig config={config}>{mounted && children}</WagmiConfig>;
-}
+import { http, createConfig } from "wagmi";
+// import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
+import { mainnet, sepolia } from '@wagmi/core/chains'
+import { metaMask } from '@wagmi/connectors'
+
+export const wagmiConfig = createConfig({
+  chains: [mainnet, sepolia],
+  connectors: [
+    metaMask()
+  ],
+  transports: {
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+  },
+});

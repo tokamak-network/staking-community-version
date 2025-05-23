@@ -14,8 +14,8 @@ export function useWithdrawableLength(
   layer2: Address | undefined,
 ) {
   const { address: account } = useAccount();
-  const publicClient = usePublicClient();
   const { data: currentBlockNumber } = useBlockNumber();
+  const publicClient = usePublicClient();
   
   const [withdrawableLength, setWithdrawableLength] = useState('0');
   const [withdrawableAmount, setWithdrawableAmount] = useState('0');
@@ -23,13 +23,17 @@ export function useWithdrawableLength(
   const [pendingUnstaked, setPendingUnstaked] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
 
-  const depositManagerContract = getContract({
-    address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
-    abi: DepositManager,
-    publicClient: publicClient,
-  });
-
   const fetchWithdrawableLength = useCallback(async () => {
+    if (!layer2 || !account || !publicClient || !currentBlockNumber ) {
+      return;
+    }       
+
+    const depositManagerContract = getContract({
+      address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
+      abi: DepositManager,
+      client: publicClient
+    });
+    
     if (!layer2 || !account || !publicClient || !currentBlockNumber ) {
       return;
     }

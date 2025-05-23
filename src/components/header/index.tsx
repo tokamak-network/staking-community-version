@@ -15,7 +15,7 @@ import {
   IconButton
 } from '@chakra-ui/react';
 import { CloseIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { Connector, useAccount } from 'wagmi';
+import { Connector, useAccount, useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -41,8 +41,8 @@ import {
   useConnect, 
   useDisconnect, 
   useBalance,
-  useNetwork,
-  useSwitchNetwork
+  useSwitchChain,
+  useChains
 } from 'wagmi';
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon';
 import trimAddress from '@/utils/trim/trim';
@@ -50,6 +50,8 @@ import copy from 'copy-to-clipboard';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from 'assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from 'assets/images/etherscan_link_icon.png';
+import useWalletModal from '@/hooks/modal/useWalletModal';
+import { DEFAULT_NETWORK } from '@/constant';
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
@@ -85,6 +87,10 @@ export const SUPPORTED_WALLETS: { [key: string]: any } = {
 
 
 export const Header = () => {
+  const { onOpenSelectModal } = useWalletModal();
+  const { address, isConnected, connector: activeConnector } = useAccount();
+  const chainId = useChainId();
+
   return (
     <Box 
       as="header"
@@ -96,13 +102,46 @@ export const Header = () => {
       <Container maxW="container.xl">
         <Flex justifyContent="space-between" alignItems="center">
           <HStack spacing={3}>
-            <Heading as="h1" size="md">
-              Project Name-<Text as="span" color="blue.500">staking</Text>
-            </Heading>
+            <Flex as="h1" flexDir={'row'} fontSize={'24px'} fontWeight={800} fontFamily={'NanumSquare'}>
+              Tokamak <Text as="span" color="blue.500" ml={'3px'}> staking</Text> <Flex as="span" w={'62px'} ml={'3px'} fontSize={'11px'} lineHeight={'11px'}>Community  version</Flex>
+            </Flex>
           </HStack>
 
           <HStack>
-            <WalletConnector />
+            <Button
+              border="solid 1px #d7d9df"
+              color={'#86929d'}
+              w={151}
+              h={35}
+              fontSize={14}
+              fontWeight={600}
+              onClick={() => onOpenSelectModal()}
+              rounded={18}
+              bg={'white.100'}
+              zIndex={100}
+              _hover={{}}
+            >
+            {address && Number(DEFAULT_NETWORK) === chainId ? (
+              
+                <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
+                  <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
+                    <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
+                  </span>
+                  <Text textAlign={'left'} fontWeight={'normal'}>
+                    {trimAddress({
+                      address: address as string,
+                      firstChar: 7,
+                      lastChar: 4,
+                      dots: '....',
+                    })}
+                  </Text>
+                </Flex>
+              
+            ) : (
+              'Connect wallet'
+            )}
+        
+          </Button>
           </HStack>
         </Flex>
       </Container>
@@ -185,13 +224,24 @@ const WalletConnector: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const [hasMounted, setHasMounted] = useState(false);
-  
+  const [chainSupport, setChainSupport] = useState<boolean>(false);
+
   const { address, isConnected, connector: activeConnector } = useAccount();
   const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
   
-  const { chain } = useNetwork();
-  const { chains, switchNetwork } = useSwitchNetwork();
+  // const chains as chain = useChains();
+  const { chains, switchChain } = useSwitchChain();
+  const chain = useChains();
+  const chainId = useChainId();
+
+  useEffect(() => {
+    if (chainId !== 1 && chainId !== 11155111) {
+      setChainSupport(true)
+    } else {
+      setChainSupport(false)
+    }
+  }, [switchChain, chainId])
 
   useEffect(() => {
     if (isConnected && address) {
@@ -402,10 +452,10 @@ const WalletConnector: React.FC = () => {
             // position={'position'}
             right={'45px'}
           >
-            {connectError || (chain && chain.unsupported) ? (
+            {/* {connectError || (chain && chain) ? (
               <>
                 <Box p={4}>
-                  {chain && chain.unsupported ? (
+                  {chains  ? (
                     <Text>
                       Network not supported.
                       <br />
@@ -416,8 +466,8 @@ const WalletConnector: React.FC = () => {
                   )}
                 </Box>
                 <Box p={4} pb={6}>
-                  {chain && chain.unsupported ? (
-                    <Button onClick={() => switchNetwork?.(1)}>
+                  {chains ? (
+                    <Button onClick={() => switchChain?.({ chainId })}>
                       Switch to Ethereum Mainnet
                     </Button>
                   ) : (
@@ -425,7 +475,7 @@ const WalletConnector: React.FC = () => {
                   )}
                 </Box>
               </>
-            ) : (
+            ) : ( */}
               <>
                 <Box fontFamily={'TitilliumWeb'} p={4}>
                   <Text>
@@ -472,11 +522,11 @@ const WalletConnector: React.FC = () => {
                       onClose();
                     }}
                   >
-                    Logout
+                    {/* Logout */}
                   </Flex>
                 </Flex>
               </>
-            )}
+            {/* )} */}
           </MenuList>
         </Menu>
       )}
