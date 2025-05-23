@@ -21,6 +21,7 @@ const Candidates: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const { operatorsList, loading } = useCallOperators();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true);
@@ -37,66 +38,34 @@ const Candidates: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!mounted) return;
-    const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!mounted) return
+    const container = scrollContainerRef.current
+    if (!container) return
 
-    let isAdjusting = false;
-    let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+    // 전체 높이의 1/3 지점으로 초기 위치 설정
+    const totalHeight = container.scrollHeight
+    const segment = totalHeight / 3
+    container.scrollTop = segment
 
-    const handleScroll = (): void => {
-      if (isAdjusting) return;
-      
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const totalContentHeight = scrollHeight / 3;
-      
-      if (scrollTop < 50) {
-        if (scrollTimer) clearTimeout(scrollTimer);
-        
-        scrollTimer = setTimeout(() => {
-          isAdjusting = true;
-          
-          container.style.scrollBehavior = 'auto';
-          container.scrollTop = totalContentHeight + scrollTop;
-          
-          setTimeout(() => {
-            isAdjusting = false;
-            container.style.scrollBehavior = 'smooth';
-          }, 50);
-        }, 100);
-      } else if (scrollTop >= (scrollHeight - clientHeight - 50)) {
-        if (scrollTimer) clearTimeout(scrollTimer);
-        
-        scrollTimer = setTimeout(() => {
-          isAdjusting = true;
-          container.style.scrollBehavior = 'auto';
-          container.scrollTop = totalContentHeight - clientHeight + (scrollTop - (scrollHeight - clientHeight));
-          
-          setTimeout(() => {
-            isAdjusting = false;
-            container.style.scrollBehavior = 'smooth';
-          }, 50);
-        }, 100);
+    // seamless loop 처리
+    const onScroll = () => {
+      const top = container.scrollTop
+      // 너무 위로 당겼을 때 (1/3 이하)
+      if (top < segment) {
+        container.scrollTop = top + segment
       }
-    };
+      // 너무 아래로 당겼을 때 (2/3 이상)
+      else if (top >= segment * 2) {
+        container.scrollTop = top - segment
+      }
+    }
 
-    const debouncedHandleScroll = () => {
-      if (scrollTimer) clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(handleScroll, 10); 
-    };
-
-    container.addEventListener('scroll', debouncedHandleScroll, { passive: true });
-    
-    const totalContentHeight = container.scrollHeight / 3;
-    container.scrollTop = totalContentHeight + 60;
-    
-    container.style.scrollBehavior = 'smooth';
-
+    container.addEventListener('scroll', onScroll, { passive: true })
     return () => {
-      if (scrollTimer) clearTimeout(scrollTimer);
-      container.removeEventListener('scroll', debouncedHandleScroll);
-    };
-  }, [filteredOperators.length]);
+      container.removeEventListener('scroll', onScroll)
+    }
+  }, [mounted, operatorsList.length])
+
 
   if (!mounted) {
     return (

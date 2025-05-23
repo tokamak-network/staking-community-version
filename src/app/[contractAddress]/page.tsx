@@ -96,6 +96,7 @@ export default function Page() {
   const [value, setValue] = useRecoilState(inputState);
   const { onOpenSelectModal } = useSelectOperatorModal()
   const [txPending, ] = useRecoilState(txPendingStatus);
+
   const prevTxPendingRef = useRef(txPending);
   const { roi } = useStakingInformation();
 
@@ -125,6 +126,8 @@ export default function Page() {
 
   const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: candidateAddress as `0x${string}` });
   const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: candidateAddress as `0x${string}` });
+
+  // console.log(claimableAmount);
   // const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
   //   candidateAddress: candidateAddress as `0x${string}`,
   //   accountAddress: address as `0x${string}`
@@ -146,11 +149,10 @@ export default function Page() {
   const { data: wtonBalance } = useWTONBalance({ account: address });
   
   const operatorAddressForHooks = useMemo(() => candidateAddress || '', [candidateAddress]);
-
-  const { writeContractAsync, data } = useWriteContract()
   
   const { withdrawableLength, withdrawableAmount, pendingRequests, pendingUnstaked } = useWithdrawableLength(operatorAddressForHooks as `0x${string}`);
   
+  const { stakeTON } = useStakeTON(operatorAddressForHooks);
   const { stakeWTON } = useStakeWTON(operatorAddressForHooks);
   const { unstake } = useUnstake(operatorAddressForHooks);
   const { restake } = useRestake(operatorAddressForHooks);
@@ -167,6 +169,11 @@ export default function Page() {
     }
     prevTxPendingRef.current = txPending;
   }, [txPending, candidateAddress]);
+
+  useEffect(() => {
+    const token = activeAction === 'Unstake' || activeAction === 'Restake' ? 'TON' : activeToken;
+    setActiveToken(token); 
+  }, [activeAction]);
   
   // Handle withdraw action for L2
   useEffect(() => {
@@ -189,15 +196,9 @@ export default function Page() {
           const marshalData = getData();
           const wtonMarshalData = getDataForWton();
           
-          tx = activeToken === 'TON' ? 
-          writeContractAsync({
-            address: TON_ADDRESS,
-            abi: TON,
-            functionName: "approveAndCall",
-            args: [WTON_ADDRESS, weiAmount, marshalData],
-          })
-            :
-            stakeWTON(
+          tx = activeToken === 'TON' 
+            ? stakeTON([WTON_ADDRESS, weiAmount, marshalData])
+            : stakeWTON(
               [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
             );
             
@@ -328,6 +329,7 @@ export default function Page() {
         setValue={setValue}
         withdrawableAmount={withdrawableAmount}
         withdrawTarget={withdrawTarget}
+        pendingUnstaked={pendingUnstaked}
       />
       {/* Main Box Section */}
       <Box 
@@ -358,6 +360,8 @@ export default function Page() {
                 {currentOperator?.name}
               </Flex>
             </Flex> :
+            activeAction === 'Unstake' || activeAction === 'Restake' ? 
+            <Flex h={'25px'} /> :
             <TokenTypeSelector 
               tab={activeToken}
               setTab={setActiveToken}
@@ -394,9 +398,11 @@ export default function Page() {
               placeHolder={'0.00'}
               type={'staking'}
               maxValue={
-                activeAction === 'Stake' ?
-                formatUnits(tonBalance, 18) :
-                formatUnits(currentOperator?.yourStaked || '0', 27)
+                activeAction === 'Stake' 
+                ? activeToken === 'TON' 
+                  ? formatUnits(tonBalance, 18) 
+                  : formatUnits(wtonBalance, 27)
+                : formatUnits(currentOperator?.yourStaked || '0', 27)
               }
             />
           }
@@ -422,7 +428,7 @@ export default function Page() {
 
         <VStack spacing={6} align="stretch">
           <ValueSection 
-            title={'Your Staked amount'}
+            title={'Your Staked Amount'}
             value={currentOperator?.yourStaked || '0'}    
             // isLoading={userStakedLoading}  
           />
@@ -463,7 +469,7 @@ export default function Page() {
               <ValueSection 
                 title={'Claimable seigniorage'}
                 value={claimableAmount?.toString() || '0'}
-                onClaim={() => claim({args: [WTON_ADDRESS, claimableAmount]})}
+                onClaim={() => claim([WTON_ADDRESS, claimableAmount])}
                 manager={currentOperator?.manager}
               />
             </VStack>

@@ -13,9 +13,10 @@ type ActionSectionProps = {
   setValue: (value: string) => void;
   withdrawableAmount: string;
   withdrawTarget: string;
+  pendingUnstaked: string;
 }
 export const ActionSection = (args: ActionSectionProps) => {
-  const { activeAction, setActiveAction, isL2, setValue, withdrawableAmount, withdrawTarget } = args;
+  const { activeAction, setActiveAction, isL2, setValue, withdrawableAmount, withdrawTarget, pendingUnstaked } = args;
   const { openCalculatorModal, isOpen } = useCalculatorModal();
 
   return (
@@ -104,7 +105,7 @@ export const ActionSection = (args: ActionSectionProps) => {
         }
         <Button 
           onClick={() => {
-            setValue(formatUnits(BigInt(withdrawableAmount), 27))
+            setValue(formatUnits(BigInt(pendingUnstaked), 27))
             setActiveAction('Restake')
           }}
           {...actionButtonStyle(activeAction === 'Restake')}

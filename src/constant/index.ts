@@ -4,6 +4,7 @@
 import { ethers } from "ethers";
 
 export const REACT_APP_MODE = process.env.NEXT_PUBLIC_MODE as string;
+// export const REACT_APP_MODE = 'DEV'
 
 export const NetworkContextName = `${new Date().getTime()}-NETWORK`;
 export const DEFAULT_NETWORK: string | undefined =
@@ -12,6 +13,9 @@ REACT_APP_MODE === "PRODUCTION" ? "1" : "11155111";
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const MAINNET_API = process.env.NEXT_PUBLIC_API_PRODUCTION;
 const DEV_API = process.env.NEXT_PUBLIC_API_DEV;
+
+// export const PUBLIC_SEPOLIA_RPC = 'https://sepolia.gateway.tenderly.co';
+export const PUBLIC_SEPOLIA_RPC = 'https://sepolia.infura.io/v3/fcda353fe57a4c70803274ed05d1f047';
 
 export const ETHERSCAN_API_KEY = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY
 export const ETHERSCAN_API = REACT_APP_MODE === "PRODUCTION" ? "https://api.etherscan.io" : "https://api-sepolia.etherscan.io"

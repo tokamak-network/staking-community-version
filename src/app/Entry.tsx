@@ -9,6 +9,7 @@ import { TONStakingProvider } from "@ton-staking-sdk/react-kit";
 import { Flex } from "@chakra-ui/react";
 import { Header } from "@/components/header";
 import Modals from "./Modal";
+import { PUBLIC_SEPOLIA_RPC } from "@/constant";
 
 export default function Entry({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
@@ -18,7 +19,7 @@ export default function Entry({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <TONStakingProvider 
-        rpcUrl={process.env.NEXT_PUBLIC_SEPOLIA_RPC!}
+        rpcUrl={PUBLIC_SEPOLIA_RPC!}
         chainId={11155111}
         // walletClient={walletClient} 
         // publicClient={publicClient}

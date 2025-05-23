@@ -57,7 +57,7 @@ export const ValueSection = (args: ValueSectionProps) => {
                   <LoadingDots size={'small'} />
                 </Flex>
               ) :
-              (formatUnits(value || '0', 27))
+              (formatUnits(value || '0', title === 'TON Bridged to L2' ? 18 : 27))
             } TON
           </Flex>
           { 

@@ -194,7 +194,7 @@ export default function useCallOperators() {
               manager = null;
             }
 
-            if (rollupConfigAddress && memo !== "Thanos Sepolia") {
+            if (rollupConfigAddress) {
               try {
                 
                 const rollupConfig = getContractInstance(rollupConfigAddress as string, SystemConfig);

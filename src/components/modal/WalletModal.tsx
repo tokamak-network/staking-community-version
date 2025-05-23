@@ -141,7 +141,6 @@ const WalletModal: FC = () => {
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
 
-  const [ width ] = useWindowDimensions();
   const { isOpen, closeSelectModal } = useWalletModal();
   const [view, setView] = useState<string>(WALLET_VIEWS.OPTIONS);
   const [pendingError, setPendingError] = useState(false);
@@ -190,14 +189,12 @@ const WalletModal: FC = () => {
       }
     };
 
-  // — 지갑 복사
   const handleCopy = useCallback(() => {
     if (!address) return;
     copy(address);
     toast({ title: 'Copied to Clipboard', status: 'success', duration: 2000 });
   }, [address, toast]);
 
-  // — 네트워크 전환
   const switchToDefaultNetwork = useCallback(async () => {
     if (!(window as any).ethereum) return;
     const hex = '0x' + Number(DEFAULT_NETWORK).toString(16);
@@ -279,10 +276,23 @@ const WalletModal: FC = () => {
         w="280px" 
         mx="auto"
         position={'absolute'}
-        right={(Number(width) - 1150) /2 }
+        right={(Number(window.innerWidth) - 1150) /2 }
       >
-        {/* — 연결된 계정 뷰 */}
-        {view === WALLET_VIEWS.ACCOUNT && address && chainSupported && (
+        {
+          (!chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
+            <>
+              <ModalHeader>Network not supported</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text mb={4}>
+                  Please switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}.
+                </Text>
+                <Button colorScheme="blue" w="full" onClick={switchToDefaultNetwork}>
+                  Switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}
+                </Button>
+              </ModalBody>
+            </>
+          ) : view === WALLET_VIEWS.ACCOUNT && address && chainSupported &&
           <>
             <ModalHeader
               fontFamily={'TitilliumWeb'}
@@ -346,25 +356,8 @@ const WalletModal: FC = () => {
               </Flex>
             </ModalBody>
           </>
-        )}
+        }
 
-        {/* — 네트워크 불일치 뷰 */}
-        {(!chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) && (
-          <>
-            <ModalHeader>Network not supported</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Text mb={4}>
-                Please switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}.
-              </Text>
-              <Button colorScheme="blue" w="full" onClick={switchToDefaultNetwork}>
-                Switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}
-              </Button>
-            </ModalBody>
-          </>
-        )}
-
-        {/* — 지갑 옵션 뷰 */}
         {view === WALLET_VIEWS.OPTIONS && !isConnected && (
           <>
             <ModalHeader

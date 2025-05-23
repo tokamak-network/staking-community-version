@@ -30,7 +30,7 @@ export function useWindowDimensions() {
   const [height, setHeight] = useState<number | undefined>(undefined);
 
   const handleWindowResize = () => {
-    setWidth(screen.width);
+    setWidth(window.innerWidth);
     setHeight(window.innerHeight);
     
   };

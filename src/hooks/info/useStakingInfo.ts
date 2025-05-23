@@ -89,7 +89,6 @@ export function useStakingInformation() {
             totalSupply: Number(totalSupplyString),
             duration: '1-year'
           });
-
           // Only update state if ROI has changed or it's the first initialization
           if (calculatedRoi !== roi || !isInitializedRef.current) {
             // console.log("Updating ROI:", calculatedRoi);
