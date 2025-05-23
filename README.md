@@ -28,22 +28,6 @@ This document provides a step-by-step guide to set up and run the **staking-comm
 
 ---
 
-## 🌐 Environment Variables
-
-Create a file named `.env.local` in the project root and set the following variables:
-
-```env
-NEXT_PUBLIC_APP_MODE=development
-NEXT_PUBLIC_ETHEREUM_RPC=<YOUR_ETHEREUM_MAINNET_RPC>
-NEXT_PUBLIC_SEPOLIA_RPC=<YOUR_SEPOLIA_TESTNET_RPC>
-```
-
-- `NEXT_PUBLIC_APP_MODE`: Application mode (`development` or `production`).
-- `NEXT_PUBLIC_ETHEREUM_RPC`: Ethereum Mainnet RPC endpoint.
-- `NEXT_PUBLIC_SEPOLIA_RPC`: Sepolia Testnet RPC endpoint.
-
----
-
 ## 📦 Project Installation
 
 ```bash
