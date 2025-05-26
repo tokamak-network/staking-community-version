@@ -150,9 +150,20 @@ const WalletModal: FC = () => {
   const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
   const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
 
+  const [rightOffset, setRightOffset] = useState<number>(0);
+
   const [accountValue, setAccountValue] = useLocalStorage('account', {});
 
   const previousAddress = usePrevious(address);
+
+  useEffect(() => {
+    const width = window.innerWidth;
+    setRightOffset((width - 1150) / 2);
+
+    // const onResize = () => setRightOffset((window.innerWidth - 1150)/2);
+    // window.addEventListener('resize', onResize);
+    // return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (address && !previousAddress) {
@@ -276,7 +287,7 @@ const WalletModal: FC = () => {
         w="280px" 
         mx="auto"
         position={'absolute'}
-        right={(Number(window.innerWidth) - 1150) /2 }
+        right={`${rightOffset}px`}
       >
         {
           (!chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
