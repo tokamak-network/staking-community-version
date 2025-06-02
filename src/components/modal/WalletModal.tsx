@@ -15,7 +15,7 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
-import { useAccount, useConnect, useDisconnect, useChainId, Connector } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, Connector } from 'wagmi';
 import trimAddress from '@/utils/trim/trim';
 import copy from 'copy-to-clipboard';
 // import { WalletPending } from './components/Pending';
@@ -26,8 +26,10 @@ import Image from 'next/image';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from '@/assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from '@/assets/images/etherscan_link_icon.png';
-import { REACT_APP_MODE, DEFAULT_NETWORK } from '@/constant/index';
+import { DEFAULT_NETWORK } from '@/constant/index';
 import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
+import { chainIdState } from '@/recoil/chainId';
+import { useRecoilState } from 'recoil';
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
@@ -139,8 +141,7 @@ const WalletModal: FC = () => {
     error: connectError,
   } = useConnect();
   const { disconnect } = useDisconnect();
-  const chainId = useChainId();
-
+  const [chainId, setChainId] = useRecoilState(chainIdState);
   const { isOpen, closeSelectModal } = useWalletModal();
   const [view, setView] = useState<string>(WALLET_VIEWS.OPTIONS);
   const [pendingError, setPendingError] = useState(false);
@@ -159,10 +160,44 @@ const WalletModal: FC = () => {
   useEffect(() => {
     const width = window.innerWidth;
     setRightOffset((width - 1150) / 2);
+  }, []);
 
-    // const onResize = () => setRightOffset((window.innerWidth - 1150)/2);
-    // window.addEventListener('resize', onResize);
-    // return () => window.removeEventListener('resize', onResize);
+  useEffect(() => {
+    const { ethereum } = window;
+    if (!ethereum || !ethereum.request) {
+      setChainId(null);
+      return;
+    }
+
+    const getChainId = async () => {
+      try {
+        const hexChainId = await ethereum.request({ method: 'eth_chainId' });
+        const parsed = parseInt(hexChainId, 16);
+        setChainId(parsed);
+
+      } catch (err) {
+        console.error('Failed to get chainId:', err);
+        setChainId(null);
+      }
+    };
+    getChainId();
+
+    const handleChainChanged = (hexChainId: string) => {
+      try {
+        const parsed = parseInt(hexChainId, 16);
+        setChainId(parsed);
+      } catch {
+        setChainId(null);
+      }
+    };
+    ethereum.on('chainChanged', handleChainChanged);
+    setWalletView(WALLET_VIEWS.OPTIONS);
+
+    return () => {
+      if (ethereum.removeListener) {
+        ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -174,7 +209,13 @@ const WalletModal: FC = () => {
   useEffect(() => {
     if (!chainId) return;
     setChainSupported(chainId === Number(DEFAULT_NETWORK));
-  }, [chainId]);
+    console.log(chainSupported)
+    if (!chainSupported) {
+      disconnect();
+      setWalletView(WALLET_VIEWS.OPTIONS);
+    }
+  }, [chainId, chainSupported]);
+
 
   useEffect(() => {
     if (isConnected) {
@@ -206,14 +247,16 @@ const WalletModal: FC = () => {
     toast({ title: 'Copied to Clipboard', status: 'success', duration: 2000 });
   }, [address, toast]);
 
-  const switchToDefaultNetwork = useCallback(async () => {
+  const switchToDefaultNetwork = useCallback(async (connector: Connector) => {
     if (!(window as any).ethereum) return;
     const hex = '0x' + Number(DEFAULT_NETWORK).toString(16);
     try {
+      // tryActivation(connector);
       await (window as any).ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: hex }],
       });
+      // console.log(connector)
       toast({ title: 'Switched network', status: 'success' });
     } catch {
       toast({ title: 'Failed to switch network', status: 'error' });
@@ -274,7 +317,7 @@ const WalletModal: FC = () => {
         );
       });
     };
-
+  // console.log(chainSupported, view, isConnected)
   return (
     <Modal
       isOpen={isOpen}
@@ -290,7 +333,7 @@ const WalletModal: FC = () => {
         right={`${rightOffset}px`}
       >
         {
-          (!chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
+          (address && !chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
             <>
               <ModalHeader>Network not supported</ModalHeader>
               <ModalCloseButton />
@@ -298,7 +341,11 @@ const WalletModal: FC = () => {
                 <Text mb={4}>
                   Please switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}.
                 </Text>
-                <Button colorScheme="blue" w="full" onClick={switchToDefaultNetwork}>
+                <Button 
+                  colorScheme="blue" 
+                  w="full" 
+                  onClick={() => switchToDefaultNetwork(connectors[0])}
+                >
                   Switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}
                 </Button>
               </ModalBody>
@@ -369,7 +416,7 @@ const WalletModal: FC = () => {
           </>
         }
 
-        {view === WALLET_VIEWS.OPTIONS && !isConnected && (
+        {view === WALLET_VIEWS.OPTIONS && !isConnected && !address && chainSupported && (
           <>
             <ModalHeader
             fontFamily={'TitilliumWeb'}

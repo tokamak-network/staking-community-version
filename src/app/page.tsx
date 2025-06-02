@@ -8,6 +8,8 @@ import VECTOR from "@/assets/images/Vector.svg"
 import { DEFAULT_NETWORK } from "@/constant";
 import useWalletModal from "@/hooks/modal/useWalletModal";
 import dynamic from 'next/dynamic';
+import { useRecoilState } from "recoil";
+import { chainIdState } from "@/recoil/chainId";
 
 const Candidates = dynamic(
   () => import('./Staking/index'),
@@ -16,13 +18,13 @@ const Candidates = dynamic(
 
 export default function Page() {
   const { address } = useAccount();
-  const chainId = useChainId();
+  const [ chainId,] = useRecoilState(chainIdState);;
   const { onOpenSelectModal } = useWalletModal();
   
   return (
     <Flex alignItems={"center"} h={"100%"} justifyContent={"center"}>
       {
-        address && !(chainId && chainId !== Number(DEFAULT_NETWORK)) ? (
+        address && !(chainId !== Number(DEFAULT_NETWORK)) ? (
           <Candidates />
         ) : (
           <Flex

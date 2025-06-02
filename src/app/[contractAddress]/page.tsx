@@ -317,7 +317,7 @@ export default function Page() {
         />
         <HeadInfo 
           title="Commission rate" 
-          value={(commissionRates ?? 0).toString() + ' %'}
+          value={formatUnits((commissionRates ?? 0).toString(), 25) + ' %'}
           label=""
         />
       </Flex>
