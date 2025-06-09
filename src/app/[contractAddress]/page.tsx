@@ -186,52 +186,68 @@ export default function Page() {
   
   const onClick = useCallback(async () => {
     const amount = floatParser(value);
-    let tx
+    let tx;
+    // yourStaked는 27자리 단위로 들어옴
+    const yourStaked = Number(currentOperator?.yourStaked ? ethers.utils.formatUnits(currentOperator.yourStaked, 27) : 0);
+    if (activeAction === 'Unstake') {
+      if (!amount || amount <= 0) {
+        toast({ title: 'Please enter a valid amount.', status: 'warning' });
+        return;
+      }
+      if (amount > yourStaked) {
+        toast({ title: 'Unstake amount exceeds your staked amount.', status: 'error' });
+        return;
+      }
+    }
     if (amount) {
       const weiAmount = convertToWei(amount.toString());
       const rayAmount = convertToRay(amount.toString());
-      
-      switch (activeAction) {
-        case 'Stake':
-          const marshalData = getData();
-          const wtonMarshalData = getDataForWton();
-          
-          tx = activeToken === 'TON' 
-            ? stakeTON([WTON_ADDRESS, weiAmount, marshalData])
-            : stakeWTON(
-              [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
-            );
-            
-          return tx;
-        
-        case 'Unstake':
-          const rayAmouont = convertToRay(amount.toString());
-
-          return unstake(
-            [candidateAddress, rayAmouont]
-          )
-        case 'Withdraw':
-          return withdraw(
-            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          )
-        case 'WithdrawL1':
-          return withdraw(
-            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          )
-        case 'WithdrawL2':
-          return withdrawL2(
-            [candidateAddress, rayAmount]
-          )
-        case 'Restake':
-          return restake(
-            [candidateAddress, pendingRequests]
-          )
-        default:
-          return console.error("action mode is not found");
+      try {
+        switch (activeAction) {
+          case 'Stake':
+            const marshalData = getData();
+            const wtonMarshalData = getDataForWton();
+            tx = activeToken === 'TON' 
+              ? stakeTON([WTON_ADDRESS, weiAmount, marshalData])
+              : stakeWTON([
+                DepositManager_ADDRESS, rayAmount, wtonMarshalData
+              ]);
+            break;
+          case 'Unstake':
+            const rayAmouont = convertToRay(amount.toString());
+            tx = await unstake([
+              candidateAddress, rayAmouont
+            ]);
+            break;
+          case 'Withdraw':
+            tx = await withdraw([
+              candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false
+            ]);
+            break;
+          case 'WithdrawL1':
+            tx = await withdraw([
+              candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false
+            ]);
+            break;
+          case 'WithdrawL2':
+            tx = await withdrawL2([
+              candidateAddress, rayAmount
+            ]);
+            break;
+          case 'Restake':
+            tx = await restake([
+              candidateAddress, pendingRequests
+            ]);
+            break;
+          default:
+            console.error('action mode is not found');
+        }
+      } catch (err: any) {
+        toast({ title: err?.message || 'Transaction failed', status: 'error' });
       }
+      return tx;
     }
-    
-  }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2])
+  }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2, currentOperator?.yourStaked]);
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -262,6 +278,20 @@ export default function Page() {
   }, [])
   
   const isL2 = currentOperator?.isL2 || false;
+  
+  const isUnstakeDisabled = useCallback(() => {
+    if (!currentOperator?.yourStaked) return true;
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked as string, 27));
+    if (stakedAmount === 0) return true;
+    if (!value || value === '0' || value === '0.00') return true;
+    return value ? Number(value) > stakedAmount : true;
+  }, [currentOperator?.yourStaked, value]);
+
+  const showUnstakeWarning = useCallback(() => {
+    if (!currentOperator?.yourStaked || !value) return false;
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked as string, 27));
+    return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
+  }, [currentOperator?.yourStaked, value]);
 
   return (
     <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
@@ -422,9 +452,19 @@ export default function Page() {
         <Button 
           onClick={() => onClick()}
           {...mainButtonStyle(value)}
+          isDisabled={
+            value === '0.00' || !value || value === '0' || 
+            (activeAction === 'Unstake' && isUnstakeDisabled())
+          }
         >
           {txPending ? <Spinner /> : getButtonText(value, activeAction)}
         </Button>
+
+        {activeAction === 'Unstake' && showUnstakeWarning() && (
+          <Text fontSize="sm" color={'#FF2D78'} textAlign="center" px={4} fontWeight={400} w={'100%'} mb={4}>
+            Warning: Unstake amount exceeds your staked amount
+          </Text>
+        )}
 
         <VStack spacing={6} align="stretch">
           <ValueSection 

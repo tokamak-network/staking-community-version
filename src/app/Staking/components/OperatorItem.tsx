@@ -143,3 +143,5 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
     </Flex>
   );
 });
+
+OperatorItem.displayName = 'OperatorItem';

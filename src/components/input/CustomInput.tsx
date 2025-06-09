@@ -50,7 +50,13 @@ function BalanceInput(props: InputProp) {
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { target } = event;
-    const { value: inputValue } = target;
+    let { value: inputValue } = target;
+    // Remove commas for comparison
+    const numericInput = inputValue.replace(/,/g, '');
+    const numericMax = maxValue ? String(maxValue).replace(/,/g, '') : undefined;
+    if (numericMax && !isNaN(Number(numericInput)) && Number(numericInput) > Number(numericMax)) {
+      inputValue = numericMax;
+    }
     type === 'staking' 
     ? setValue(addComma(inputValue))
     : setCalculatorValue(addComma(inputValue))

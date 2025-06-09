@@ -209,7 +209,6 @@ const WalletModal: FC = () => {
   useEffect(() => {
     if (!chainId) return;
     setChainSupported(chainId === Number(DEFAULT_NETWORK));
-    console.log(chainSupported)
     if (!chainSupported) {
       disconnect();
       setWalletView(WALLET_VIEWS.OPTIONS);
@@ -317,7 +316,7 @@ const WalletModal: FC = () => {
         );
       });
     };
-  // console.log(chainSupported, view, isConnected)
+  
   return (
     <Modal
       isOpen={isOpen}
