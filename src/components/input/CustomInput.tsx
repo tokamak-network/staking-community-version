@@ -173,6 +173,7 @@ function BalanceInput(props: InputProp) {
         bgColor={'#fff'}
         fontSize={'12px'}
         fontWeight={'normal'}
+        fontFamily={'Open Sans'}
         // {...(type === 'staking' || type === 'unstaking' ? {...maxStaking()}: {...maxCalc()})}
         color={'#86929d'}
         zIndex={1}

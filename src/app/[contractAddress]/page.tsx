@@ -122,7 +122,7 @@ export default function Page() {
       // console.log(operator)
       setCurrentOperator(operator || null);
     }
-  }, [candidateAddress, operatorsList.length]);
+  }, [candidateAddress, operatorsList, txPending]);
   
   const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
     candidateAddress as `0x${string}`, 

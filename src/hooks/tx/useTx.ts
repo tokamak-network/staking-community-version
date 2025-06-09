@@ -162,8 +162,8 @@ export function useTx(params: {
         });
         
         refreshedRef.current = true;
-        
-        if (layer2) {
+
+        if (layer2) {          
           console.log('Transaction successful, refreshing operator data...');
           try {
             const success = await refreshOperator(layer2);
