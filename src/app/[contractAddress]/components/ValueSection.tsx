@@ -44,7 +44,7 @@ export const ValueSection = (args: ValueSectionProps) => {
         {
           seigUpdated &&
           <Text fontSize="12px" color="#808992">
-            Seigniorage is updated { seigUpdated }.
+            Seigniorage is updated at block number { seigUpdated }.
           </Text>
         }
       </VStack>
