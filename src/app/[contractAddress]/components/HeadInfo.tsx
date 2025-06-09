@@ -28,7 +28,10 @@ export const HeadInfo = (args: HedInfoType) => {
         {
           isLoading ? (
            <Flex mr={'3px'} mt={'5px'}>
-              <LoadingDots size={'small'} />
+            <Flex mt={'10px'} mr= {'5px'}>
+              <LoadingDots size={'small'} /> 
+            </Flex>
+              TON
             </Flex>
           ) : value
         }

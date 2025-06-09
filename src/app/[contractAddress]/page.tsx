@@ -298,7 +298,7 @@ export default function Page() {
     const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
     return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
   }, [currentOperator?.yourStaked, value]);
-
+  
   return (
     <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
       {/* Title Section */}
@@ -348,6 +348,7 @@ export default function Page() {
         <HeadInfo 
           title="Total staked" 
           value={`${formatUnits(currentOperator?.totalStaked || '0', 27)} TON`}
+          isLoading={!currentOperator?.totalStaked}
           label=""
           // isLoading={candidateStakeLoading}
         />
