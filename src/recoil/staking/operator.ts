@@ -14,16 +14,30 @@ export interface Operator {
   operatorAddress?: string;
 }
 
-
 const { persistAtom } = recoilPersist({
-  key: 'operators-persist',  // 로컬 스토리지 키 이름
-  storage: typeof window === 'undefined' ? undefined : window.localStorage  // Next.js 서버 사이드 렌더링 고려
+  key: 'operators-persist',
+  storage: typeof window === 'undefined' ? undefined : window.localStorage
 });
 
 export const operatorsListState = atom<Operator[]>({
   key: 'operatorsListState', 
   default: [], 
-  effects_UNSTABLE: [persistAtom],
+  effects_UNSTABLE: [
+    ({ onSet }) => {
+      onSet((newValue) => {
+        if (typeof window !== 'undefined') {
+          const serialized = JSON.stringify(newValue, (key, value) => {
+            if (typeof value === 'bigint') {
+              return value.toString();
+            }
+            return value;
+          });
+          window.localStorage.setItem('operators-persist', serialized);
+        }
+      });
+    },
+    persistAtom
+  ],
 });
 
 export const operatorsLoadingState = atom<boolean>({

@@ -22,13 +22,19 @@ export const ActionSection = (args: ActionSectionProps) => {
   return (
     <HStack spacing={2} mb={3} flexWrap="wrap" fontSize={'12px'} px={'5px'}>
         <Button 
-          onClick={() => setActiveAction('Stake')}
+          onClick={() => {
+            setActiveAction('Stake')
+            setValue('')
+          }}
           {...actionButtonStyle(activeAction === 'Stake')}
         >
           Stake
         </Button>
         <Button 
-          onClick={() => setActiveAction('Unstake')}
+          onClick={() => {
+            setActiveAction('Unstake')
+            setValue('')
+          }}
           {...actionButtonStyle(activeAction === 'Unstake')}
         >
           Unstake
@@ -84,7 +90,10 @@ export const ActionSection = (args: ActionSectionProps) => {
                   Ethereum
                 </MenuItem>
                 <MenuItem
-                  onClick={() => setActiveAction('WithdrawL2')}
+                  onClick={() => {
+                    setActiveAction('WithdrawL2')
+                    setValue('')
+                  }}
                   // w={'73px'}
                   {...withdrawOptionButtonStyle(withdrawTarget === 'L2')}
                 >

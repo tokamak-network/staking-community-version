@@ -104,6 +104,12 @@ export default function Page() {
   
   const { refreshOperator } = useOperatorData();
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     if (!address) router.push('/');
   }, [address])
@@ -456,8 +462,21 @@ export default function Page() {
             value === '0.00' || !value || value === '0' || 
             (activeAction === 'Unstake' && isUnstakeDisabled())
           }
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
         >
-          {txPending ? <Spinner /> : getButtonText(value, activeAction)}
+          {isClient && (
+            txPending ? (
+              <Flex align="center" justify="center">
+                <Spinner size="sm" />
+              </Flex>
+            ) : (
+              <Flex align="center" justify="center">
+                {getButtonText(value, activeAction)}
+              </Flex>
+            )
+          )}
         </Button>
 
         {activeAction === 'Unstake' && showUnstakeWarning() && (
