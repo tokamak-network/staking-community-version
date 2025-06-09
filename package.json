@@ -31,7 +31,7 @@
     "recoil-persist": "^5.1.0",
     "styled-components": "^6.1.17",
     "uuid": "^11.1.0",
-    "viem": "^2.29.0",
+    "viem": "^2.31.0",
     "wagmi": "^2.15.2",
     "web3-utils": "^4.3.3"
   },

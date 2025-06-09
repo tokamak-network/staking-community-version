@@ -281,7 +281,7 @@ export default function Page() {
   
   const isUnstakeDisabled = useCallback(() => {
     if (!currentOperator?.yourStaked) return true;
-    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked as string, 27));
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
     if (stakedAmount === 0) return true;
     if (!value || value === '0' || value === '0.00') return true;
     return value ? Number(value) > stakedAmount : true;
@@ -289,7 +289,7 @@ export default function Page() {
 
   const showUnstakeWarning = useCallback(() => {
     if (!currentOperator?.yourStaked || !value) return false;
-    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked as string, 27));
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
     return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
   }, [currentOperator?.yourStaked, value]);
 
