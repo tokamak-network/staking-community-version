@@ -222,6 +222,10 @@ export function useExpectedSeigs(
     const calculateSeig = async (): Promise<void> => {
       // console.log(expectedSeig, expectedSeig > '0')
       // if (expectedSeig > '0') return;
+      if (!publicClient) {
+        console.error('publicClient is undefined');
+        return;
+      }
       try {
         // Tot contract reads
         const totTotalSupply = await publicClient.readContract({

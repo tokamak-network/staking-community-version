@@ -3,7 +3,7 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 export default function useConnectWallet() {
   const { connector, isConnected, address } = useAccount();
-  const { connect, connectors, error, isLoading, pendingConnector } =
+  const { connect, connectors, error } =
     useConnect();
   const { disconnect } = useDisconnect();
 
