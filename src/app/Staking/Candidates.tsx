@@ -76,7 +76,13 @@ const Candidates: React.FC = () => {
   }
   
   return (
-    <Box h="1056px" w="100%" maxW="600px" mx="auto" px={4} position="relative" >
+    <Box 
+      h="1056px"  
+      // maxW="600px" 
+      mx="auto" 
+      px={4} 
+      position="relative" 
+    >
       <Box 
         ref={scrollContainerRef}
         h="1056px" 
@@ -97,9 +103,11 @@ const Candidates: React.FC = () => {
           'overscrollBehavior': 'none',
         }}
       >
-        <VStack 
-          spacing={0} 
-          align="stretch"
+        <Flex 
+          // spaci{0} 
+          // align="stretch"
+          w={'100%'}
+          flexDir={'column'}
           style={{ willChange: 'transform' }}
         >
           {loading ? (
@@ -114,7 +122,7 @@ const Candidates: React.FC = () => {
               />
             ))
           )}
-        </VStack>
+        </Flex>
       </Box>
       <Box
         position="absolute"
