@@ -123,12 +123,14 @@ export default function Page() {
       setCurrentOperator(operator || null);
     }
   }, [candidateAddress, operatorsList, txPending]);
-  
-  const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
-    candidateAddress as `0x${string}`, 
-    BigInt(currentOperator?.totalStaked || '0'),
-    address as `0x${string}`,
-  );
+
+  const { expectedSeig,  lastSeigBlock, commissionRate: commissionRates} = useExpectedSeigs(candidateAddress as `0x${string}`, currentOperator?.totalStaked || '0');
+  // console.log(expSeig)
+  // const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
+  //   candidateAddress as `0x${string}`, 
+  //   BigInt(currentOperator?.totalStaked || '0'),
+  //   address as `0x${string}`,
+  // );
 
   const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: candidateAddress as `0x${string}` });
   const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: candidateAddress as `0x${string}` });
@@ -298,6 +300,8 @@ export default function Page() {
     const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
     return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
   }, [currentOperator?.yourStaked, value]);
+
+  console.log(expectedSeig)
   
   return (
     <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
@@ -497,7 +501,7 @@ export default function Page() {
             title={'Unclaimed Staking Reward'}
             value={expectedSeig}
             onClaim={() => updateSeig()}
-            isLoading={seigLoading}
+            // isLoading={seigLoading}
             seigUpdated={lastSeigBlock ?? undefined}
           />
         
