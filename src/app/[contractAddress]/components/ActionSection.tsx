@@ -1,10 +1,12 @@
 import { actionButtonStyle, withdrawOptionButtonStyle } from "@/style/buttonStyle";
-import { Box, Button, Flex, HStack, Link, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Link, Menu, MenuButton, MenuItem, MenuList, Tooltip } from "@chakra-ui/react";
 import Image from "next/image";
 import LIST_ARROW from '@/assets/images/list-arrow_icon.svg';
 import LIST_ARROW_WHITE from '@/assets/images/list-arrow_icon_white.svg';
 import { formatUnits } from "viem";
 import useCalculatorModal from "@/hooks/modal/useCalculatorModal";
+import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
+import QUESTION_ICON_WHITE from '@/assets/images/input_question_icon_white.svg';
 
 type ActionSectionProps = {
   activeAction: string;
@@ -38,6 +40,19 @@ export const ActionSection = (args: ActionSectionProps) => {
           {...actionButtonStyle(activeAction === 'Unstake')}
         >
           Unstake
+          <Tooltip 
+            // ml={'10px'}
+            placement="top"
+            label={'Withdrawing TON to L2 can be done right away without unstake via Withdraw-L2.'}
+            fontSize={'12px'}
+            mb={'10px'}
+            p={'9px'}
+            w={'260px'}
+          >
+            <Flex ml={'5px'}>
+              <Image src={activeAction === 'Unstake' ? QUESTION_ICON_WHITE : QUESTION_ICON} alt={''} />
+            </Flex>
+          </Tooltip>
         </Button>
         {
           isL2 ?
