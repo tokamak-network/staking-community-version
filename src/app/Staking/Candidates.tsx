@@ -97,10 +97,10 @@ const Candidates: React.FC = () => {
             width: '0px', 
             display: 'none', 
           },
-          'scrollbarWidth': 'none', // hide scrollbar for Firefox
-          '-ms-overflow-style': 'none', // hide scrollbar for IE/Edge
-          'willChange': 'scroll-position', 
-          'overscrollBehavior': 'none',
+          scrollbarWidth: 'none', // hide scrollbar for Firefox
+          msOverflowStyle: 'none', // hide scrollbar for IE/Edge
+          willChange: 'scroll-position', 
+          overscrollBehavior: 'none',
         }}
       >
         <Flex 

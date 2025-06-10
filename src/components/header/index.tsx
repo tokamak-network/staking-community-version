@@ -121,12 +121,11 @@ export const Header = () => {
               zIndex={100}
               _hover={{}}
             >
-            {address && Number(DEFAULT_NETWORK) === chainId ? (
-              
+              {address && Number(DEFAULT_NETWORK) === chainId ? (
                 <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
-                  <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
+                  <Box mr={2} position="relative" top="2px">
                     <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
-                  </span>
+                  </Box>
                   <Text textAlign={'left'} fontWeight={'normal'}>
                     {trimAddress({
                       address: address as string,
@@ -136,12 +135,10 @@ export const Header = () => {
                     })}
                   </Text>
                 </Flex>
-              
-            ) : (
-              'Connect wallet'
-            )}
-        
-          </Button>
+              ) : (
+                'Connect wallet'
+              )}
+            </Button>
           </HStack>
         </Flex>
       </Container>
@@ -365,24 +362,19 @@ const WalletConnector: React.FC = () => {
             color={'#86929d'}
             fontFamily={'TitilliumWeb'}
           >
-            Connect Wallet
+            <Flex justifyContent="center" alignItems="center">
+              Connect Wallet
+            </Flex>
           </MenuButton>
           <MenuList
             bg={menuBg}
             w={'280px'}
             p={'0px'}
-            // position={'absolute'}
             right={'45px'}
           >
             <Box fontFamily={'TitilliumWeb'} p={4}>
-              <Text>
-                Connect Wallet
-              </Text>
-              <Text
-                fontSize={'12px'}
-                color={'#86929d'}
-                fontWeight={'normal'}
-              >
+              <Text>Connect Wallet</Text>
+              <Text fontSize={'12px'} color={'#86929d'} fontWeight={'normal'}>
                 To start using Staking
               </Text>
             </Box>
@@ -399,12 +391,10 @@ const WalletConnector: React.FC = () => {
               )}
               {walletView !== WALLET_VIEWS.PENDING && (
                 <Flex flexDir={'column'} fontSize={'13px'} fontFamily={'TitilliumWeb'} ml={'25px'} mb={4}>
-                  <Text pt={3} >
-                    New to Ethereum?{' '}
-                  </Text>
+                  <Text pt={3}>New to Ethereum?{' '}</Text>
                   <Link 
                     target="_blank" 
-                  rel="noopener noreferrer" 
+                    rel="noopener noreferrer" 
                     href="https://ethereum.org/wallets/"
                     color={'#2a72e5'}
                   >
@@ -422,15 +412,14 @@ const WalletConnector: React.FC = () => {
             w={'157px'}
             h={'35px'}
             borderRadius={'17.5px'}
-            border= {"1px solid #D7D9DF"}
+            border={"1px solid #D7D9DF"}
             bg={'#fff'}
-            // _hover={{ bg: 'blue.600' }}
             size="md"
           >
             <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
-              <span style={{ marginRight: '5px', top: '2px', position: 'relative' }}>
+              <Box mr={2} position="relative" top="2px">
                 <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
-              </span>
+              </Box>
               <Text 
                 textAlign={'left'} 
                 fontWeight={'normal'}
@@ -449,84 +438,50 @@ const WalletConnector: React.FC = () => {
             bg={menuBg}
             w={'280px'}
             p={'0px'}
-            // position={'position'}
             right={'45px'}
           >
-            {/* {connectError || (chain && chain) ? (
-              <>
-                <Box p={4}>
-                  {chains  ? (
-                    <Text>
-                      Network not supported.
-                      <br />
-                      Please change to a supported network.
-                    </Text>
-                  ) : (
-                    <Text>Error connecting</Text>
-                  )}
-                </Box>
-                <Box p={4} pb={6}>
-                  {chains ? (
-                    <Button onClick={() => switchChain?.({ chainId })}>
-                      Switch to Ethereum Mainnet
-                    </Button>
-                  ) : (
-                    'Error connecting. Try refreshing the page.'
-                  )}
-                </Box>
-              </>
-            ) : ( */}
-              <>
-                <Box fontFamily={'TitilliumWeb'} p={4}>
-                  <Text>
-                    Account
+            <Box fontFamily={'TitilliumWeb'} p={4}>
+              <Text>Account</Text>
+              <Text fontSize={'12px'} color={'#86929d'} fontWeight={'normal'}>
+                My account & connect change
+              </Text>
+            </Box>
+            <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} ml={0}>
+              {address && (
+                <Flex my={'24px'} ml={'25px'}>
+                  <Text fontSize="15px" fontWeight={600} mr={'12px'}>
+                    {`0x${address.slice(2, 9)}...${address.slice(-4)}`}
                   </Text>
-                  <Text
-                    fontSize={'12px'}
-                    color={'#86929d'}
-                    fontWeight={'normal'}
-                  >
-                    My account & connect change
-                  </Text>
-                </Box>
-                <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} ml={0}>
-                  {address && (
-                    <Flex my={'24px'} ml={'25px'}>
-                      <Text fontSize="15px" fontWeight={600} mr={'12px'}>
-                        {`0x${address.slice(2, 9)}...${address.slice(-4)}`}
-                      </Text>
-                      <Flex w={'22px'} h={'22px'} mr={'7px'} onClick={handleCopyAction} cursor="pointer">
-                        <Image src={ACCOUNT_COPY} alt="Copy" />
-                      </Flex>
-                      <Link
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={`https://etherscan.io/address/${address}`}
-                      >
-                        <Image src={ETHERSCAN_LINK} alt="Etherscan" />
-                      </Link>
-                    </Flex>
-                  )}
-                </Flex>
-                <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
-                  {formatConnectorName()}
-                </Flex>
-                <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
-                  <Flex 
-                    fontSize={'15px'} 
-                    color={'#2a72e5'} 
-                    fontWeight={600}
-                    cursor={'pointer'}
-                    onClick={() => {
-                      disconnect();
-                      onClose();
-                    }}
-                  >
-                    {/* Logout */}
+                  <Flex w={'22px'} h={'22px'} mr={'7px'} onClick={handleCopyAction} cursor="pointer">
+                    <Image src={ACCOUNT_COPY} alt="Copy" />
                   </Flex>
+                  <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://etherscan.io/address/${address}`}
+                  >
+                    <Image src={ETHERSCAN_LINK} alt="Etherscan" />
+                  </Link>
                 </Flex>
-              </>
-            {/* )} */}
+              )}
+            </Flex>
+            <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
+              {formatConnectorName()}
+            </Flex>
+            <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
+              <Flex 
+                fontSize={'15px'} 
+                color={'#2a72e5'} 
+                fontWeight={600}
+                cursor={'pointer'}
+                onClick={() => {
+                  disconnect();
+                  onClose();
+                }}
+              >
+                Logout
+              </Flex>
+            </Flex>
           </MenuList>
         </Menu>
       )}

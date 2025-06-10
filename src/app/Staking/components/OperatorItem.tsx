@@ -56,7 +56,6 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
   return (
     <Flex
       align="center"
-      // w="100%"
       w={'fit-content'}
       py={4}
       h="66px"

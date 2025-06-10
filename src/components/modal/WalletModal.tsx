@@ -225,12 +225,15 @@ const WalletModal: FC = () => {
   }, [isConnected]);
 
   const handleWalletChange = useCallback(() => {
-      setWalletView(WALLET_VIEWS.OPTIONS);
-    }, []);
-
+    setView(WALLET_VIEWS.OPTIONS);
+    setWalletView(WALLET_VIEWS.OPTIONS);
+  }, []);
+  
   const tryActivation = async (connector: Connector) => {
       setPendingWallet(connector);
+      setView(WALLET_VIEWS.PENDING);
       setWalletView(WALLET_VIEWS.PENDING);
+      if (isConnected && address) setView(WALLET_VIEWS.ACCOUNT);
       
       try {
         connect({ connector });
@@ -394,9 +397,9 @@ const WalletModal: FC = () => {
                 </Flex>
               )}
               </Flex>
-              <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
+              {/* <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
                 {formatConnectorName()}
-              </Flex>
+              </Flex> */}
               <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
                 <Flex 
                   fontSize={'15px'} 
@@ -415,7 +418,7 @@ const WalletModal: FC = () => {
           </>
         }
 
-        {view === WALLET_VIEWS.OPTIONS && !isConnected && !address && chainSupported && (
+        {view === WALLET_VIEWS.OPTIONS && chainSupported && (
           <>
             <ModalHeader
             fontFamily={'TitilliumWeb'}
@@ -464,12 +467,12 @@ const WalletModal: FC = () => {
           <>
             <ModalHeader>Connecting…</ModalHeader>
             <ModalBody>
-                <WalletPending
-                  connector={pendingWallet}
-                  error={pendingError}
-                  setPendingError={setPendingError}
-                  tryActivation={tryActivation}
-                />
+              <WalletPending
+                connector={pendingWallet}
+                error={pendingError}
+                setPendingError={setPendingError}
+                tryActivation={tryActivation}
+              />
             </ModalBody>
           </>
         )}
