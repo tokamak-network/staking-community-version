@@ -49,5 +49,9 @@
     "supports-color": "^9.4.0",
     "typescript": "^5.4.5",
     "utf-8-validate": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }
