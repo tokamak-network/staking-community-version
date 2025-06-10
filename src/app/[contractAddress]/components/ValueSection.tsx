@@ -1,9 +1,11 @@
 import { LoadingDots } from "@/components/Loader/LoadingDots";
 import commafy from "@/utils/trim/commafy";
-import { Flex, Text, VStack } from "@chakra-ui/react";
+import { Flex, Text, VStack, Tooltip } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useCallback } from "react";
 import { useAccount } from "wagmi";
+import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
+import Image from "next/image";
 
 type ValueSectionProps = {
   title: string;
@@ -12,9 +14,10 @@ type ValueSectionProps = {
   isLoading?: boolean;
   manager?: string;
   onClaim?: () => void;
+  label?: string;
 }
 export const ValueSection = (args: ValueSectionProps) => {
-  const { title, value, seigUpdated, onClaim, isLoading, manager } = args;
+  const { title, value, seigUpdated, onClaim, isLoading, manager, label } = args;
   const { address } = useAccount();
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -40,7 +43,21 @@ export const ValueSection = (args: ValueSectionProps) => {
   return (
     <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
       <VStack align="start" spacing={1}>
-        <Text>{title}</Text>
+        <Flex flexDir={'row'}>
+          {title}
+          {
+            label ?
+            <Tooltip
+              label={label}
+              placement={'top'}
+              hasArrow
+            >
+              <Flex ml={'5px'}>
+                <Image src={QUESTION_ICON} alt={''} />
+              </Flex>
+            </Tooltip> : ''
+          }
+        </Flex>
         {
           seigUpdated &&
           <Text fontSize="12px" color="#808992">

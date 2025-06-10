@@ -48,6 +48,7 @@ export const ActionSection = (args: ActionSectionProps) => {
             mb={'10px'}
             p={'9px'}
             w={'260px'}
+            hasArrow
           >
             <Flex ml={'5px'}>
               <Image src={activeAction === 'Unstake' ? QUESTION_ICON_WHITE : QUESTION_ICON} alt={''} />

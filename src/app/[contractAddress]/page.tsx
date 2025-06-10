@@ -528,6 +528,7 @@ export default function Page() {
               <ValueSection 
                 title={'TON Bridged to L2'}
                 value={layer2Reward?.layer2Tvl.toString() || '0'}
+                label={'TON bridged to L2 is the amount of TON that has been bridged to L2.'}
               />
               <Divider />
               <ValueSection 
@@ -535,6 +536,7 @@ export default function Page() {
                 value={claimableAmount?.toString() || '0'}
                 onClaim={() => claim([WTON_ADDRESS, claimableAmount])}
                 manager={currentOperator?.manager}
+                label={'Claimable seigniorage is the amount of seigniorage that the L2 operator can claim.'}
               />
             </VStack>
           </Box>
