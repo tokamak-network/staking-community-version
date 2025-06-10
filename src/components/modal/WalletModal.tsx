@@ -1,5 +1,5 @@
 // components/WalletModal.tsx
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState, useRef } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -15,7 +15,7 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
-import { useAccount, useConnect, useDisconnect, Connector } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useChains, Connector } from 'wagmi';
 import trimAddress from '@/utils/trim/trim';
 import copy from 'copy-to-clipboard';
 // import { WalletPending } from './components/Pending';
@@ -134,13 +134,11 @@ const WalletPending = ({
   );
 };
 const WalletModal: FC = () => {
-  const { address, connector: activeConnector, isConnected } = useAccount();
-  const {
-    connect,
-    connectors,
-    error: connectError,
-  } = useConnect();
+  const { address, isConnected, connector: activeConnector } = useAccount();
+  const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
+  const { chains, switchChain } = useSwitchChain();
+  const chain = useChains();
   const [chainId, setChainId] = useRecoilState(chainIdState);
   const { isOpen, closeSelectModal } = useWalletModal();
   const [view, setView] = useState<string>(WALLET_VIEWS.OPTIONS);
@@ -153,9 +151,10 @@ const WalletModal: FC = () => {
 
   const [rightOffset, setRightOffset] = useState<number>(0);
 
-  const [accountValue, setAccountValue] = useLocalStorage('account', {});
+  // const [accountValue, setAccountValue] = useLocalStorage('account', {});
 
   const previousAddress = usePrevious(address);
+  const prevAddressRef = useRef<string | undefined>(address);
 
   useEffect(() => {
     const width = window.innerWidth;
@@ -199,7 +198,7 @@ const WalletModal: FC = () => {
       }
     };
   }, []);
-
+  
   useEffect(() => {
     if (address && !previousAddress) {
       closeSelectModal();
@@ -320,6 +319,69 @@ const WalletModal: FC = () => {
       });
     };
   
+  useEffect(() => {
+    if (prevAddressRef.current && address && prevAddressRef.current !== address) {
+      // 계정이 변경된 경우
+      console.log('Account changed from', prevAddressRef.current, 'to', address);
+      window.location.reload();
+    }
+    prevAddressRef.current = address;
+  }, [address]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnect();
+          closeSelectModal();
+        } else {
+          const newAddress = accounts[0];
+          if (newAddress !== address) {
+            window.location.reload();
+          }
+        }
+      };
+
+      const handleChainChanged = (chainId: string) => {
+        window.location.reload();
+      };
+
+      const handleDisconnect = () => {
+        disconnect();
+        closeSelectModal();
+      };
+
+      const handleConnect = (connectInfo: { chainId: string }) => {
+        window.location.reload();
+      };
+
+      const checkConnection = async () => {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0 && !isConnected) {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error('Error checking connection:', error);
+        }
+      };
+
+      checkConnection();
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on('disconnect', handleDisconnect);
+      window.ethereum.on('connect', handleConnect);
+
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        window.ethereum.removeListener('disconnect', handleDisconnect);
+        window.ethereum.removeListener('connect', handleConnect);
+      };
+    }
+  }, [address, disconnect, closeSelectModal, isConnected]);
+
   return (
     <Modal
       isOpen={isOpen}
