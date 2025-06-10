@@ -542,6 +542,20 @@ export default function Page() {
           <Text as="span" color={'#FF2D78'}>Warning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
         </Text>
       }
+      {
+        activeAction === 'Unstake' && (
+          <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+            <Text as="span" color={'#FF2D78'}>Warning:</Text> To withdraw staked TON, it needs to be unstaked first and after 93,046 blocks (~14 days) they can be withdrawn to your account.
+          </Text>
+        )
+      }
+      {
+        activeAction === 'Restake' && (
+          <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+            <Text as="span" color={'#FF2D78'}>Warning:</Text> Restaking unstaked TON earns you TON from staking. However, to withdraw, they need to be unstaked and wait for 93,046 blocks (~14 days).
+          </Text>
+        )
+      }
     </Flex>
   );
 };
