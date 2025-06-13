@@ -269,9 +269,7 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
-        console.log(operatorsList.length)
         if (operatorsList.length > 0) {
-          console.log('cc')
           return;
         }
         setLoading(true);
@@ -289,7 +287,6 @@ export default function useCallOperators() {
           layer2s.push(layer2);
         }
         setOperatorAddress(layer2s);
-        // console.log('layer2s', layer2s)
   
         for (let i = 0; i < layer2s.length; i += chunkSize) {
           const chunk = layer2s.slice(i, i + chunkSize);

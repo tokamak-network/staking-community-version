@@ -27,10 +27,8 @@ export default function Entry({ children }: { children: React.ReactNode }) {
         <ChakraProvidersForNextJs>
           <Flex flexDir="column" h="100vh">
             <Header />
-            <Flex flexDir="column" flexGrow={1}>
-              <Flex justifyContent="center" alignItems="center" h="100%">
-                {children}
-              </Flex>
+            <Flex flexDir={'column'} justifyContent="center" alignItems="center" h="100%">
+              {children}
             </Flex>
             <Modals />
           </Flex>

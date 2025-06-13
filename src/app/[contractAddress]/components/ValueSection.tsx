@@ -1,6 +1,6 @@
 import { LoadingDots } from "@/components/Loader/LoadingDots";
 import commafy from "@/utils/trim/commafy";
-import { Flex, Text, VStack, Tooltip } from "@chakra-ui/react";
+import { Flex, Text, VStack, Tooltip, Box } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useCallback } from "react";
 import { useAccount } from "wagmi";
@@ -66,8 +66,8 @@ export const ValueSection = (args: ValueSectionProps) => {
         }
       </VStack>
       <VStack spacing={0} align="end">
-        <Text fontSize={'14px'}>
-          <Flex justifyContent={'flex-end'} alignItems={'center'}>
+        <Text fontSize={'14px'} textAlign={'right'}>
+          <Box>
             {
               isLoading ? (
                 <Flex mr={'3px'}>
@@ -76,16 +76,16 @@ export const ValueSection = (args: ValueSectionProps) => {
               ) :
               (formatUnits(value || '0', title === 'TON Bridged to L2' ? 18 : 27))
             } TON
-          </Flex>
+          </Box>
           { 
             ((onClaim && seigUpdated )|| (onClaim && manager === address)) && (
-              <Flex 
+              <Box 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}
-                justifyContent={'flex-end'}
+                textAlign={'right'}
               >
                 {seigUpdated ? 'Update seigniorage' : 'Claim'}
-              </Flex>
+              </Box>
             )
           }
         </Text>

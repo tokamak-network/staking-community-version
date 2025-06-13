@@ -90,6 +90,51 @@ export const Header = () => {
   const { onOpenSelectModal } = useWalletModal();
   const { address, isConnected, connector: activeConnector } = useAccount();
   const chainId = useChainId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Box 
+        as="header"
+        py={4}
+        position="sticky"
+        zIndex={10}
+        w="100%"
+      >
+        <Container maxW="container.xl">
+          <Flex justifyContent="space-between" alignItems="center">
+            <HStack spacing={3}>
+              <Flex as="h1" flexDir={'row'} fontSize={'24px'} fontWeight={800} fontFamily={'NanumSquare'}>
+                Tokamak <Text as="span" color="blue.500" ml={'3px'}> staking</Text> <Flex as="span" w={'62px'} ml={'3px'} fontSize={'11px'} lineHeight={'11px'}>Community  version</Flex>
+              </Flex>
+            </HStack>
+            <HStack>
+              <Button
+                border="solid 1px #d7d9df"
+                color={'#86929d'}
+                w={151}
+                h={35}
+                fontSize={14}
+                fontWeight={600}
+                rounded={18}
+                bg={'white.100'}
+                zIndex={100}
+                _hover={{}}
+              >
+                <Box>
+                  <Text>Connect wallet</Text>
+                </Box>
+              </Button>
+            </HStack>
+          </Flex>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box 
@@ -122,21 +167,25 @@ export const Header = () => {
               _hover={{}}
             >
               {address && Number(DEFAULT_NETWORK) === chainId ? (
-                <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
-                  <Box mr={2} position="relative" top="2px">
-                    <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
-                  </Box>
-                  <Text textAlign={'left'} fontWeight={'normal'}>
-                    {trimAddress({
-                      address: address as string,
-                      firstChar: 7,
-                      lastChar: 4,
-                      dots: '....',
-                    })}
-                  </Text>
-                </Flex>
+                <Box>
+                  <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
+                    <Box mr={2} position="relative" top="2px">
+                      <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
+                    </Box>
+                    <Text textAlign={'left'} fontWeight={'normal'}>
+                      {trimAddress({
+                        address: address as string,
+                        firstChar: 7,
+                        lastChar: 4,
+                        dots: '....',
+                      })}
+                    </Text>
+                  </Flex>
+                </Box>
               ) : (
-                'Connect wallet'
+                <Box>
+                  <Text>Connect wallet</Text>
+                </Box>
               )}
             </Button>
           </HStack>
@@ -362,9 +411,9 @@ const WalletConnector: React.FC = () => {
             color={'#86929d'}
             fontFamily={'TitilliumWeb'}
           >
-            <Flex justifyContent="center" alignItems="center">
-              Connect Wallet
-            </Flex>
+            <Box>
+              <Text>Connect Wallet</Text>
+            </Box>
           </MenuButton>
           <MenuList
             bg={menuBg}
@@ -416,23 +465,25 @@ const WalletConnector: React.FC = () => {
             bg={'#fff'}
             size="md"
           >
-            <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
-              <Box mr={2} position="relative" top="2px">
-                <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
-              </Box>
-              <Text 
-                textAlign={'left'} 
-                fontWeight={'normal'}
-                fontFamily={'TitilliumWeb'}
-              >
-                {trimAddress({
-                  address: address as string,
-                  firstChar: 7,
-                  lastChar: 4,
-                  dots: '....',
-                })}
-              </Text>
-            </Flex>
+            <Box>
+              <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
+                <Box mr={2} position="relative" top="2px">
+                  <Jazzicon diameter={23} seed={jsNumberForAddress(address as string)} />
+                </Box>
+                <Text 
+                  textAlign={'left'} 
+                  fontWeight={'normal'}
+                  fontFamily={'TitilliumWeb'}
+                >
+                  {trimAddress({
+                    address: address as string,
+                    firstChar: 7,
+                    lastChar: 4,
+                    dots: '....',
+                  })}
+                </Text>
+              </Flex>
+            </Box>
           </MenuButton>
           <MenuList
             bg={menuBg}

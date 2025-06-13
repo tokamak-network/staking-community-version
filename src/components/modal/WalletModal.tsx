@@ -20,14 +20,13 @@ import trimAddress from '@/utils/trim/trim';
 import copy from 'copy-to-clipboard';
 // import { WalletPending } from './components/Pending';
 import usePrevious from '@/hooks/general/usePrevious';
-import { useLocalStorage } from '@/hooks/general/useStorage';
 import useWalletModal from '@/hooks/modal/useWalletModal';
 import Image from 'next/image';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from '@/assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from '@/assets/images/etherscan_link_icon.png';
 import { DEFAULT_NETWORK } from '@/constant/index';
-import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
+// import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
 import { chainIdState } from '@/recoil/chainId';
 import { useRecoilState } from 'recoil';
 

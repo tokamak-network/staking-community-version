@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ maxHeight: "100vh", margin: 0, padding: 0 }}>
+      <body style={{ maxHeight: "100vh", margin: 0, padding: 0 }} suppressHydrationWarning>
         <RecoilRootWrapper>
           <WagmiConfig config={wagmiConfig}>
             <Entry>{children}</Entry>

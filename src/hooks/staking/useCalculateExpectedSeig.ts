@@ -94,10 +94,10 @@ export function useExpectedSeigs(
   candidateContract: `0x${string}` | undefined, 
   stakedAmount: string, 
 ): SeigResult {
-  const [expectedSeig, setExpectedSeig] = useState<string>('');
-  const [seigOfLayer, setSeigOfLayer] = useState<string>('');
-  const [commissionRate, setCommissionRate] = useState<string>('');
-  const [lastSeigBlock, setLastSeigBlock] = useState<string>('');
+  const [expectedSeig, setExpectedSeig] = useState<string>('0');
+  const [seigOfLayer, setSeigOfLayer] = useState<string>('0');
+  const [commissionRate, setCommissionRate] = useState<string>('0');
+  const [lastSeigBlock, setLastSeigBlock] = useState<string>('0');
   
   const { address: account } = useAccount();
   const publicClient = usePublicClient();
@@ -140,8 +140,7 @@ export function useExpectedSeigs(
 
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
-      if (!publicClient || !commonContracts) {
-        console.error('publicClient or commonContracts is undefined');
+      if (!publicClient || !commonContracts || !blockNumber || !account) {
         return;
       }
 
@@ -244,13 +243,13 @@ export function useExpectedSeigs(
           if (!isCommissionRateNegativeData) {
             const operatorSeigs = (_seigOfLayer * commissionRateValue) / CONSTANTS.RAY;
             const restSeigs = _seigOfLayer - operatorSeigs;
-            const userSeig = (restSeigs * userStaked) / BigInt(stakedAmount);
+            const userSeig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (restSeigs * userStaked) / BigInt(stakedAmount);
             seig = userSeig;
           } else {
-            seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
+            seig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (_seigOfLayer * userStaked) / BigInt(stakedAmount);
           }
         } else {
-          seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
+          seig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (_seigOfLayer * userStaked) / BigInt(stakedAmount);
         }
 
         setSeigOfLayer(_seigOfLayer.toString());
@@ -258,6 +257,10 @@ export function useExpectedSeigs(
         setLastSeigBlock(lastSeigBlockData.toString());
       } catch (e) {
         console.error('Error calculating expectedSeig:', e);
+        // 에러 발생 시 기본값 설정
+        setSeigOfLayer('0');
+        setExpectedSeig('0');
+        setLastSeigBlock('0');
       }
     };
 

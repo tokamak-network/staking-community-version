@@ -64,10 +64,7 @@ import { getButtonText } from '@/utils/button/getButtonText';
 import { ActionSection } from './components/ActionSection';
 import { boxStyle } from '@/style/boxStyle';
 import useClaim from '@/hooks/staking/useClaim';
-import { useWriteContract } from 'wagmi'
-import TON from '@/abis/TON.json';
 import { useStakeWTON } from '@/hooks/staking/useStakeWTON';
-import { useTx } from '@/hooks/tx/useTx';
 
 const {
   TON_ADDRESS,
@@ -300,11 +297,9 @@ export default function Page() {
     const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
     return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
   }, [currentOperator?.yourStaked, value]);
-
-  console.log(expectedSeig)
   
   return (
-    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
+    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'200px'} py={5} flexDir={'column'} justifyContent={'start'}>
       {/* Title Section */}
       <Flex mb={6} align="start" justifyContent={'space-between'}>
         <Flex alignItems={'center'} onClick={() => router.push('/')} cursor="pointer">
@@ -473,13 +468,9 @@ export default function Page() {
         >
           {isClient && (
             txPending ? (
-              <Flex align="center" justify="center">
-                <Spinner size="sm" />
-              </Flex>
+              <Spinner size="sm" />
             ) : (
-              <Flex align="center" justify="center">
-                {getButtonText(value, activeAction)}
-              </Flex>
+                getButtonText(value, activeAction)
             )
           )}
         </Button>
