@@ -523,7 +523,7 @@ export default function Page() {
               />
               <Divider />
               <ValueSection 
-                title={'Claimable seigniorage'}
+                title={'Claimable Seigniorage'}
                 value={claimableAmount?.toString() || '0'}
                 onClaim={() => claim([WTON_ADDRESS, claimableAmount])}
                 manager={currentOperator?.manager}
