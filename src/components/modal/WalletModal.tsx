@@ -251,12 +251,10 @@ const WalletModal: FC = () => {
     if (!(window as any).ethereum) return;
     const hex = '0x' + Number(DEFAULT_NETWORK).toString(16);
     try {
-      // tryActivation(connector);
       await (window as any).ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: hex }],
       });
-      // console.log(connector)
       toast({ title: 'Switched network', status: 'success' });
     } catch {
       toast({ title: 'Failed to switch network', status: 'error' });
