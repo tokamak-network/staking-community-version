@@ -63,7 +63,7 @@ function BalanceInput(props: InputProp) {
   };
 
   const getButtonPosition = () => {
-    if (!value || value.length <= 5) return "86px";
+    if (!value || value.length <= 4) return "86px";
     
     const charWidth = 17.5;
     const maxChars = 20;
