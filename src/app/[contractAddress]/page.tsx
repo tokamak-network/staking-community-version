@@ -460,7 +460,8 @@ export default function Page() {
           {...mainButtonStyle(value)}
           isDisabled={
             value === '0.00' || !value || value === '0' || 
-            (activeAction === 'Unstake' && isUnstakeDisabled())
+            (activeAction === 'Unstake' && isUnstakeDisabled()) ||
+            txPending
           }
           display="flex"
           alignItems="center"
@@ -470,7 +471,7 @@ export default function Page() {
             txPending ? (
               <Spinner size="sm" />
             ) : (
-                getButtonText(value, activeAction)
+              getButtonText(value, activeAction)
             )
           )}
         </Button>
