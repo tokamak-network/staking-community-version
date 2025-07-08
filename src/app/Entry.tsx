@@ -9,18 +9,22 @@ import { TONStakingProvider } from "@ton-staking-sdk/react-kit";
 import { Flex } from "@chakra-ui/react";
 import { Header } from "@/components/header";
 import Modals from "./Modal";
-import { PUBLIC_SEPOLIA_RPC } from "@/constant";
+import { getRpcUrl } from "@/constant/contracts";
+import { useChainId } from 'wagmi';
 
 export default function Entry({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   // const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
 
+  const chainId = useChainId();
+  const rpcUrl = getRpcUrl(chainId);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TONStakingProvider 
-        rpcUrl={PUBLIC_SEPOLIA_RPC!}
-        chainId={11155111}
+        rpcUrl={rpcUrl}
+        chainId={chainId}
         // walletClient={walletClient} 
         // publicClient={publicClient}
       >

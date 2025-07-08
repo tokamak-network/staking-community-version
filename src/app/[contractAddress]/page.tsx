@@ -13,12 +13,12 @@ import {
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { useRouter, useParams } from "next/navigation";
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { filteredOperatorsState, Operator, operatorsListState } from "@/recoil/staking/operator";
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
-import CONTRACT_ADDRESS from '@/constant/contracts';
+import { getContractAddress } from '@/constant/contracts';
 import { HeadInfo } from './components/HeadInfo';
 import { TokenTypeSelector } from './components/TokenTypeSelector';
 import { BalanceInput } from '@/components/input/CustomInput';
@@ -66,11 +66,7 @@ import { boxStyle } from '@/style/boxStyle';
 import useClaim from '@/hooks/staking/useClaim';
 import { useStakeWTON } from '@/hooks/staking/useStakeWTON';
 
-const {
-  TON_ADDRESS,
-  WTON_ADDRESS,
-  DepositManager_ADDRESS,
-} = CONTRACT_ADDRESS;
+
 
 const useOperatorData = () => {
   const { refreshOperator } = useCallOperators();
@@ -79,6 +75,13 @@ const useOperatorData = () => {
 };
 
 export default function Page() {
+  const chainId = useChainId();
+  const {
+    TON_ADDRESS,
+    WTON_ADDRESS,
+    DepositManager_ADDRESS,
+  } = getContractAddress(chainId);
+  
   const router = useRouter();
   const params = useParams();
   const candidateAddress = params?.contractAddress as `0x${string}`;
@@ -456,7 +459,7 @@ export default function Page() {
         </Flex>
 
         <Button 
-          onClick={() => onClick()}
+          onClick={async () => onClick()}
           {...mainButtonStyle(value)}
           isDisabled={
             value === '0.00' || !value || value === '0' || 

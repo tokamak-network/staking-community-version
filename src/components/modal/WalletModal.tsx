@@ -25,7 +25,7 @@ import Image from 'next/image';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from '@/assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from '@/assets/images/etherscan_link_icon.png';
-import { DEFAULT_NETWORK } from '@/constant/index';
+import { DEFAULT_NETWORK, SUPPORTED_CHAIN_IDS } from '@/constant/index';
 // import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
 import { chainIdState } from '@/recoil/chainId';
 import { useRecoilState } from 'recoil';
@@ -206,12 +206,12 @@ const WalletModal: FC = () => {
 
   useEffect(() => {
     if (!chainId) return;
-    setChainSupported(chainId === Number(DEFAULT_NETWORK));
-    if (!chainSupported) {
+    setChainSupported(SUPPORTED_CHAIN_IDS.includes(chainId));
+    if (!SUPPORTED_CHAIN_IDS.includes(chainId)) {
       disconnect();
       setWalletView(WALLET_VIEWS.OPTIONS);
     }
-  }, [chainId, chainSupported]);
+  }, [chainId]);
 
 
   useEffect(() => {
@@ -340,7 +340,7 @@ const WalletModal: FC = () => {
       };
 
       const handleChainChanged = (chainId: string) => {
-        window.location.reload();
+        window.location.href = '/';
       };
 
       const handleDisconnect = () => {
@@ -394,24 +394,55 @@ const WalletModal: FC = () => {
         right={`${rightOffset}px`}
       >
         {
-          (address && !chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
+          (address && !chainSupported || (chainId && !SUPPORTED_CHAIN_IDS.includes(chainId))) ? (
             <>
               <ModalHeader>Network not supported</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <Text mb={4}>
-                  Please switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}.
+                  Please switch to Mainnet or Sepolia.
                 </Text>
-                <Button 
-                  colorScheme="blue" 
-                  w="full" 
-                  onClick={() => switchToDefaultNetwork(connectors[0])}
-                >
-                  Switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}
-                </Button>
+                <Flex direction="column" gap={2}>
+                  <Button
+                    colorScheme="blue"
+                    w="full"
+                    onClick={async () => {
+                      if (!(window as any).ethereum) return;
+                      try {
+                        await (window as any).ethereum.request({
+                          method: 'wallet_switchEthereumChain',
+                          params: [{ chainId: '0x1' }],
+                        });
+                        toast({ title: 'Switched to Mainnet', status: 'success' });
+                      } catch {
+                        toast({ title: 'Failed to switch to Mainnet', status: 'error' });
+                      }
+                    }}
+                  >
+                    Switch to Mainnet
+                  </Button>
+                  <Button
+                    colorScheme="blue"
+                    w="full"
+                    onClick={async () => {
+                      if (!(window as any).ethereum) return;
+                      try {
+                        await (window as any).ethereum.request({
+                          method: 'wallet_switchEthereumChain',
+                          params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
+                        });
+                        toast({ title: 'Switched to Sepolia', status: 'success' });
+                      } catch (error) {
+                        toast({ title: 'Failed to switch to Sepolia', status: 'error' });
+                      }
+                    }}
+                  >
+                    Switch to Sepolia
+                  </Button>
+                </Flex>
               </ModalBody>
             </>
-          ) : view === WALLET_VIEWS.ACCOUNT && address && chainSupported &&
+          ) : view === WALLET_VIEWS.ACCOUNT && address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) &&
           <>
             <ModalHeader
               fontFamily={'TitilliumWeb'}
@@ -468,6 +499,7 @@ const WalletModal: FC = () => {
                   onClick={() => {
                     disconnect();
                     closeSelectModal();
+                    // setView(WALLET_VIEWS.OPTIONS);
                   }}
                 >
                   Logout
@@ -477,7 +509,7 @@ const WalletModal: FC = () => {
           </>
         }
 
-        {view === WALLET_VIEWS.OPTIONS && chainSupported && (
+        {view === WALLET_VIEWS.OPTIONS && SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
           <>
             <ModalHeader
             fontFamily={'TitilliumWeb'}

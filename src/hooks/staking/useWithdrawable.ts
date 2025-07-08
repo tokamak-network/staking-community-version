@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAccount, usePublicClient, useBlockNumber } from 'wagmi';
+import { useAccount, usePublicClient, useBlockNumber, useChainId } from 'wagmi';
 import { Address, getContract } from 'viem';
 import DepositManager from '@/abis/DepositManager.json';
-import CONTRACT_ADDRESS from '@/constant/contracts';
+import { getContractAddress } from '@/constant/contracts';
 import { BigNumber } from 'ethers';
 
 /**
@@ -13,6 +13,11 @@ import { BigNumber } from 'ethers';
 export function useWithdrawableLength(
   layer2: Address | undefined,
 ) {
+  const chainId = useChainId();
+  const {
+    DepositManager_ADDRESS,
+  } = getContractAddress(chainId);
+
   const { address: account } = useAccount();
   const { data: currentBlockNumber } = useBlockNumber();
   const publicClient = usePublicClient();
@@ -29,7 +34,7 @@ export function useWithdrawableLength(
     }       
 
     const depositManagerContract = getContract({
-      address: CONTRACT_ADDRESS.DepositManager_ADDRESS as `0x${string}`,
+      address: DepositManager_ADDRESS as `0x${string}`,
       abi: DepositManager,
       client: publicClient
     });

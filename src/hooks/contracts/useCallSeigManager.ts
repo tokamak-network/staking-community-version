@@ -2,13 +2,14 @@
 
 import SeigManager from "@/abis/SeigManager.json";
 import { useContractRead, usePublicClient } from "wagmi";
-
-import CONTRACT_ADDRESS from "constant/contracts";
+import { getContractAddress } from "@/constant/contracts";
+import { useChainId } from 'wagmi';
 
 export default function useCallSeigManager(functionName: string, args?: any) {
+  const chainId = useChainId();
   const {
     SeigManager_ADDRESS,
-  } = CONTRACT_ADDRESS;
+  } = getContractAddress(chainId);
 
   const result = useContractRead({
     address: SeigManager_ADDRESS,

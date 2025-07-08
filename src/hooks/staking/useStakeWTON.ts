@@ -1,13 +1,12 @@
 import { useWriteContract } from 'wagmi';
 import WTON_ABI from '@/abis/WTON.json'; 
 import { useTx } from '../tx/useTx';
-import CONTRACT_ADDRESS from '@/constant/contracts';
-
-const {
-  WTON_ADDRESS,
-} = CONTRACT_ADDRESS;
+import { getContractAddress } from '@/constant/contracts';
+import { useChainId } from 'wagmi';
 
 export function useStakeWTON(layer2: string) {
+  const chainId = useChainId();
+  const { WTON_ADDRESS } = getContractAddress(chainId);
   
   const { data: txData, error: writeError, writeContract } = useWriteContract();
 

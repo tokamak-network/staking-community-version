@@ -1,18 +1,16 @@
-import CONTRACT_ADDRESS from "@/constant/contracts";
+import { getContractAddress } from "@/constant/contracts";
 import TON from '@/abis/TON.json';
 import WTON from '@/abis/WTON.json';
 import DepositManager from '@/abis/DepositManager.json';
-import { useWriteContract } from "wagmi";;
+import { useWriteContract, useChainId } from "wagmi";
 import { useTx } from "../tx/useTx";
 
-
-const {
-  DepositManager_ADDRESS,
-  SeigManager_ADDRESS
-} = CONTRACT_ADDRESS;
-
 export default function useWithdrawL2(layer2: string) {
-  
+  const chainId = useChainId();
+  const {
+    DepositManager_ADDRESS,
+    SeigManager_ADDRESS
+  } = getContractAddress(chainId);
 
   const { data: txData, error: writeError, writeContract } = useWriteContract();
 

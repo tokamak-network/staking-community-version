@@ -24,19 +24,9 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  MenuItem,
-  VStack,
   useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
   useToast,
-  Divider,
 } from '@chakra-ui/react';
-import { ChevronDownIcon, CopyIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { 
   useConnect, 
   useDisconnect, 
@@ -51,7 +41,7 @@ import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from 'assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from 'assets/images/etherscan_link_icon.png';
 import useWalletModal from '@/hooks/modal/useWalletModal';
-import { DEFAULT_NETWORK } from '@/constant';
+import { DEFAULT_NETWORK, SUPPORTED_CHAIN_IDS } from '@/constant';
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
@@ -166,7 +156,7 @@ export const Header = () => {
               zIndex={100}
               _hover={{}}
             >
-              {address && Number(DEFAULT_NETWORK) === chainId ? (
+              {address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) ? (
                 <Box>
                   <Flex flexDir={'row'} justifyContent={'center'} alignItems={'center'}>
                     <Box mr={2} position="relative" top="2px">

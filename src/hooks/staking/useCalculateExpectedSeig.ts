@@ -3,12 +3,13 @@ import {
   useBlockNumber, 
   useAccount, 
   usePublicClient,
-  useWalletClient 
+  useWalletClient,
+  useChainId
 } from 'wagmi';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import { txPendingStatus } from '@/recoil/transaction/tx';
-import CONTRACT_ADDRESS from '@/constant/contracts';
+import { getContractAddress } from '@/constant/contracts';
 import { getContract, isAddress, PublicClient } from 'viem';
 
 // ABIs
@@ -104,6 +105,9 @@ export function useExpectedSeigs(
   const { data: blockNumber } = useBlockNumber();
   const [txPending] = useRecoilState(txPendingStatus);
 
+  const chainId = useChainId();
+  const CONTRACT_ADDRESS = getContractAddress(chainId);
+
   const getContractInstance = useCallback((contractAddress: string, abi: any): any => {
     if (!publicClient || !contractAddress) return null;
     
@@ -130,13 +134,12 @@ export function useExpectedSeigs(
 
   const commonContracts = useMemo(() => {
     if (!publicClient) return null;
-    
     return {
       seigManager: getContractInstance(CONTRACT_ADDRESS.SeigManager_ADDRESS, SeigManager_ABI),
       wton: getContractInstance(CONTRACT_ADDRESS.WTON_ADDRESS, WTON_ABI),
       ton: getContractInstance(CONTRACT_ADDRESS.TON_ADDRESS, TON_ABI)
     };
-  }, [publicClient, getContractInstance]);
+  }, [publicClient, getContractInstance, CONTRACT_ADDRESS]);
 
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
