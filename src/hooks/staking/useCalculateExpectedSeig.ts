@@ -1,16 +1,16 @@
 import { formatUnits } from 'viem';
 import { 
-  useContractRead, 
   useBlockNumber, 
   useAccount, 
   usePublicClient,
-  useWalletClient 
+  useWalletClient,
+  useChainId
 } from 'wagmi';
-import { useEffect, useState, useMemo } from 'react';
-// Atom import currently commented out
-// import { useRecoilState } from 'recoil';
-// import { txState } from '@/atom/global/transaction';
-import CONTRACT_ADDRESS from '@/constant/contracts';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRecoilState } from 'recoil';
+import { txPendingStatus } from '@/recoil/transaction/tx';
+import { getContractAddress } from '@/constant/contracts';
+import { getContract, isAddress, PublicClient } from 'viem';
 
 // ABIs
 import Coinage from '@/abis/AutoRefactorCoinage.json';
@@ -19,8 +19,6 @@ import TON_ABI from '@/abis/TON.json';
 import WTON_ABI from '@/abis/WTON.json';
 import DepositManager_ABI from '@/abis/DepositManager.json';
 import SeigManager_ABI from '@/abis/SeigManager.json';
-import { useRecoilState } from 'recoil';
-import { txPendingStatus } from '@/recoil/transaction/tx';
 
 // Type definitions
 interface BalanceAndFactor {
@@ -31,24 +29,6 @@ interface BalanceAndFactor {
 interface FactorResult {
   factor: bigint;
   refactorCount: bigint;
-}
-
-interface DataInputs {
-  publicClient: any;
-  walletClient: any;
-  account: `0x${string}` | undefined;
-  candidateContract: `0x${string}` | undefined;
-  tot: `0x${string}` | undefined;
-  coinageAddress: `0x${string}` | undefined;
-  lastSeigBlock: bigint | undefined;
-  seigPerBlock: bigint | undefined;
-  relativeSeigRate: bigint | undefined;
-  tonTotalSupply: bigint | undefined;
-  tonBalanceOfWTON: bigint | undefined;
-  tonBalanceOfZero: bigint | undefined;
-  tonBalanceOfOne: bigint | undefined;
-  blockNumber: bigint | undefined;
-  stakedAmount: string;
 }
 
 interface SeigResult {
@@ -67,6 +47,9 @@ const CONSTANTS = {
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000' as const,
   ONE_ADDRESS: '0x0000000000000000000000000000000000000001' as const
 };
+
+// Contract cache
+const contractCache = new Map<string, any>();
 
 /**
  * Sets the factor for refactoring
@@ -94,7 +77,6 @@ const applyFactor = (
 ): bigint => {
   let v = (balance * factor) / CONSTANTS.RAY;
   
-  // REFACTOR_DIVIDER^(refactorCount - refactoredCount) calculation
   const powerDiff = refactorCount - refactoredCount;
   let multiplier = BigInt(1);
   
@@ -108,179 +90,141 @@ const applyFactor = (
 
 /**
  * Hook to calculate expected seig rewards
- * @param candidateContract - The candidate contract address
- * @param stakedAmount - The amount staked
- * @param candidate - The candidate address
- * @returns Expected seig and layer seig
  */
 export function useExpectedSeigs(
   candidateContract: `0x${string}` | undefined, 
   stakedAmount: string, 
-  // candidate: string
 ): SeigResult {
-  const [expectedSeig, setExpectedSeig] = useState<string>('');
-  const [seigOfLayer, setSeigOfLayer] = useState<string>('');
-  const [commissionRate, setCommissionRate] = useState<string>('');
-  // State management commented out
-  // const [txPending, setTxPending] = useRecoilState(txState);
+  const [expectedSeig, setExpectedSeig] = useState<string>('0');
+  const [seigOfLayer, setSeigOfLayer] = useState<string>('0');
+  const [commissionRate, setCommissionRate] = useState<string>('0');
+  const [lastSeigBlock, setLastSeigBlock] = useState<string>('0');
   
   const { address: account } = useAccount();
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
   const { data: blockNumber } = useBlockNumber();
+  const [txPending] = useRecoilState(txPendingStatus);
 
-  // SeigManager contract reads
-  const { data: lastSeigBlock } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'lastSeigBlock',
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
+  const chainId = useChainId();
+  const CONTRACT_ADDRESS = getContractAddress(chainId);
+
+  const getContractInstance = useCallback((contractAddress: string, abi: any): any => {
+    if (!publicClient || !contractAddress) return null;
     
+    const cacheKey = `${contractAddress}-${abi.contractName || 'unknown'}`;
+    
+    if (contractCache.has(cacheKey)) {
+      return contractCache.get(cacheKey);
+    }
+    
+    try {
+      const contract = getContract({
+        address: contractAddress as `0x${string}`,
+        abi: abi.abi || abi,
+        client: publicClient
+      });
+      
+      contractCache.set(cacheKey, contract);
+      return contract;
+    } catch (error) {
+      console.error(`Failed to get contract instance for ${contractAddress}:`, error);
+      return null;
+    }
+  }, [publicClient]);
 
-  const { data: seigPerBlock } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'seigPerBlock',
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
+  const commonContracts = useMemo(() => {
+    if (!publicClient) return null;
+    return {
+      seigManager: getContractInstance(CONTRACT_ADDRESS.SeigManager_ADDRESS, SeigManager_ABI),
+      wton: getContractInstance(CONTRACT_ADDRESS.WTON_ADDRESS, WTON_ABI),
+      ton: getContractInstance(CONTRACT_ADDRESS.TON_ADDRESS, TON_ABI)
+    };
+  }, [publicClient, getContractInstance, CONTRACT_ADDRESS]);
 
-  const { data: relativeSeigRate } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'relativeSeigRate',
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
-
-  const { data: tot } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'tot',
-    // enabled: !!candidateContract,
-  }) ;
-
-  const { data: commissionRates } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'commissionRates',
-    args: [candidateContract as `0x${string}`],
-    // enabled: !!candidateContract,
-  });
-
-  const { data: isCommissionRateNegative } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'isCommissionRateNegative',
-    args: [candidateContract as `0x${string}`],
-    // enabled: !!candidateContract,
-  });
-
-  const { data: coinageAddress } = useContractRead({
-    address: CONTRACT_ADDRESS.SeigManager_ADDRESS as `0x${string}`,
-    abi: SeigManager_ABI,
-    functionName: 'coinages',
-    args: [candidateContract as `0x${string}`],
-    // enabled: !!candidateContract,
-  });
-
-  // TON contract reads
-  const { data: tonTotalSupply } = useContractRead({
-    address: CONTRACT_ADDRESS.TON_ADDRESS as `0x${string}`,
-    abi: TON_ABI,
-    functionName: 'totalSupply',
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
-
-  const { data: tonBalanceOfWTON } = useContractRead({
-    address: CONTRACT_ADDRESS.TON_ADDRESS as `0x${string}`,
-    abi: TON_ABI,
-    functionName: 'balanceOf',
-    args: [CONTRACT_ADDRESS.WTON_ADDRESS as `0x${string}`],
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
-
-  const { data: tonBalanceOfZero } = useContractRead({
-    address: CONTRACT_ADDRESS.TON_ADDRESS as `0x${string}`,
-    abi: TON_ABI,
-    functionName: 'balanceOf',
-    args: [CONSTANTS.ZERO_ADDRESS as `0x${string}`],
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
-
-  const { data: tonBalanceOfOne } = useContractRead({
-    address: CONTRACT_ADDRESS.TON_ADDRESS as `0x${string}`,
-    abi: TON_ABI,
-    functionName: 'balanceOf',
-    args: [CONSTANTS.ONE_ADDRESS as `0x${string}`],
-    // enabled: !!candidateContract,
-  }) as { data: bigint | undefined };
-
-  const [txPending, ] = useRecoilState(txPendingStatus);
-
-  // Main calculation effect
   useEffect(() => {
     const calculateSeig = async (): Promise<void> => {
-      // console.log(expectedSeig, expectedSeig > '0')
-      // if (expectedSeig > '0') return;
+      if (!publicClient || !commonContracts || !blockNumber || !account) {
+        return;
+      }
+
       try {
-        // Tot contract reads
-        const totTotalSupply = await publicClient.readContract({
-          address: tot as `0x${string}`,
-          abi: RefactorCoinageSnapshotABI,
-          functionName: 'totalSupply',
-        }) as bigint
-        const totFactor = await publicClient.readContract({
-          address: tot as `0x${string}`,
-          abi: RefactorCoinageSnapshotABI,
-          functionName: 'factor',
-        }) as bigint
-        const totBalanceAndFactorResult = await publicClient.readContract({
-          address: tot as `0x${string}`,
-          abi: RefactorCoinageSnapshotABI,
-          functionName: 'getBalanceAndFactor',
-          args: [candidateContract as `0x${string}`],
-        }) as BalanceAndFactor[]
-       
-        // Coinage contract reads
-        const coinageTotalSupply = await publicClient.readContract({
-          address: coinageAddress as `0x${string}`,
-          abi: Coinage,
-          functionName: 'totalSupply',
-        }) as bigint;
+        const { seigManager, wton, ton } = commonContracts;
 
-        const userStaked = await publicClient.readContract({
-          address: coinageAddress as `0x${string}`,
-          abi: Coinage,
-          functionName: 'balanceOf',
-          args: [account as `0x${string}`],
-        }) as bigint
+        // Get all required data in parallel
+        const [
+          lastSeigBlockData,
+          seigPerBlockData,
+          relativeSeigRateData,
+          totData,
+          commissionRatesData,
+          isCommissionRateNegativeData,
+          coinageAddressData,
+          tonTotalSupplyData,
+          tonBalanceOfWTONData,
+          tonBalanceOfZeroData,
+          tonBalanceOfOneData
+        ] = await Promise.all([
+          seigManager.read.lastSeigBlock(),
+          seigManager.read.seigPerBlock(),
+          seigManager.read.relativeSeigRate(),
+          seigManager.read.tot(),
+          seigManager.read.commissionRates([candidateContract as `0x${string}`]),
+          seigManager.read.isCommissionRateNegative([candidateContract as `0x${string}`]),
+          seigManager.read.coinages([candidateContract as `0x${string}`]),
+          ton.read.totalSupply(),
+          ton.read.balanceOf([CONTRACT_ADDRESS.WTON_ADDRESS as `0x${string}`]),
+          ton.read.balanceOf([CONSTANTS.ZERO_ADDRESS as `0x${string}`]),
+          ton.read.balanceOf([CONSTANTS.ONE_ADDRESS as `0x${string}`])
+        ]);
 
-        // Calculation steps
-        // 1. Calculate tos
-        const tos = (BigInt(tonTotalSupply!.toString()) - 
-                    BigInt(tonBalanceOfWTON!.toString()) - 
-                    BigInt(tonBalanceOfZero!.toString()) - 
-                    BigInt(tonBalanceOfOne!.toString())) * 
+        // Get TOT contract data
+        const totContract = getContractInstance(totData as string, RefactorCoinageSnapshotABI);
+        const [
+          totTotalSupply,
+          totFactor,
+          totBalanceAndFactorResult
+        ] = await Promise.all([
+          totContract.read.totalSupply(),
+          totContract.read.factor(),
+          totContract.read.getBalanceAndFactor([candidateContract as `0x${string}`])
+        ]);
+
+        // Get Coinage contract data
+        const coinageContract = getContractInstance(coinageAddressData as string, Coinage);
+        const [
+          coinageTotalSupply,
+          userStaked
+        ] = await Promise.all([
+          coinageContract.read.totalSupply(),
+          coinageContract.read.balanceOf([account as `0x${string}`])
+        ]);
+
+        // Calculate tos
+        const tos = (BigInt(tonTotalSupplyData.toString()) - 
+                    BigInt(tonBalanceOfWTONData.toString()) - 
+                    BigInt(tonBalanceOfZeroData.toString()) - 
+                    BigInt(tonBalanceOfOneData.toString())) * 
                     CONSTANTS.RAYDIFF + 
                     totTotalSupply;
 
-        // 2. Calculate maxSeig
-        const span = blockNumber! - lastSeigBlock!;
-        const maxSeig = seigPerBlock! * span;
+        // Calculate maxSeig
+        if (!blockNumber) return;
+        const span = blockNumber - lastSeigBlockData;
+        const maxSeig = seigPerBlockData * span;
 
-        // 3. Calculate stakedSeig
+        // Calculate stakedSeig
         const stakedSeig1 = (maxSeig * totTotalSupply) / tos;
         const unstakedSeig = maxSeig - stakedSeig1;
-        const stakedSeig = stakedSeig1 + (unstakedSeig * relativeSeigRate!) / CONSTANTS.RAY;
+        const stakedSeig = stakedSeig1 + (unstakedSeig * relativeSeigRateData) / CONSTANTS.RAY;
 
-        // 4. Calculate new totTotalSupply and factor
+        // Calculate new totTotalSupply and factor
         const nextTotTotalSupply = totTotalSupply + stakedSeig;
         const newTotFactor = (nextTotTotalSupply * totFactor) / totTotalSupply;
 
-        // 5. Refactoring calculation
-        const { factor: newFactor, refactorCount } = setFactor(newTotFactor);
+        // Refactoring calculation
+        const { factor: newFactor, refactorCount } = setFactor(BigInt(newTotFactor.toString()));
 
-        // 6. Calculate new balance
+        // Calculate new balance
         const balance = totBalanceAndFactorResult[0].balance;
         const refactoredCount = totBalanceAndFactorResult[0].refactoredCount;
         
@@ -291,36 +235,35 @@ export function useExpectedSeigs(
           refactoredCount
         );
 
-        // 7. Final seig calculation
+        // Final seig calculation
         const _seigOfLayer = nextBalanceOfLayerInTot - coinageTotalSupply;
-        // console.log(commissionRates);
-        setCommissionRate(formatUnits(commissionRates as bigint, 27));
+        setCommissionRate(formatUnits(commissionRatesData as bigint, 27));
+        
         let seig: bigint;
-        const commissionRateValue = commissionRates ? BigInt(commissionRates.toString()) : BigInt(0);
+        const commissionRateValue = commissionRatesData ? BigInt(commissionRatesData.toString()) : BigInt(0);
         
         if (commissionRateValue !== BigInt(0)) {
-          if (!isCommissionRateNegative) {
+          if (!isCommissionRateNegativeData) {
             const operatorSeigs = (_seigOfLayer * commissionRateValue) / CONSTANTS.RAY;
             const restSeigs = _seigOfLayer - operatorSeigs;
-            const userSeig = (restSeigs * userStaked) / BigInt(stakedAmount);
-            
-            // seig = 
-            //   candidate === account 
-            //   ? userSeig + operatorSeigs 
-            //   : userSeig;
-            seig = userSeig
+            const userSeig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (restSeigs * userStaked) / BigInt(stakedAmount);
+            seig = userSeig;
           } else {
-            // Handle negative commission if needed
-            seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
+            seig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (_seigOfLayer * userStaked) / BigInt(stakedAmount);
           }
         } else {
-          seig = (_seigOfLayer * userStaked) / BigInt(stakedAmount);
+          seig = BigInt(stakedAmount) === BigInt(0) ? BigInt(0) : (_seigOfLayer * userStaked) / BigInt(stakedAmount);
         }
-        // console.log(seig)
+
         setSeigOfLayer(_seigOfLayer.toString());
-        setExpectedSeig(seig.toString());
+        setExpectedSeig(seig < BigInt(0) ? '0' : seig.toString());
+        setLastSeigBlock(lastSeigBlockData.toString());
       } catch (e) {
         console.error('Error calculating expectedSeig:', e);
+        // 에러 발생 시 기본값 설정
+        setSeigOfLayer('0');
+        setExpectedSeig('0');
+        setLastSeigBlock('0');
       }
     };
 
@@ -330,8 +273,10 @@ export function useExpectedSeigs(
     candidateContract, 
     txPending, 
     stakedAmount,
-    blockNumber
+    blockNumber,
+    publicClient,
+    commonContracts
   ]);
 
-  return { expectedSeig, seigOfLayer, commissionRate, lastSeigBlock: lastSeigBlock?.toString() || '' };
+  return { expectedSeig, seigOfLayer, commissionRate, lastSeigBlock };
 }

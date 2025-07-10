@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { operatorsListState, operatorsLoadingState, Operator } from "@/recoil/staking/operator";
-import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, useBlockNumber, usePublicClient, useWalletClient, useChainId } from "wagmi";
 import { getContract, isAddress, PublicClient } from "viem";
 import { BigNumber } from "ethers";
 import useCallL2Registry from "../contracts/useCallL2Registry";
@@ -15,7 +15,7 @@ import TON from "@/abis/TON.json";
 import Layer2Manager from "@/abis/Layer2Manager.json";
 import SystemConfig from "@/abis/SystemConfig.json"
 import Candidates from "@/abis/Candidate.json";
-import CONTRACT_ADDRESS from "@/constant/contracts";
+import { getContractAddress } from "@/constant/contracts";
 import { useAllCandidates } from '@ton-staking-sdk/react-kit';
 import trimAddress from "@/utils/trim/trim";
 
@@ -39,6 +39,9 @@ export default function useCallOperators() {
   const { data: blockNumber } = useBlockNumber();
   
   const { candidates: operatorAddresses, isLoading } = useAllCandidates();
+  
+  const chainId = useChainId();
+  const CONTRACT_ADDRESS = getContractAddress(chainId);
   
   const getContractInstance = useCallback((contractAddress: string, abi: any): any => {
     if (!publicClient || !contractAddress) return null;
@@ -73,7 +76,7 @@ export default function useCallOperators() {
       layer2manager: getContractInstance(CONTRACT_ADDRESS.Layer2Manager_ADDRESS, Layer2Manager),
       ton: getContractInstance(CONTRACT_ADDRESS.TON_ADDRESS, TON)
     };
-  }, [publicClient, getContractInstance]);
+  }, [publicClient, getContractInstance, CONTRACT_ADDRESS]);
   
   const checkContractExists = useCallback(async (address: string): Promise<boolean> => {
     try {
@@ -91,7 +94,7 @@ export default function useCallOperators() {
       contractExistsCache.set(address, exists);
       return exists;
     } catch (error) {
-      console.error(`Error checking contract at ${address}:`, error);
+      // console.error(`Error checking contract at ${address}:`, error);
       return false;
     }
   }, [publicClient]);
@@ -173,7 +176,7 @@ export default function useCallOperators() {
         isL2: false,
         operatorAddress: operatorAddress
       };
-      
+      operatorAddress = await candidateAddon.read.operator();
       if (operatorAddress) {
         const operatorContractExists = await checkContractExists(operatorAddress as string);
         
@@ -269,9 +272,7 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
-        console.log(operatorsList.length)
         if (operatorsList.length > 0) {
-          console.log('cc')
           return;
         }
         setLoading(true);
@@ -283,13 +284,12 @@ export default function useCallOperators() {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
 
         const numLayer2 = await l2Registry.read.numLayer2s();
-
+        
         for (let i = 0; i < numLayer2; i++) {
           const layer2 = await l2Registry.read.layer2ByIndex([i]);
           layer2s.push(layer2);
         }
         setOperatorAddress(layer2s);
-        // console.log('layer2s', layer2s)
   
         for (let i = 0; i < layer2s.length; i += chunkSize) {
           const chunk = layer2s.slice(i, i + chunkSize);

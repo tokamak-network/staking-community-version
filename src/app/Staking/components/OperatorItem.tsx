@@ -56,7 +56,7 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
   return (
     <Flex
       align="center"
-      w="100%"
+      w={'fit-content'}
       py={4}
       h="66px"
       my={'12px'}
@@ -64,22 +64,7 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       onClick={navigateToOperatorDetail}
       overflowX={'visible'}
     >
-      {/* <Box position="relative" mr={2}>
-        <Box w={2} h={2} rounded="full" bg="green.400" />
-      </Box>  */}
-      {/* <Center 
-        bg={getAvatarBgColor(operator.name)}
-        borderRadius="full"
-        w="60px"
-        h="60px"
-        mr={4}
-        color={'#fff'}
-        fontSize="14px"
-        fontWeight={500}
-      >
-        {getInitials(operator.name)}
-      </Center> */}
-      <Box flex="1">
+      <Box w={'100%'}>
         <HStack spacing={2} mb={1}>
           <Heading color={'#304156'} fontSize="24px" fontWeight={700}>{operator.name}</Heading>
           {
@@ -125,7 +110,7 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
           
           {/* {userStaked && userStaked !== '0' && ( */}
           {operator.yourStaked && operator.yourStaked !== '0' && (
-            <Flex align="center" color={'#304156'} fontSize={'13px'} fontWeight={400}>
+            <Flex align="center" color={'#304156'} fontSize={'13px'} fontWeight={400} ml={'15px'}>
               <Text>Your Staked</Text>
               <Flex ml={2} fontWeight="medium" flexDir={'row'} alignItems={'center'}>
               {
@@ -143,3 +128,5 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
     </Flex>
   );
 });
+
+OperatorItem.displayName = 'OperatorItem';

@@ -19,7 +19,7 @@ export const HeadInfo = (args: HedInfoType) => {
         <Text color="gray.500" fontSize="12px">{title}</Text>
         {
           label &&
-          <Tooltip label={label}>
+          <Tooltip label={label} hasArrow>
             <Image src={QUESTION_ICON} alt={''} />
           </Tooltip>
         }
@@ -27,8 +27,11 @@ export const HeadInfo = (args: HedInfoType) => {
       <Heading fontSize={'21px'}>
         {
           isLoading ? (
-           <Flex mr={'3px'} mt={'5px'}>
-              <LoadingDots size={'small'} />
+            <Flex mr={'3px'} mt={'5px'}>
+              <Flex mt={'10px'} mr={'5px'}>
+                <LoadingDots size={'small'} />
+              </Flex>
+              TON
             </Flex>
           ) : value
         }

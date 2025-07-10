@@ -6,6 +6,7 @@ import { useChainId, useWaitForTransactionReceipt } from "wagmi";
 import useCallOperators from "../staking/useCallOperators";
 import { inputState } from "@/recoil/input";
 import { useRef } from "react";
+import { useToast } from "@chakra-ui/react";
 
 
 export function useTransaction() {
@@ -90,6 +91,7 @@ export function useTx(params: {
 }) {
   const { hash, layer2 } = params;
   const chainId  = useChainId();
+  const toast = useToast();
   const { data, isLoading, isSuccess, isError } = useWaitForTransactionReceipt({
     hash,
     chainId: chainId,
@@ -102,7 +104,6 @@ export function useTx(params: {
 
   const { refreshOperator } = useCallOperators();
   
-  // 트랜잭션 상태 추적을 위한 ref
   const refreshedRef = useRef(false);
 
   useEffect(() => {
@@ -126,13 +127,11 @@ export function useTx(params: {
   //initialize txData when chainId is changed
   useEffect(() => {
     setTxData(undefined);
-    // 체인 변경 시 refreshed 상태 초기화
     refreshedRef.current = false;
   }, [chainId, setTxData]);
 
   useEffect(() => {
     if (isLoading && chainId && hash) {
-      // 새 트랜잭션이 로딩될 때 refreshed 상태 초기화
       refreshedRef.current = false;
       
       return setTxData({
@@ -151,7 +150,6 @@ export function useTx(params: {
       if (isSuccess && data && chainId && hash && !refreshedRef.current) {
         const { transactionHash } = data;
 
-        // 트랜잭션 상태 업데이트
         setTxData({
           [hash]: {
             transactionHash,
@@ -162,8 +160,13 @@ export function useTx(params: {
         });
         
         refreshedRef.current = true;
-        
-        if (layer2) {
+        toast({
+          title: "Send Transaction Successfully",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+        if (layer2) {          
           console.log('Transaction successful, refreshing operator data...');
           try {
             const success = await refreshOperator(layer2);

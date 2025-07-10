@@ -13,12 +13,12 @@ import {
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { useRouter, useParams } from "next/navigation";
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { filteredOperatorsState, Operator, operatorsListState } from "@/recoil/staking/operator";
 import { ethers } from 'ethers';
 import commafy from '@/utils/trim/commafy';
-import CONTRACT_ADDRESS from '@/constant/contracts';
+import { getContractAddress } from '@/constant/contracts';
 import { HeadInfo } from './components/HeadInfo';
 import { TokenTypeSelector } from './components/TokenTypeSelector';
 import { BalanceInput } from '@/components/input/CustomInput';
@@ -64,16 +64,9 @@ import { getButtonText } from '@/utils/button/getButtonText';
 import { ActionSection } from './components/ActionSection';
 import { boxStyle } from '@/style/boxStyle';
 import useClaim from '@/hooks/staking/useClaim';
-import { useWriteContract } from 'wagmi'
-import TON from '@/abis/TON.json';
 import { useStakeWTON } from '@/hooks/staking/useStakeWTON';
-import { useTx } from '@/hooks/tx/useTx';
 
-const {
-  TON_ADDRESS,
-  WTON_ADDRESS,
-  DepositManager_ADDRESS,
-} = CONTRACT_ADDRESS;
+
 
 const useOperatorData = () => {
   const { refreshOperator } = useCallOperators();
@@ -82,6 +75,13 @@ const useOperatorData = () => {
 };
 
 export default function Page() {
+  const chainId = useChainId();
+  const {
+    TON_ADDRESS,
+    WTON_ADDRESS,
+    DepositManager_ADDRESS,
+  } = getContractAddress(chainId);
+  
   const router = useRouter();
   const params = useParams();
   const candidateAddress = params?.contractAddress as `0x${string}`;
@@ -104,6 +104,12 @@ export default function Page() {
   
   const { refreshOperator } = useOperatorData();
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     if (!address) router.push('/');
   }, [address])
@@ -116,13 +122,15 @@ export default function Page() {
       // console.log(operator)
       setCurrentOperator(operator || null);
     }
-  }, [candidateAddress, operatorsList.length]);
-  
-  const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
-    candidateAddress as `0x${string}`, 
-    BigInt(currentOperator?.totalStaked || '0'),
-    address as `0x${string}`,
-  );
+  }, [candidateAddress, operatorsList, txPending]);
+
+  const { expectedSeig,  lastSeigBlock, commissionRate: commissionRates} = useExpectedSeigs(candidateAddress as `0x${string}`, currentOperator?.totalStaked || '0');
+  // console.log(expSeig)
+  // const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
+  //   candidateAddress as `0x${string}`, 
+  //   BigInt(currentOperator?.totalStaked || '0'),
+  //   address as `0x${string}`,
+  // );
 
   const { layer2Reward } = useLayer2RewardInfo({ candidateAddress: candidateAddress as `0x${string}` });
   const { claimableAmount } = useClaimableL2Seigniorage({ candidateAddress: candidateAddress as `0x${string}` });
@@ -186,52 +194,68 @@ export default function Page() {
   
   const onClick = useCallback(async () => {
     const amount = floatParser(value);
-    let tx
+    let tx;
+    // yourStaked는 27자리 단위로 들어옴
+    const yourStaked = Number(currentOperator?.yourStaked ? ethers.utils.formatUnits(currentOperator.yourStaked, 27) : 0);
+    if (activeAction === 'Unstake') {
+      if (!amount || amount <= 0) {
+        toast({ title: 'Please enter a valid amount.', status: 'warning' });
+        return;
+      }
+      if (amount > yourStaked) {
+        toast({ title: 'Unstake amount exceeds your staked amount.', status: 'error' });
+        return;
+      }
+    }
     if (amount) {
       const weiAmount = convertToWei(amount.toString());
       const rayAmount = convertToRay(amount.toString());
-      
-      switch (activeAction) {
-        case 'Stake':
-          const marshalData = getData();
-          const wtonMarshalData = getDataForWton();
-          
-          tx = activeToken === 'TON' 
-            ? stakeTON([WTON_ADDRESS, weiAmount, marshalData])
-            : stakeWTON(
-              [DepositManager_ADDRESS, rayAmount, wtonMarshalData]
-            );
-            
-          return tx;
-        
-        case 'Unstake':
-          const rayAmouont = convertToRay(amount.toString());
-
-          return unstake(
-            [candidateAddress, rayAmouont]
-          )
-        case 'Withdraw':
-          return withdraw(
-            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          )
-        case 'WithdrawL1':
-          return withdraw(
-            [candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false]
-          )
-        case 'WithdrawL2':
-          return withdrawL2(
-            [candidateAddress, rayAmount]
-          )
-        case 'Restake':
-          return restake(
-            [candidateAddress, pendingRequests]
-          )
-        default:
-          return console.error("action mode is not found");
+      try {
+        switch (activeAction) {
+          case 'Stake':
+            const marshalData = getData();
+            const wtonMarshalData = getDataForWton();
+            tx = activeToken === 'TON' 
+              ? stakeTON([WTON_ADDRESS, weiAmount, marshalData])
+              : stakeWTON([
+                DepositManager_ADDRESS, rayAmount, wtonMarshalData
+              ]);
+            break;
+          case 'Unstake':
+            const rayAmouont = convertToRay(amount.toString());
+            tx = await unstake([
+              candidateAddress, rayAmouont
+            ]);
+            break;
+          case 'Withdraw':
+            tx = await withdraw([
+              candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false
+            ]);
+            break;
+          case 'WithdrawL1':
+            tx = await withdraw([
+              candidateAddress, withdrawableLength, activeToken === 'TON' ? true : false
+            ]);
+            break;
+          case 'WithdrawL2':
+            tx = await withdrawL2([
+              candidateAddress, rayAmount
+            ]);
+            break;
+          case 'Restake':
+            tx = await restake([
+              candidateAddress, pendingRequests
+            ]);
+            break;
+          default:
+            console.error('action mode is not found');
+        }
+      } catch (err: any) {
+        toast({ title: err?.message || 'Transaction failed', status: 'error' });
       }
+      return tx;
     }
-    
-  }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2])
+  }, [activeAction, withdrawableLength, value, withdrawTarget, currentOperator?.isL2, currentOperator?.yourStaked]);
 
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -262,9 +286,23 @@ export default function Page() {
   }, [])
   
   const isL2 = currentOperator?.isL2 || false;
+  
+  const isUnstakeDisabled = useCallback(() => {
+    if (!currentOperator?.yourStaked) return true;
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
+    if (stakedAmount === 0) return true;
+    if (!value || value === '0' || value === '0.00') return true;
+    return value ? Number(value) > stakedAmount : true;
+  }, [currentOperator?.yourStaked, value]);
 
+  const showUnstakeWarning = useCallback(() => {
+    if (!currentOperator?.yourStaked || !value) return false;
+    const stakedAmount = Number(ethers.utils.formatUnits(currentOperator.yourStaked.toString(), 27));
+    return value !== '0' && value !== '0.00' && Number(value) > stakedAmount;
+  }, [currentOperator?.yourStaked, value]);
+  
   return (
-    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'300px'} py={5} flexDir={'column'} justifyContent={'start'}>
+    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'200px'} py={5} flexDir={'column'} justifyContent={'start'}>
       {/* Title Section */}
       <Flex mb={6} align="start" justifyContent={'space-between'}>
         <Flex alignItems={'center'} onClick={() => router.push('/')} cursor="pointer">
@@ -312,12 +350,13 @@ export default function Page() {
         <HeadInfo 
           title="Total staked" 
           value={`${formatUnits(currentOperator?.totalStaked || '0', 27)} TON`}
+          isLoading={!currentOperator?.totalStaked}
           label=""
           // isLoading={candidateStakeLoading}
         />
         <HeadInfo 
           title="Commission rate" 
-          value={(commissionRates ?? 0).toString() + ' %'}
+          value={formatUnits((commissionRates ?? 0).toString(), 25) + ' %'}
           label=""
         />
       </Flex>
@@ -420,11 +459,31 @@ export default function Page() {
         </Flex>
 
         <Button 
-          onClick={() => onClick()}
+          onClick={async () => onClick()}
           {...mainButtonStyle(value)}
+          isDisabled={
+            value === '0.00' || !value || value === '0' || 
+            (activeAction === 'Unstake' && isUnstakeDisabled()) ||
+            txPending
+          }
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
         >
-          {txPending ? <Spinner /> : getButtonText(value, activeAction)}
+          {isClient && (
+            txPending ? (
+              <Spinner size="sm" />
+            ) : (
+              getButtonText(value, activeAction)
+            )
+          )}
         </Button>
+
+        {activeAction === 'Unstake' && showUnstakeWarning() && (
+          <Text fontSize="sm" color={'#FF2D78'} textAlign="center" px={4} fontWeight={400} w={'100%'} mb={4}>
+            Warning: Unstake amount exceeds your staked amount
+          </Text>
+        )}
 
         <VStack spacing={6} align="stretch">
           <ValueSection 
@@ -437,7 +496,7 @@ export default function Page() {
             title={'Unclaimed Staking Reward'}
             value={expectedSeig}
             onClaim={() => updateSeig()}
-            isLoading={seigLoading}
+            // isLoading={seigLoading}
             seigUpdated={lastSeigBlock ?? undefined}
           />
         
@@ -464,13 +523,15 @@ export default function Page() {
               <ValueSection 
                 title={'TON Bridged to L2'}
                 value={layer2Reward?.layer2Tvl.toString() || '0'}
+                label={'TON bridged to L2 is the amount of TON that has been bridged to L2.'}
               />
               <Divider />
               <ValueSection 
-                title={'Claimable seigniorage'}
+                title={'Claimable Seigniorage'}
                 value={claimableAmount?.toString() || '0'}
                 onClaim={() => claim([WTON_ADDRESS, claimableAmount])}
                 manager={currentOperator?.manager}
+                label={'Claimable seigniorage is the amount of seigniorage that the L2 operator can claim.'}
               />
             </VStack>
           </Box>
@@ -481,6 +542,20 @@ export default function Page() {
         <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
           <Text as="span" color={'#FF2D78'}>Warning:</Text> Staking TON will earn you TON staking rewards. However, you have to unstake and wait for 93,046 blocks (~14 days) to withdraw.
         </Text>
+      }
+      {
+        activeAction === 'Unstake' && (
+          <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+            <Text as="span" color={'#FF2D78'}>Warning:</Text> To withdraw staked TON, it needs to be unstaked first and after 93,046 blocks (~14 days) they can be withdrawn to your account.
+          </Text>
+        )
+      }
+      {
+        activeAction === 'Restake' && (
+          <Text fontSize="sm" color={'#3E495C'} textAlign="center" px={4} fontWeight={400} w={'100%'}>
+            <Text as="span" color={'#FF2D78'}>Warning:</Text> Restaking unstaked TON earns you TON from staking. However, to withdraw, they need to be unstaked and wait for 93,046 blocks (~14 days).
+          </Text>
+        )
       }
     </Flex>
   );

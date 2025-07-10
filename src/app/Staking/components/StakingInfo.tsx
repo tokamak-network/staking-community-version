@@ -17,7 +17,7 @@ export const StakingInfo = (args: StakingInfoProps) => {
         <Text fontSize="112x" color="#808992" fontWeight={400}>{title}</Text>
         {
           label &&
-          <Tooltip label={label}>
+          <Tooltip label={label} hasArrow>
             <Image src={QUESTION_ICON} alt="question icon" />
           </Tooltip>
         }

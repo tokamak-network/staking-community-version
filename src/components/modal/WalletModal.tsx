@@ -1,5 +1,5 @@
 // components/WalletModal.tsx
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState, useRef } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -15,19 +15,20 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
-import { useAccount, useConnect, useDisconnect, useChainId, Connector } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useChains, Connector } from 'wagmi';
 import trimAddress from '@/utils/trim/trim';
 import copy from 'copy-to-clipboard';
 // import { WalletPending } from './components/Pending';
 import usePrevious from '@/hooks/general/usePrevious';
-import { useLocalStorage } from '@/hooks/general/useStorage';
 import useWalletModal from '@/hooks/modal/useWalletModal';
 import Image from 'next/image';
 import METAMASK from 'assets/images/metamask_icon.png';
 import ACCOUNT_COPY from '@/assets/images/account_copy_icon.png';
 import ETHERSCAN_LINK from '@/assets/images/etherscan_link_icon.png';
-import { REACT_APP_MODE, DEFAULT_NETWORK } from '@/constant/index';
-import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
+import { DEFAULT_NETWORK, SUPPORTED_CHAIN_IDS } from '@/constant/index';
+// import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
+import { chainIdState } from '@/recoil/chainId';
+import { useRecoilState } from 'recoil';
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
@@ -132,15 +133,12 @@ const WalletPending = ({
   );
 };
 const WalletModal: FC = () => {
-  const { address, connector: activeConnector, isConnected } = useAccount();
-  const {
-    connect,
-    connectors,
-    error: connectError,
-  } = useConnect();
+  const { address, isConnected, connector: activeConnector } = useAccount();
+  const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
-  const chainId = useChainId();
-
+  const { chains, switchChain } = useSwitchChain();
+  const chain = useChains();
+  const [chainId, setChainId] = useRecoilState(chainIdState);
   const { isOpen, closeSelectModal } = useWalletModal();
   const [view, setView] = useState<string>(WALLET_VIEWS.OPTIONS);
   const [pendingError, setPendingError] = useState(false);
@@ -150,10 +148,56 @@ const WalletModal: FC = () => {
   const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
   const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
 
-  const [accountValue, setAccountValue] = useLocalStorage('account', {});
+  const [rightOffset, setRightOffset] = useState<number>(0);
+
+  // const [accountValue, setAccountValue] = useLocalStorage('account', {});
 
   const previousAddress = usePrevious(address);
+  const prevAddressRef = useRef<string | undefined>(address);
 
+  useEffect(() => {
+    const width = window.innerWidth;
+    setRightOffset((width - 1150) / 2);
+  }, []);
+
+  useEffect(() => {
+    const { ethereum } = window;
+    if (!ethereum || !ethereum.request) {
+      setChainId(null);
+      return;
+    }
+
+    const getChainId = async () => {
+      try {
+        const hexChainId = await ethereum.request({ method: 'eth_chainId' });
+        const parsed = parseInt(hexChainId, 16);
+        setChainId(parsed);
+
+      } catch (err) {
+        console.error('Failed to get chainId:', err);
+        setChainId(null);
+      }
+    };
+    getChainId();
+
+    const handleChainChanged = (hexChainId: string) => {
+      try {
+        const parsed = parseInt(hexChainId, 16);
+        setChainId(parsed);
+      } catch {
+        setChainId(null);
+      }
+    };
+    ethereum.on('chainChanged', handleChainChanged);
+    setWalletView(WALLET_VIEWS.OPTIONS);
+
+    return () => {
+      if (ethereum.removeListener) {
+        ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
+  
   useEffect(() => {
     if (address && !previousAddress) {
       closeSelectModal();
@@ -162,8 +206,13 @@ const WalletModal: FC = () => {
 
   useEffect(() => {
     if (!chainId) return;
-    setChainSupported(chainId === Number(DEFAULT_NETWORK));
+    setChainSupported(SUPPORTED_CHAIN_IDS.includes(chainId));
+    if (!SUPPORTED_CHAIN_IDS.includes(chainId)) {
+      disconnect();
+      setWalletView(WALLET_VIEWS.OPTIONS);
+    }
   }, [chainId]);
+
 
   useEffect(() => {
     if (isConnected) {
@@ -174,12 +223,15 @@ const WalletModal: FC = () => {
   }, [isConnected]);
 
   const handleWalletChange = useCallback(() => {
-      setWalletView(WALLET_VIEWS.OPTIONS);
-    }, []);
-
+    setView(WALLET_VIEWS.OPTIONS);
+    setWalletView(WALLET_VIEWS.OPTIONS);
+  }, []);
+  
   const tryActivation = async (connector: Connector) => {
       setPendingWallet(connector);
+      setView(WALLET_VIEWS.PENDING);
       setWalletView(WALLET_VIEWS.PENDING);
+      if (isConnected && address) setView(WALLET_VIEWS.ACCOUNT);
       
       try {
         connect({ connector });
@@ -195,7 +247,7 @@ const WalletModal: FC = () => {
     toast({ title: 'Copied to Clipboard', status: 'success', duration: 2000 });
   }, [address, toast]);
 
-  const switchToDefaultNetwork = useCallback(async () => {
+  const switchToDefaultNetwork = useCallback(async (connector: Connector) => {
     if (!(window as any).ethereum) return;
     const hex = '0x' + Number(DEFAULT_NETWORK).toString(16);
     try {
@@ -263,6 +315,69 @@ const WalletModal: FC = () => {
         );
       });
     };
+  
+  useEffect(() => {
+    if (prevAddressRef.current && address && prevAddressRef.current !== address) {
+      // 계정이 변경된 경우
+      console.log('Account changed from', prevAddressRef.current, 'to', address);
+      window.location.reload();
+    }
+    prevAddressRef.current = address;
+  }, [address]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnect();
+          closeSelectModal();
+        } else {
+          const newAddress = accounts[0];
+          if (newAddress !== address) {
+            window.location.reload();
+          }
+        }
+      };
+
+      const handleChainChanged = (chainId: string) => {
+        window.location.href = '/';
+      };
+
+      const handleDisconnect = () => {
+        disconnect();
+        closeSelectModal();
+      };
+
+      const handleConnect = (connectInfo: { chainId: string }) => {
+        window.location.reload();
+      };
+
+      const checkConnection = async () => {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0 && !isConnected) {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error('Error checking connection:', error);
+        }
+      };
+
+      checkConnection();
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on('disconnect', handleDisconnect);
+      window.ethereum.on('connect', handleConnect);
+
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        window.ethereum.removeListener('disconnect', handleDisconnect);
+        window.ethereum.removeListener('connect', handleConnect);
+      };
+    }
+  }, [address, disconnect, closeSelectModal, isConnected]);
 
   return (
     <Modal
@@ -276,23 +391,58 @@ const WalletModal: FC = () => {
         w="280px" 
         mx="auto"
         position={'absolute'}
-        right={(Number(window.innerWidth) - 1150) /2 }
+        right={`${rightOffset}px`}
       >
         {
-          (!chainSupported || (chainId && chainId !== Number(DEFAULT_NETWORK))) ? (
+          (address && !chainSupported || (chainId && !SUPPORTED_CHAIN_IDS.includes(chainId))) ? (
             <>
               <ModalHeader>Network not supported</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <Text mb={4}>
-                  Please switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}.
+                  Please switch to Mainnet or Sepolia.
                 </Text>
-                <Button colorScheme="blue" w="full" onClick={switchToDefaultNetwork}>
-                  Switch to {Number(DEFAULT_NETWORK) === 1 ? 'Mainnet' : 'Sepolia'}
-                </Button>
+                <Flex direction="column" gap={2}>
+                  <Button
+                    colorScheme="blue"
+                    w="full"
+                    onClick={async () => {
+                      if (!(window as any).ethereum) return;
+                      try {
+                        await (window as any).ethereum.request({
+                          method: 'wallet_switchEthereumChain',
+                          params: [{ chainId: '0x1' }],
+                        });
+                        toast({ title: 'Switched to Mainnet', status: 'success' });
+                      } catch {
+                        toast({ title: 'Failed to switch to Mainnet', status: 'error' });
+                      }
+                    }}
+                  >
+                    Switch to Mainnet
+                  </Button>
+                  <Button
+                    colorScheme="blue"
+                    w="full"
+                    onClick={async () => {
+                      if (!(window as any).ethereum) return;
+                      try {
+                        await (window as any).ethereum.request({
+                          method: 'wallet_switchEthereumChain',
+                          params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
+                        });
+                        toast({ title: 'Switched to Sepolia', status: 'success' });
+                      } catch (error) {
+                        toast({ title: 'Failed to switch to Sepolia', status: 'error' });
+                      }
+                    }}
+                  >
+                    Switch to Sepolia
+                  </Button>
+                </Flex>
               </ModalBody>
             </>
-          ) : view === WALLET_VIEWS.ACCOUNT && address && chainSupported &&
+          ) : view === WALLET_VIEWS.ACCOUNT && address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) &&
           <>
             <ModalHeader
               fontFamily={'TitilliumWeb'}
@@ -337,9 +487,9 @@ const WalletModal: FC = () => {
                 </Flex>
               )}
               </Flex>
-              <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
+              {/* <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
                 {formatConnectorName()}
-              </Flex>
+              </Flex> */}
               <Flex h={'64px'} justifyContent={'center'} alignItems={'center'}>
                 <Flex 
                   fontSize={'15px'} 
@@ -349,6 +499,7 @@ const WalletModal: FC = () => {
                   onClick={() => {
                     disconnect();
                     closeSelectModal();
+                    // setView(WALLET_VIEWS.OPTIONS);
                   }}
                 >
                   Logout
@@ -358,7 +509,7 @@ const WalletModal: FC = () => {
           </>
         }
 
-        {view === WALLET_VIEWS.OPTIONS && !isConnected && (
+        {view === WALLET_VIEWS.OPTIONS && SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
           <>
             <ModalHeader
             fontFamily={'TitilliumWeb'}
@@ -407,12 +558,12 @@ const WalletModal: FC = () => {
           <>
             <ModalHeader>Connecting…</ModalHeader>
             <ModalBody>
-                <WalletPending
-                  connector={pendingWallet}
-                  error={pendingError}
-                  setPendingError={setPendingError}
-                  tryActivation={tryActivation}
-                />
+              <WalletPending
+                connector={pendingWallet}
+                error={pendingError}
+                setPendingError={setPendingError}
+                tryActivation={tryActivation}
+              />
             </ModalBody>
           </>
         )}

@@ -9,6 +9,7 @@ const fonts = {
 }
 
 const theme = extendTheme({
+  initialColorMode: 'light',
   fonts: {
     TitilliumWeb: 'Titillium Web, sans-serif',
     Roboto: 'Roboto',

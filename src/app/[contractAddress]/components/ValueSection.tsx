@@ -1,9 +1,11 @@
 import { LoadingDots } from "@/components/Loader/LoadingDots";
 import commafy from "@/utils/trim/commafy";
-import { Flex, Text, VStack } from "@chakra-ui/react";
+import { Flex, Text, VStack, Tooltip, Box } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useCallback } from "react";
 import { useAccount } from "wagmi";
+import QUESTION_ICON from '@/assets/images/input_question_icon.svg';
+import Image from "next/image";
 
 type ValueSectionProps = {
   title: string;
@@ -12,9 +14,10 @@ type ValueSectionProps = {
   isLoading?: boolean;
   manager?: string;
   onClaim?: () => void;
+  label?: string;
 }
 export const ValueSection = (args: ValueSectionProps) => {
-  const { title, value, seigUpdated, onClaim, isLoading, manager } = args;
+  const { title, value, seigUpdated, onClaim, isLoading, manager, label } = args;
   const { address } = useAccount();
   const formatUnits = useCallback((amount: string, unit: number) => {
     try {
@@ -40,17 +43,31 @@ export const ValueSection = (args: ValueSectionProps) => {
   return (
     <Flex justify="space-between"  fontWeight={600} color={'#1c1c1c'}>
       <VStack align="start" spacing={1}>
-        <Text>{title}</Text>
+        <Flex flexDir={'row'}>
+          {title}
+          {
+            label ?
+            <Tooltip
+              label={label}
+              placement={'top'}
+              hasArrow
+            >
+              <Flex ml={'5px'}>
+                <Image src={QUESTION_ICON} alt={''} />
+              </Flex>
+            </Tooltip> : ''
+          }
+        </Flex>
         {
           seigUpdated &&
           <Text fontSize="12px" color="#808992">
-            Seigniorage is updated { seigUpdated }.
+            Seigniorage is updated at block number { seigUpdated }.
           </Text>
         }
       </VStack>
       <VStack spacing={0} align="end">
-        <Text fontSize={'14px'}>
-          <Flex justifyContent={'flex-end'} alignItems={'center'}>
+        <Text fontSize={'14px'} textAlign={'right'}>
+          <Box>
             {
               isLoading ? (
                 <Flex mr={'3px'}>
@@ -59,16 +76,16 @@ export const ValueSection = (args: ValueSectionProps) => {
               ) :
               (formatUnits(value || '0', title === 'TON Bridged to L2' ? 18 : 27))
             } TON
-          </Flex>
+          </Box>
           { 
             ((onClaim && seigUpdated )|| (onClaim && manager === address)) && (
-              <Flex 
+              <Box 
                 onClick={onClaim}
                 {...updateSeigniorageStyle}
-                justifyContent={'flex-end'}
+                textAlign={'right'}
               >
                 {seigUpdated ? 'Update seigniorage' : 'Claim'}
-              </Flex>
+              </Box>
             )
           }
         </Text>

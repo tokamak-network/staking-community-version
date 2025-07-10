@@ -50,14 +50,20 @@ function BalanceInput(props: InputProp) {
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { target } = event;
-    const { value: inputValue } = target;
+    let { value: inputValue } = target;
+    // Remove commas for comparison
+    const numericInput = inputValue.replace(/,/g, '');
+    const numericMax = maxValue ? String(maxValue).replace(/,/g, '') : undefined;
+    if (numericMax && !isNaN(Number(numericInput)) && Number(numericInput) > Number(numericMax)) {
+      inputValue = numericMax;
+    }
     type === 'staking' 
     ? setValue(addComma(inputValue))
     : setCalculatorValue(addComma(inputValue))
   };
 
   const getButtonPosition = () => {
-    if (!value || value.length <= 5) return "86px";
+    if (!value || value.length <= 4) return "86px";
     
     const charWidth = 17.5;
     const maxChars = 20;
@@ -167,6 +173,7 @@ function BalanceInput(props: InputProp) {
         bgColor={'#fff'}
         fontSize={'12px'}
         fontWeight={'normal'}
+        fontFamily={'Open Sans'}
         // {...(type === 'staking' || type === 'unstaking' ? {...maxStaking()}: {...maxCalc()})}
         color={'#86929d'}
         zIndex={1}

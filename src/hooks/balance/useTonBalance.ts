@@ -1,21 +1,21 @@
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useChainId } from "wagmi";
 import { ethers } from "ethers";
 import commafy from "@/utils/trim/commafy";
 import { useMemo } from "react";
 import { SupportedChainId } from "@/types/network/supportedNetwork";
-import CONTRACT_ADDRESS from "@/constant/contracts";
-
-const {
-  TON_ADDRESS,
-  WTON_ADDRESS,
-  DepositManager_ADDRESS,
-} = CONTRACT_ADDRESS;
+import { getContractAddress } from "@/constant/contracts";
 
 export default function useTokenBalance(
   // requireCall?: boolean,
   // watch?: boolean
   token: string
 ) {
+  const chainId = useChainId();
+  const {
+    TON_ADDRESS,
+    WTON_ADDRESS,
+    DepositManager_ADDRESS,
+  } = getContractAddress(chainId);
   const tokenAddress = token === 'TON' ? TON_ADDRESS : WTON_ADDRESS;
   const { address: accountAddress } = useAccount();
   
