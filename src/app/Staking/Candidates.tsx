@@ -30,41 +30,41 @@ const Candidates: React.FC = () => {
   const filteredOperators = operatorsList.filter(op => 
     op.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
+  const minItems = 30;
+  const baseOperators = filteredOperators.length < minItems
+    ? Array(minItems).fill(filteredOperators).flat().slice(0, minItems)
+    : filteredOperators;
+
   const repeatedOperators = [
-    ...filteredOperators, 
-    ...filteredOperators, 
-    ...filteredOperators
+    ...baseOperators,
+    ...baseOperators,
+    ...baseOperators
   ];
 
   useEffect(() => {
-    if (!mounted) return
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!mounted) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-    // 전체 높이의 1/3 지점으로 초기 위치 설정
-    const totalHeight = container.scrollHeight
-    const segment = totalHeight / 3
-    container.scrollTop = segment
+    const totalHeight = container.scrollHeight;
+    const segment = totalHeight / 3;
+    container.scrollTop = segment;
 
-    // seamless loop 처리
     const onScroll = () => {
-      const top = container.scrollTop
-      // 너무 위로 당겼을 때 (1/3 이하)
+      const top = container.scrollTop;
       if (top < segment) {
-        container.scrollTop = top + segment
+        container.scrollTop = top + segment;
+      } else if (top >= segment * 2) {
+        container.scrollTop = top - segment;
       }
-      // 너무 아래로 당겼을 때 (2/3 이상)
-      else if (top >= segment * 2) {
-        container.scrollTop = top - segment
-      }
-    }
+    };
 
-    container.addEventListener('scroll', onScroll, { passive: true })
+    container.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', onScroll)
-    }
-  }, [mounted, operatorsList.length])
+      container.removeEventListener('scroll', onScroll);
+    };
+  }, [mounted, baseOperators.length]);
 
 
   if (!mounted) {

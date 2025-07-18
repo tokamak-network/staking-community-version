@@ -258,7 +258,7 @@ export default function useCallOperators() {
   }, [publicClient, commonContracts, address, blockNumber, getContractInstance, checkContractExists]);
   
   useEffect(() => {
-    console.log(operatorsList.length, operatorAddresses.length, address)
+    // console.log(operatorsList.length, operatorAddresses.length, address)
     if (
       (operatorsList.length === operatorAddresses.length && operatorAddresses.length > 0) ||
       !publicClient ||
@@ -268,7 +268,7 @@ export default function useCallOperators() {
     ) {
       return;
     }
-    console.log('a')
+
     const fetchOperators = async () => {
       try {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
@@ -289,7 +289,7 @@ export default function useCallOperators() {
           layer2s.push(layer2);
         }
         setOperatorAddress(layer2s);
-        console.log('layer2s', layer2s.length, address)
+        
         for (let i = 0; i < layer2s.length; i += chunkSize) {
           const chunk = layer2s.slice(i, i + chunkSize);
   
@@ -380,7 +380,7 @@ export default function useCallOperators() {
       
       for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
         const chunk = operatorAddresses.slice(i, i + chunkSize);
-        console.log('b')
+        // console.log('b')
 
         const chunkResults = await Promise.all(
           chunk.map(opAddress => fetchOperatorData(opAddress as string))
