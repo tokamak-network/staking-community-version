@@ -263,7 +263,7 @@ export default function useCallOperators() {
       // operatorsList.length > 0 ||
       !publicClient ||
       !commonContracts ||
-      // operatorAddresses.length === 0 ||
+      operatorAddresses.length > 0 ||
       !blockNumber ||
       isLoading
     ) {
