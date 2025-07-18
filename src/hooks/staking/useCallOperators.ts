@@ -269,13 +269,13 @@ export default function useCallOperators() {
     ) {
       return;
     }
-    
+    console.log('a')
     const fetchOperators = async () => {
       try {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
         const numLayer2 = await l2Registry.read.numLayer2s();
 
-        if (operatorsList.length > 0) {
+        if (operatorAddresses.length > 0) {
           return;
         }
         setLoading(true);
