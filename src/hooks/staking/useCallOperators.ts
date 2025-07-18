@@ -290,7 +290,7 @@ export default function useCallOperators() {
           layer2s.push(layer2);
         }
         setOperatorAddress(layer2s);
-  
+        console.log('layer2s', layer2s.length, address)
         for (let i = 0; i < layer2s.length; i += chunkSize) {
           const chunk = layer2s.slice(i, i + chunkSize);
   
