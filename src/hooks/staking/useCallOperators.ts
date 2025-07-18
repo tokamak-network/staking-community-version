@@ -258,7 +258,7 @@ export default function useCallOperators() {
   }, [publicClient, commonContracts, address, blockNumber, getContractInstance, checkContractExists]);
   
   useEffect(() => {
-    
+    console.log(operatorsList.length, operatorAddresses.length)
     if (
       operatorsList.length > 0 ||
       !publicClient ||
@@ -275,7 +275,7 @@ export default function useCallOperators() {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
         const numLayer2 = await l2Registry.read.numLayer2s();
         console.log('operatorsList', operatorsList.length, numLayer2)
-        
+
         if (operatorsList.length > 0) {
           return;
         }
