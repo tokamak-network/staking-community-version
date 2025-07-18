@@ -272,6 +272,10 @@ export default function useCallOperators() {
     
     const fetchOperators = async () => {
       try {
+        const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
+        const numLayer2 = await l2Registry.read.numLayer2s();
+        console.log('operatorsList', operatorsList.length, numLayer2)
+        
         if (operatorsList.length > 0) {
           return;
         }
@@ -281,9 +285,6 @@ export default function useCallOperators() {
         let totalStakedAmount = BigNumber.from(0);
         const operators: Operator[] = [];
         const layer2s = [];
-        const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
-
-        const numLayer2 = await l2Registry.read.numLayer2s();
         
         for (let i = 0; i < numLayer2; i++) {
           const layer2 = await l2Registry.read.layer2ByIndex([i]);
