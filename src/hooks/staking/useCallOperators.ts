@@ -258,12 +258,11 @@ export default function useCallOperators() {
   }, [publicClient, commonContracts, address, blockNumber, getContractInstance, checkContractExists]);
   
   useEffect(() => {
-    console.log(operatorsList.length, operatorAddresses.length)
+    console.log(operatorsList.length, operatorAddresses.length, address)
     if (
-      // operatorsList.length > 0 ||
+      (operatorsList.length === operatorAddresses.length && operatorAddresses.length > 0) ||
       !publicClient ||
       !commonContracts ||
-      operatorAddresses.length > 0 ||
       !blockNumber ||
       isLoading
     ) {
@@ -275,9 +274,9 @@ export default function useCallOperators() {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
         const numLayer2 = await l2Registry.read.numLayer2s();
 
-        if (operatorAddresses.length > 0) {
-          return;
-        }
+        // if (operatorAddresses.length > 0) {
+        //   return;
+        // }
         setLoading(true);
   
         const chunkSize = 10;
