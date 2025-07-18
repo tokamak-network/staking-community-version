@@ -260,7 +260,7 @@ export default function useCallOperators() {
   useEffect(() => {
     console.log(operatorsList.length, operatorAddresses.length)
     if (
-      operatorsList.length > 0 ||
+      // operatorsList.length > 0 ||
       !publicClient ||
       !commonContracts ||
       // operatorAddresses.length === 0 ||
@@ -274,7 +274,6 @@ export default function useCallOperators() {
       try {
         const l2Registry = getContractInstance(CONTRACT_ADDRESS.Layer2Registry_ADDRESS, Layer2Registry);
         const numLayer2 = await l2Registry.read.numLayer2s();
-        console.log('operatorsList', operatorsList.length, numLayer2)
 
         if (operatorsList.length > 0) {
           return;
@@ -379,7 +378,7 @@ export default function useCallOperators() {
       const chunkSize = 10;
       const operators: Operator[] = [];
       let totalStakedAmount = BigNumber.from(0);
-      console.log('a', operatorAddresses.length)
+      
       for (let i = 0; i < operatorAddresses.length; i += chunkSize) {
         const chunk = operatorAddresses.slice(i, i + chunkSize);
         console.log('b')
