@@ -5,15 +5,15 @@ import { theme } from "@/style/theme/chakraTheme";
 import { ChakraProvider } from "@chakra-ui/react";
 
 export function ChakraProvidersForNextJs({
-  children,
+	children,
 }: {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }) {
-  return (
-    // <CacheProvider>
-      <ChakraProvider resetCSS theme={theme}>
-        {children}
-      </ChakraProvider>
-    // </CacheProvider>
-  );
+	return (
+		// <CacheProvider>
+		<ChakraProvider resetCSS theme={theme}>
+			{children}
+		</ChakraProvider>
+		// </CacheProvider>
+	);
 }

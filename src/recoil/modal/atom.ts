@@ -1,34 +1,33 @@
 import { atom } from "recoil";
 
 type withdrawModal = {
-  isOpen: boolean;
-  modalData?: any;
+	isOpen: boolean;
+	modalData?: any;
 };
 
 export const transactionModalStatus = atom<
-  "confirming" | "confirmed" | "error" | null
+	"confirming" | "confirmed" | "error" | null
 >({
-  key: "transactionModalStatus",
-  default: null,
+	key: "transactionModalStatus",
+	default: null,
 });
 
 export const operatorSelectModalStatus = atom<boolean>({
-  key: "operatorSelectStatus",
-  default: false,
+	key: "operatorSelectStatus",
+	default: false,
 });
 
 export const walletModalStatus = atom<boolean>({
-  key: "walletStatus",
-  default: false,
+	key: "walletStatus",
+	default: false,
 });
 
-
 export const transactionModalOpenStatus = atom<boolean>({
-  key: "transactionModalOpenStatus",
-  default: false,
+	key: "transactionModalOpenStatus",
+	default: false,
 });
 
 export const calculatorModalStatus = atom<boolean>({
-  key: "calculatorStatus",
-  default: false,
+	key: "calculatorStatus",
+	default: false,
 });

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import * as React from "react";
 import { ChakraProvidersForNextJs } from "@/providers/chakraProvider";
@@ -10,34 +10,39 @@ import { Flex } from "@chakra-ui/react";
 import { Header } from "@/components/header";
 import Modals from "./Modal";
 import { getRpcUrl } from "@/constant/contracts";
-import { useChainId } from 'wagmi';
+import { useChainId } from "wagmi";
 
 export default function Entry({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
-  // const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
+	const queryClient = getQueryClient();
+	// const { data: walletClient } = useWalletClient();
+	const publicClient = usePublicClient();
 
-  const chainId = useChainId();
-  const rpcUrl = getRpcUrl(chainId);
+	const chainId = useChainId();
+	const rpcUrl = getRpcUrl(chainId);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TONStakingProvider 
-        rpcUrl={rpcUrl}
-        chainId={chainId}
-        // walletClient={walletClient} 
-        // publicClient={publicClient}
-      >
-        <ChakraProvidersForNextJs>
-          <Flex flexDir="column" h="100vh">
-            <Header />
-            <Flex flexDir={'column'} justifyContent="center" alignItems="center" h="100%">
-              {children}
-            </Flex>
-            <Modals />
-          </Flex>
-        </ChakraProvidersForNextJs>
-      </TONStakingProvider>
-    </QueryClientProvider>
-  );
+	return (
+		<QueryClientProvider client={queryClient}>
+			<TONStakingProvider
+				rpcUrl={rpcUrl}
+				chainId={chainId}
+				// walletClient={walletClient}
+				// publicClient={publicClient}
+			>
+				<ChakraProvidersForNextJs>
+					<Flex flexDir="column" h="100vh">
+						<Header />
+						<Flex
+							flexDir={"column"}
+							justifyContent="center"
+							alignItems="center"
+							h="100%"
+						>
+							{children}
+						</Flex>
+						<Modals />
+					</Flex>
+				</ChakraProvidersForNextJs>
+			</TONStakingProvider>
+		</QueryClientProvider>
+	);
 }

@@ -1,74 +1,72 @@
 // atoms/operatorAtoms.ts
-import { atom, selector } from 'recoil';
-import { recoilPersist } from 'recoil-persist';
+import { atom, selector } from "recoil";
+import { recoilPersist } from "recoil-persist";
 
 export interface Operator {
-  name: string;
-  address: string;
-  totalStaked: string;
-  yourStaked?: string;
-  isL2?: boolean;
-  sequencerSeig?: string;
-  lockedInL2?: string;
-  manager?: string;
-  operatorAddress?: string;
+	name: string;
+	address: string;
+	totalStaked: string;
+	yourStaked?: string;
+	isL2?: boolean;
+	sequencerSeig?: string;
+	lockedInL2?: string;
+	manager?: string;
+	operatorAddress?: string;
 }
 
 const { persistAtom } = recoilPersist({
-  key: 'operators-persist',
-  storage: typeof window === 'undefined' ? undefined : window.localStorage
+	key: "operators-persist",
+	storage: typeof window === "undefined" ? undefined : window.localStorage,
 });
 
 export const operatorsListState = atom<Operator[]>({
-  key: 'operatorsListState', 
-  default: [], 
-  effects_UNSTABLE: [
-    ({ onSet }) => {
-      onSet((newValue) => {
-        if (typeof window !== 'undefined') {
-          const serialized = JSON.stringify(newValue, (key, value) => {
-            if (typeof value === 'bigint') {
-              return value.toString();
-            }
-            return value;
-          });
-          window.localStorage.setItem('operators-persist', serialized);
-        }
-      });
-    },
-    persistAtom
-  ],
+	key: "operatorsListState",
+	default: [],
+	effects_UNSTABLE: [
+		({ onSet }) => {
+			onSet((newValue) => {
+				if (typeof window !== "undefined") {
+					const serialized = JSON.stringify(newValue, (key, value) => {
+						if (typeof value === "bigint") {
+							return value.toString();
+						}
+						return value;
+					});
+					window.localStorage.setItem("operators-persist", serialized);
+				}
+			});
+		},
+		persistAtom,
+	],
 });
 
 export const operatorsLoadingState = atom<boolean>({
-  key: 'operatorsLoadingState',
-  default: true,
-  effects_UNSTABLE: [persistAtom], 
+	key: "operatorsLoadingState",
+	default: true,
+	effects_UNSTABLE: [persistAtom],
 });
 
 // 선택된 오퍼레이터를 위한 atom (필요한 경우)
 export const selectedOperatorState = atom<string | null>({
-  key: 'selectedOperatorState',
-  default: null, 
+	key: "selectedOperatorState",
+	default: null,
 });
 
 export const operatorFilterState = atom<string>({
-  key: 'operatorFilterState',
-  default: '',
+	key: "operatorFilterState",
+	default: "",
 });
 
 export const filteredOperatorsState = selector({
-  key: 'filteredOperatorsState',
-  get: ({ get }) => {
-    const operators = get(operatorsListState);
-    const filter = get(operatorFilterState).toLowerCase();
-    
-    if (!filter) return operators;
-    
-    return operators.filter(operator => 
-      operator.name.toLowerCase().includes(filter)
-    );
-  }
+	key: "filteredOperatorsState",
+	get: ({ get }) => {
+		const operators = get(operatorsListState);
+		const filter = get(operatorFilterState).toLowerCase();
+
+		if (!filter) return operators;
+
+		return operators.filter((operator) =>
+			operator.name.toLowerCase().includes(filter),
+		);
+	},
 });
-
-
