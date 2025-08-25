@@ -32,7 +32,7 @@ This document provides a step-by-step guide to set up and run the **staking-comm
 
 ```bash
 # Clone the repository
-git clone tokamak-network/staking-community-version
+git clone https://github.com/tokamak-network/staking-community-version
 cd staking-community-version
 
 # Install dependencies using npm
