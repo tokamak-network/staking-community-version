@@ -15,6 +15,7 @@
     "@chakra-ui/react": "^2.10.9",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@fontsource/open-sans": "^5.2.6",
     "@fontsource/roboto": "^5.2.5",
     "@fontsource/titillium-web": "^5.2.5",
     "@rainbow-me/rainbowkit": "^2.2.6",

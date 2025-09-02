@@ -114,7 +114,7 @@ function BalanceInput(props: InputProp) {
   })
   
   return (
-    <Flex alignItems="center" position="relative" justifyContent="flex-start">
+    <Flex alignItems="center" position="relative" justifyContent="flex-start" fontFamily="OpenSans">
       <NumberInput
         isInvalid={isError}
         w={type === 'staking' ? "auto" : '118px'}
@@ -173,7 +173,7 @@ function BalanceInput(props: InputProp) {
         bgColor={'#fff'}
         fontSize={'12px'}
         fontWeight={'normal'}
-        fontFamily={'Open Sans'}
+        fontFamily="OpenSans"
         // {...(type === 'staking' || type === 'unstaking' ? {...maxStaking()}: {...maxCalc()})}
         color={'#86929d'}
         zIndex={1}

@@ -31,7 +31,7 @@ export default function Entry({ children }: { children: React.ReactNode }) {
         <ChakraProvidersForNextJs>
           <Flex flexDir="column" h="100vh">
             <Header />
-            <Flex flexDir={'column'} justifyContent="center" alignItems="center" h="100%">
+            <Flex flexDir={'column'} justifyContent="center" alignItems="center" h="100%" fontFamily="OpenSans">
               {children}
             </Flex>
             <Modals />

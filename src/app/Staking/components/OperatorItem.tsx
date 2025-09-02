@@ -63,10 +63,11 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(({ operator 
       cursor={'pointer'}
       onClick={navigateToOperatorDetail}
       overflowX={'visible'}
+      fontFamily="Roboto"
     >
       <Box w={'100%'}>
         <HStack spacing={2} mb={1}>
-          <Heading color={'#304156'} fontSize="24px" fontWeight={700}>{operator.name}</Heading>
+          <Heading color={'#304156'} fontSize="24px" fontWeight={700} fontFamily="Roboto">{operator.name}</Heading>
           {
             isL2 && (
               <Flex 

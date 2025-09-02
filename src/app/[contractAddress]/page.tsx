@@ -195,7 +195,7 @@ export default function Page() {
   const onClick = useCallback(async () => {
     const amount = floatParser(value);
     let tx;
-    // yourStaked는 27자리 단위로 들어옴
+    
     const yourStaked = Number(currentOperator?.yourStaked ? ethers.utils.formatUnits(currentOperator.yourStaked, 27) : 0);
     if (activeAction === 'Unstake') {
       if (!amount || amount <= 0) {
@@ -302,7 +302,7 @@ export default function Page() {
   }, [currentOperator?.yourStaked, value]);
   
   return (
-    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'200px'} py={5} flexDir={'column'} justifyContent={'start'}>
+    <Flex maxW="515px" w={'515px'} h={'100%'} mt={'200px'} py={5} flexDir={'column'} justifyContent={'start'} fontFamily="Open Sans">
       {/* Title Section */}
       <Flex mb={6} align="start" justifyContent={'space-between'}>
         <Flex alignItems={'center'} onClick={() => router.push('/')} cursor="pointer">
