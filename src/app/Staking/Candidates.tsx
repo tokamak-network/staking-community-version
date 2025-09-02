@@ -42,19 +42,19 @@ const Candidates: React.FC = () => {
     const container = scrollContainerRef.current
     if (!container) return
 
-    // 전체 높이의 1/3 지점으로 초기 위치 설정
+    // Set initial position to 1/3 of total height
     const totalHeight = container.scrollHeight
     const segment = totalHeight / 3
     container.scrollTop = segment
 
-    // seamless loop 처리
+    // Handle seamless loop
     const onScroll = () => {
       const top = container.scrollTop
-      // 너무 위로 당겼을 때 (1/3 이하)
+      // When scrolled too high (below 1/3)
       if (top < segment) {
         container.scrollTop = top + segment
       }
-      // 너무 아래로 당겼을 때 (2/3 이상)
+      // When scrolled too low (above 2/3)
       else if (top >= segment * 2) {
         container.scrollTop = top - segment
       }

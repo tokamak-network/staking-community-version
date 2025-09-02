@@ -306,7 +306,7 @@ export default function useCallOperators() {
             );
           });
   
-          // // 다음 청크로 넘어가기 전에 300ms 대기
+          // // Wait 300ms before moving to next chunk
           // if (i + chunkSize < operatorAddresses.length) {
           //   await sleep(300);
           // }

@@ -46,7 +46,7 @@ export const operatorsLoadingState = atom<boolean>({
   effects_UNSTABLE: [persistAtom], 
 });
 
-// 선택된 오퍼레이터를 위한 atom (필요한 경우)
+// Atom for selected operator (if needed)
 export const selectedOperatorState = atom<string | null>({
   key: 'selectedOperatorState',
   default: null, 

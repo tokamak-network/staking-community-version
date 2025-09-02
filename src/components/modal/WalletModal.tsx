@@ -318,7 +318,7 @@ const WalletModal: FC = () => {
   
   useEffect(() => {
     if (prevAddressRef.current && address && prevAddressRef.current !== address) {
-      // 계정이 변경된 경우
+      // When account is changed
       console.log('Account changed from', prevAddressRef.current, 'to', address);
       window.location.reload();
     }
