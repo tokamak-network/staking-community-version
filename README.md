@@ -31,60 +31,223 @@ The app works on **Ethereum mainnet** (for real transactions) and **Sepolia test
 
 ### Option 1: Run Locally (For Advanced Users)
 
+#### **Step 1: Install Required Software**
 
-**Step 1: Install Required Software**
+##### **Windows Users:**
 
-**Windows Users:**
-1. Download and install [Node.js](https://nodejs.org/) - **Choose the LTS version (Recommended)**
-2. Download and install [Git for Windows](https://git-scm.com/download/win)
+**1. Install Node.js:**
+- Go to [Node.js Official Website](https://nodejs.org/)
+- **Download the LTS version** (Long Term Support - Recommended)
+- Run the downloaded `.msi` file
+- Follow the installation wizard (click "Next" through all steps)
+- **Important:** Make sure to check "Add to PATH" during installation
+- Restart your computer after installation
 
-**Mac Users:**
-1. Download and install [Node.js](https://nodejs.org/) - **Choose the LTS version (Recommended)**
-2. Download and install [Git for Mac](https://git-scm.com/download/mac)
+**2. Install Git:**
+- Go to [Git for Windows](https://git-scm.com/download/win)
+- Download the latest version
+- Run the installer and use these recommended settings:
+  - **Git from the command line and also from 3rd-party software** (default)
+  - **Use bundled OpenSSH** (default)
+  - **Use the OpenSSL library** (default)
+  - **Checkout as-is, commit Unix-style line endings** (default)
+  - **Use Windows' default console window** (default)
+  - **Enable file system caching** (default)
 
-**Linux Users:**
+**3. Open Command Prompt:**
+- Press `Windows + R` key
+- Type `cmd` and press Enter
+- Or search for "Command Prompt" in the Start menu
+
+##### **Mac Users:**
+
+**1. Install Node.js:**
+- Go to [Node.js Official Website](https://nodejs.org/)
+- **Download the LTS version** (Long Term Support - Recommended)
+- Run the downloaded `.pkg` file
+- Follow the installation wizard
+- **Alternative:** Install via Homebrew (if you have it):
+  ```bash
+  brew install node
+  ```
+
+**2. Install Git:**
+- **Option A:** Download from [Git for Mac](https://git-scm.com/download/mac)
+- **Option B:** Install via Homebrew:
+  ```bash
+  brew install git
+  ```
+- **Option C:** Git comes pre-installed on macOS 10.9+
+
+**3. Open Terminal:**
+- Press `Command + Space` to open Spotlight
+- Type "Terminal" and press Enter
+- Or go to Applications → Utilities → Terminal
+
+##### **Linux Users:**
+
+**1. Install Node.js and Git:**
 ```bash
+# Update package list
 sudo apt update
-sudo apt install nodejs npm git
-```
 
-**Step 2: Verify Installation**
-Open Command Prompt (Windows) or Terminal (Mac/Linux) and run:
-```bash
+# Install Node.js and npm
+sudo apt install nodejs npm
+
+# Install Git
+sudo apt install git
+
+# Verify versions
 node --version
 npm --version
 git --version
 ```
-You should see version numbers for each command.
 
-**Step 3: Download the App**
-1. **Open Command Prompt (Windows) or Terminal (Mac/Linux)**
-2. **Navigate to where you want to install the app** (e.g., Desktop):
-   ```bash
-   # Windows
-   cd C:\Users\YourUsername\Desktop
-   
-   # Mac/Linux
-   cd ~/Desktop
-   ```
-3. **Download the app:**
-   ```bash
-   git clone https://github.com/tokamak-network/staking-community-version.git
-   cd staking-community-version
-   ```
+**2. Alternative: Install Node.js via NodeSource (for latest versions):**
+```bash
+# Add NodeSource repository
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 
-**Step 4: Install Dependencies**
+# Install Node.js
+sudo apt-get install -y nodejs
+
+# Verify installation
+node --version
+npm --version
+```
+
+**3. Open Terminal:**
+- Press `Ctrl + Alt + T` (most distributions)
+- Or search for "Terminal" in your applications menu
+
+#### **Step 2: Verify Installation**
+
+**Open your terminal/command prompt and run these commands:**
+
+```bash
+# Check Node.js version (should show v18.x.x or higher)
+node --version
+
+# Check npm version (should show 9.x.x or higher)
+npm --version
+
+# Check Git version (should show 2.x.x or higher)
+git --version
+```
+
+**Expected Output Example:**
+```bash
+v18.17.0
+9.6.7
+git version 2.39.2
+```
+
+**If you see "command not found" errors:**
+- **Windows:** Restart your computer after installation
+- **Mac:** Restart Terminal or restart your computer
+- **Linux:** Log out and log back in, or restart your computer
+
+#### **Step 3: Download the App**
+
+**1. Open your terminal/command prompt:**
+- **Windows:** Command Prompt (cmd) or PowerShell
+- **Mac:** Terminal
+- **Linux:** Terminal
+
+**2. Navigate to where you want to install the app:**
+```bash
+# Windows - Navigate to Desktop
+cd C:\Users\YourUsername\Desktop
+
+# Mac/Linux - Navigate to Desktop
+cd ~/Desktop
+
+# Alternative locations:
+# Windows - Documents folder
+cd C:\Users\YourUsername\Documents
+
+# Mac/Linux - Documents folder
+cd ~/Documents
+
+# Mac/Linux - Home directory
+cd ~
+```
+
+**3. Download the app:**
+```bash
+# Clone the repository
+git clone https://github.com/tokamak-network/staking-community-version.git
+
+# Navigate into the project folder
+cd staking-community-version
+```
+
+**Expected Output:**
+```bash
+Cloning into 'staking-community-version'...
+remote: Enumerating objects: xxx, done.
+remote: Counting objects: 100% (xxx/xxx), done.
+remote: Compressing objects: 100% (xxx/xxx), done.
+Receiving objects: 100% (xxx/xxx), done.
+Resolving deltas: 100% (xxx/xxx), done.
+```
+
+#### **Step 4: Install Dependencies**
+
+**Install all required packages:**
 ```bash
 npm install
 ```
-This may take a few minutes. Wait until you see a success message.
 
-**Step 5: Start the App**
+**What happens during installation:**
+- Downloads all required packages (React, Next.js, Web3 libraries, etc.)
+- Creates `node_modules` folder with dependencies
+- Installs packages based on `package.json` file
+- May take 2-5 minutes depending on your internet speed
+
+**Expected Output:**
+```bash
+added 1234 packages, and audited 1234 packages in 1s
+found 0 vulnerabilities
+```
+
+**If you see errors:**
+- **Network issues:** Try again or check your internet connection
+- **Permission errors:** On Mac/Linux, try `sudo npm install`
+- **Version conflicts:** Make sure you have Node.js 18+ installed
+
+#### **Step 5: Start the App**
+
+**Start the development server:**
 ```bash
 npm run dev
 ```
 
-The app will open in your browser at `http://localhost:3000`.
+**What happens:**
+- Starts the Next.js development server
+- Compiles your application
+- Opens the app in your default browser
+- Enables hot reloading (changes appear instantly)
+
+**Expected Output:**
+```bash
+> staking-community-version@0.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.4
+  - Local:        http://localhost:3000
+  - Network:      http://192.168.1.100:3000
+ ✓ Ready in 2.3s
+```
+
+**Access the app:**
+- **Local access:** http://localhost:3000
+- **Network access:** http://[your-ip-address]:3000 (for testing on other devices)
+
+**If the browser doesn't open automatically:**
+- Manually open your browser
+- Navigate to `http://localhost:3000`
+- The app should load and show the staking interface
 
 <!-- #### Option 2: Docker Installation (Easier, No Software Installation Required)
 
@@ -143,37 +306,83 @@ docker-compose --version
 
 The app will be available at `http://localhost:3000`. -->
 
-<!-- ## 🔧 Troubleshooting
+## 🔧 Troubleshooting
 
-### Common Issues
+### Common Installation Issues
 
-#### 1. Wallet Connection Problems
+#### 1. **"Command not found" errors:**
+```bash
+# Windows
+node --version  # Shows "node is not recognized"
+npm --version   # Shows "npm is not recognized"
+
+# Solution:
+# 1. Restart your computer after installation
+# 2. Check if Node.js is in your PATH
+# 3. Reinstall Node.js and check "Add to PATH"
+```
+
+#### 2. **Git clone fails:**
+```bash
+# Error: "git is not recognized"
+# Solution: Restart computer after Git installation
+
+# Error: "Permission denied"
+# Solution: Run Command Prompt as Administrator (Windows)
+# Or use: sudo git clone [url] (Mac/Linux)
+```
+
+#### 3. **npm install fails:**
+```bash
+# Error: "npm ERR! code ENOENT"
+# Solution: Make sure you're in the right folder
+pwd  # Check current directory
+ls   # List files (should see package.json)
+
+# Error: "npm ERR! code EPERM"
+# Solution: On Mac/Linux, try:
+sudo npm install
+
+# Error: "npm ERR! code ENOTFOUND"
+# Solution: Check internet connection, try again
+```
+
+#### 4. **App won't start:**
+```bash
+# Error: "Port 3000 is already in use"
+# Solution: Kill the process or use different port
+npm run dev -- -p 3001
+
+# Error: "Module not found"
+# Solution: Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Common App Issues
+
+#### 1. **Wallet Connection Problems:**
 - **Make sure MetaMask is installed** and unlocked
 - **Check if you're on the right network** (Ethereum mainnet or Sepolia testnet)
 - **Try refreshing the page** if the connection fails
 
-#### 2. App Won't Start
-- **Check if Node.js is installed** by running `node --version` in terminal
-- **Make sure you're in the right folder** (staking-community-version)
-- **Try deleting the `node_modules` folder** and running `npm install` again
-
-#### 3. Can't See Your Tokens
+#### 2. **Can't See Your Tokens:**
 - **Make sure you have TON or WTON tokens** in your wallet
 - **Check if you're connected to the right network**
 - **Verify your wallet is connected** to the app
 
-#### 4. Docker Issues
-- **Make sure Docker Desktop is running** (check system tray/menu bar)
-- **Try restarting Docker Desktop** if commands fail
-- **For Windows users**, make sure WSL2 is enabled -->
+#### 3. **Performance Issues:**
+- **Close other browser tabs** to free up memory
+- **Restart the development server** if it becomes slow
+- **Check your internet connection** for blockchain data
 
-## 📱 How to Use the App
+## How to Use the App
 
 This guide will walk you through using the staking app step by step, with visual examples.
 
 ---
 
-### 🔐 Step 1: Connect Your Wallet
+### Step 1: Connect Your Wallet
 ![Login Screen](src/assets/images/docs/0-login.png)
 
 1. **Click "Connect Wallet" button** on the main screen
@@ -183,7 +392,7 @@ This guide will walk you through using the staking app step by step, with visual
 
 ---
 
-### 🏠 Step 2: Main Dashboard
+### Step 2: Main Dashboard
 ![Main Dashboard](src/assets/images/docs/1-main.png)
 
 After connecting your wallet, you'll see the main staking dashboard showing:
@@ -200,7 +409,7 @@ After connecting your wallet, you'll see the main staking dashboard showing:
 
 ---
 
-### 🎯 Step 3: Viewing Operator Details
+### Step 3: Viewing Operator Details
 ![L2 Operator Details](src/assets/images/docs/2-L2operator.png)
 
 On this screen, you can view the following information:
@@ -220,7 +429,7 @@ If the operator is an L2 Sequencer, you'll also see:
 
 ---
 
-### 💰 Step 4: Input Staking Amount
+### Step 4: Input Staking Amount
 ![Input Amount](src/assets/images/docs/3-input_amount.png)
 
 **How Staking Works:**
@@ -235,7 +444,7 @@ If the operator is an L2 Sequencer, you'll also see:
 
 ---
 
-### 🔄 Step 5: Managing Your Stakes
+### Step 5: Managing Your Stakes
 
 #### Unstake Your Stakes
 ![Unstake](src/assets/images/docs/8-unstake.png)
@@ -250,7 +459,7 @@ If the operator is an L2 Sequencer, you'll also see:
 2. **Enter the amount** you want to unstake
 3. **Confirm the transaction** in your wallet 
 
-#### 💸 Withdrawing Your Stakes
+#### Withdrawing Your Stakes
 
 ##### Option 1: L1 Withdrawal (Standard)
 ![L1 Withdrawal](src/assets/images/docs/4-select l1 withdraw.png)
@@ -274,7 +483,7 @@ L2 Withdrawal allows you to withdraw TON staked to an L2 network (e.g., Poseidon
 4. **Wait for L2 processing** before funds are available
 
 
-#### 🔄 Restake Your Stakes
+#### Restake Your Stakes
 ![Restake](src/assets/images/docs/9-restake.png)
 
 **What is Restake:**
@@ -309,7 +518,7 @@ If you're a developer and want to deploy this app:
 - **GitHub Issues**: [Report bugs or request features](https://github.com/tokamak-network/staking-community-version/issues)
 
 
-## 📄 License
+## License
 
 This project is open source and distributed under the MIT License.
 
