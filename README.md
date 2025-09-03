@@ -23,6 +23,11 @@ The app works on **Ethereum mainnet** (for real transactions) and **Sepolia test
 - **Internet connection** to download and run the app
 - **A Web3 wallet** like MetaMask (recommended for beginners)
 
+### Software Requirements
+- **Node.js**: Version 18.0.0 or higher (LTS version recommended)
+- **npm**: Version 9.0.0 or higher (comes with Node.js)
+- **Git**: Version 2.0.0 or higher
+
 ### Supported Networks
 - **Ethereum Mainnet** - Production network for real transactions
 - **Sepolia Testnet** - Test network for development and testing
