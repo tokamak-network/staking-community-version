@@ -1,19 +1,26 @@
 import { extendTheme } from "@chakra-ui/react";
-import "@fontsource/titillium-web";
-import "@fontsource/roboto";
+import '@fontsource/titillium-web';
+import '@fontsource/roboto';
+import '@fontsource/open-sans/300.css';
+import '@fontsource/open-sans/400.css';
+import '@fontsource/open-sans/600.css';
+import '@fontsource/open-sans/700.css';
+import '@fontsource/open-sans/800.css';
 
 const fonts = {
-	TitilliumWeb: "Titillium Web, sans-serif",
-	Roboto: "Roboto",
-	Nanum: `'NanumSquareEB', sans-serif`,
-};
+  TitilliumWeb: 'Titillium Web, sans-serif',
+  Roboto: 'Roboto',
+  OpenSans: 'Open Sans, sans-serif',
+  Nanum: `'NanumSquareEB', sans-serif`,
+}
 
 const theme = extendTheme({
-	initialColorMode: "light",
-	fonts: {
-		TitilliumWeb: "Titillium Web, sans-serif",
-		Roboto: "Roboto",
-	},
+  initialColorMode: 'light',
+  fonts: {
+    TitilliumWeb: 'Titillium Web, sans-serif',
+    Roboto: 'Roboto',
+    OpenSans: 'Open Sans, sans-serif',
+  },
 
 	breakpoints: {
 		base: "0px",
