@@ -93,14 +93,8 @@ The app works on **Ethereum mainnet** (for real transactions) and **Sepolia test
 
 **1. Install Node.js and Git:**
 ```bash
-<<<<<<< HEAD
-# Clone the repository
-git clone https://github.com/tokamak-network/staking-community-version
-cd staking-community-version
-=======
 # Update package list
 sudo apt update
->>>>>>> update-docs
 
 # Install Node.js and npm
 sudo apt install nodejs npm
