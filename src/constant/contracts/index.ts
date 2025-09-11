@@ -73,6 +73,7 @@ export const SEPOLIA: CONTRACT_ADDRESSES_TYPE = {
 };
 
 export function getContractAddress(chainId: number): CONTRACT_ADDRESSES_TYPE {
+	console.log("chainId", chainId);
 	if (chainId === 1) return MAINNET;
 	if (chainId === 11155111) return SEPOLIA;
 	throw new Error("Unsupported network");

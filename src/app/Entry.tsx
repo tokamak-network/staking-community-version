@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ChakraProvidersForNextJs } from "@/providers/chakraProvider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { getQueryClient } from "@/client/queryClient";
 import { usePublicClient } from "wagmi";
@@ -23,13 +24,13 @@ export default function Entry({ children }: { children: React.ReactNode }) {
 				rpcUrl={rpcUrl}
 				chainId={chainId}
 			>
-					<div className="flex flex-col h-screen">
-						<Header />
-						<div className="flex flex-col justify-center items-center h-full">
-							{children}
-						</div>
-						<Modals />
+				<div className="flex flex-col h-screen">
+					<Header />
+					<div className="flex flex-col justify-center items-center h-full">
+						{children}
 					</div>
+					<Modals />
+				</div>	
 			</TONStakingProvider>
 		</QueryClientProvider>
 	);

@@ -7,7 +7,7 @@ export const Loader = () => {
 	return (
 		<div className="h-screen flex items-center justify-center">
 			<MotionBox
-				as="aside"
+				// as="aside"
 				animate={{
 					scale: [1, 2, 2, 1, 1],
 					rotate: [0, 0, 270, 270, 0],

@@ -12,11 +12,6 @@ interface OperatorItemProps {
 	onClick: (address: string) => void;
 }
 
-interface OperatorSelectionModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-}
-
 const OperatorItem: React.FC<OperatorItemProps> = ({
 	name,
 	address,
