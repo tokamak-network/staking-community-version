@@ -291,7 +291,7 @@ export function useExpectedSeigs(
 				setLastSeigBlock(lastSeigBlockData.toString());
 			} catch (e) {
 				console.error("Error calculating expectedSeig:", e);
-				// 에러 발생 시 기본값 설정
+			
 				setSeigOfLayer("0");
 				setExpectedSeig("0");
 				setLastSeigBlock("0");
