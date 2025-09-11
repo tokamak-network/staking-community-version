@@ -1,21 +1,6 @@
 // components/WalletModal.tsx
 import React, { FC, useCallback, useEffect, useState, useRef } from "react";
 import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalHeader,
-	ModalBody,
-	ModalCloseButton,
-	Box,
-	Text,
-	Flex,
-	Link,
-	useClipboard,
-	Button,
-	useToast,
-} from "@chakra-ui/react";
-import {
 	useAccount,
 	useConnect,
 	useDisconnect,
@@ -25,7 +10,6 @@ import {
 } from "wagmi";
 import trimAddress from "@/utils/trim/trim";
 import copy from "copy-to-clipboard";
-// import { WalletPending } from './components/Pending';
 import usePrevious from "@/hooks/general/usePrevious";
 import useWalletModal from "@/hooks/modal/useWalletModal";
 import Image from "next/image";
@@ -33,7 +17,6 @@ import METAMASK from "assets/images/metamask_icon.png";
 import ACCOUNT_COPY from "@/assets/images/account_copy_icon.png";
 import ETHERSCAN_LINK from "@/assets/images/etherscan_link_icon.png";
 import { DEFAULT_NETWORK, SUPPORTED_CHAIN_IDS } from "@/constant/index";
-// import { useWindowDimensions } from '@/hooks/general/useWindowDimension';
 import { chainIdState } from "@/recoil/chainId";
 import { useRecoilState } from "recoil";
 
@@ -85,27 +68,20 @@ const WalletOption = ({
 	color?: string;
 }) => {
 	return (
-		<Flex
+		<div
 			id={id}
-			w="100%"
-			p={3}
-			cursor="pointer"
-			_hover={{ bg: "gray.50" }}
+			className="w-full p-3 cursor-pointer hover:bg-gray-50 flex items-center border-b border-gray-100 h-14 transition-colors"
 			onClick={onClick}
-			alignItems="center"
-			borderBottom="1px"
-			borderColor="gray.100"
-			h="56px"
 		>
-			<Flex alignItems="center" w="100%">
-				<Box mr={3} w="24px" h="24px">
+			<div className="flex items-center w-full">
+				<div className="mr-3 w-6 h-6">
 					<Image src={METAMASK} alt={header} />
-				</Box>
-				<Text fontWeight="600" fontSize="14px">
+				</div>
+				<span className="font-semibold text-sm">
 					{header}
-				</Text>
-			</Flex>
-		</Flex>
+				</span>
+			</div>
+		</div>
 	);
 };
 
@@ -121,32 +97,28 @@ const WalletPending = ({
 	tryActivation: (connector: any) => void;
 }) => {
 	return (
-		<Flex
-			direction="column"
-			px={4}
-			py={6}
-			justifyContent="center"
-			alignItems="center"
-		>
-			<Text mb={4}></Text>
+		<div className="flex flex-col px-4 py-6 justify-center items-center">
+			<span className="mb-4"></span>
 			{error && (
 				<>
-					<Text color="red.500" mb={2}>
+					<span className="text-red-500 mb-2">
 						Connection error
-					</Text>
-					<Button
+					</span>
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
 						onClick={() => {
 							setPendingError(false);
 							tryActivation(connector);
 						}}
 					>
 						Try again
-					</Button>
+					</button>
 				</>
 			)}
-		</Flex>
+		</div>
 	);
 };
+
 const WalletModal: FC = () => {
 	const { address, isConnected, connector: activeConnector } = useAccount();
 	const { connect, connectors, error: connectError } = useConnect();
@@ -158,22 +130,35 @@ const WalletModal: FC = () => {
 	const [view, setView] = useState<string>(WALLET_VIEWS.OPTIONS);
 	const [pendingError, setPendingError] = useState(false);
 	const [chainSupported, setChainSupported] = useState(true);
-	const toast = useToast();
-	const { hasCopied } = useClipboard(address ?? "");
+	const [hasCopied, setHasCopied] = useState(false);
 	const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
 	const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
 
+	// 모달 위치 설정 옵션들
+	const [modalPosition, setModalPosition] = useState<'center' | 'top-right' | 'custom'>('custom');
 	const [rightOffset, setRightOffset] = useState<number>(0);
-
-	// const [accountValue, setAccountValue] = useLocalStorage('account', {});
 
 	const previousAddress = usePrevious(address);
 	const prevAddressRef = useRef<string | undefined>(address);
 
+	// 모달 위치 설정
 	useEffect(() => {
 		const width = window.innerWidth;
-		setRightOffset((width - 1150) / 2);
-	}, []);
+		
+		switch (modalPosition) {
+			case 'center':
+				setRightOffset(0); // 중앙 정렬
+				break;
+			case 'top-right':
+				setRightOffset(20); // 오른쪽 상단에서 20px 떨어진 위치
+				break;
+			case 'custom':
+				setRightOffset((width - 1150) / 2); // 기존 로직
+				break;
+			default:
+				setRightOffset(0);
+		}
+	}, [modalPosition]);
 
 	useEffect(() => {
 		const { ethereum } = window;
@@ -257,8 +242,9 @@ const WalletModal: FC = () => {
 	const handleCopy = useCallback(() => {
 		if (!address) return;
 		copy(address);
-		toast({ title: "Copied to Clipboard", status: "success", duration: 2000 });
-	}, [address, toast]);
+		setHasCopied(true);
+		setTimeout(() => setHasCopied(false), 2000);
+	}, [address]);
 
 	const switchToDefaultNetwork = useCallback(
 		async (connector: Connector) => {
@@ -269,12 +255,12 @@ const WalletModal: FC = () => {
 					method: "wallet_switchEthereumChain",
 					params: [{ chainId: hex }],
 				});
-				toast({ title: "Switched network", status: "success" });
+				console.log("Switched network");
 			} catch {
-				toast({ title: "Failed to switch network", status: "error" });
+				console.log("Failed to switch network");
 			}
 		},
-		[toast],
+		[],
 	);
 
 	const formatConnectorName = () => {
@@ -289,24 +275,17 @@ const WalletModal: FC = () => {
 			: activeConnector.name;
 
 		return (
-			<Flex flexDir={"row"}>
-				<Text colorScheme="gray.200" fontSize="13px" mr={"10px"} mt={"2px"}>
+			<div className="flex flex-row">
+				<span className="text-gray-200 text-[13px] mr-2.5 mt-0.5">
 					Connected with {name}
-				</Text>
-				<Button
+				</span>
+				<button
 					onClick={handleWalletChange}
-					w={"58px"}
-					h={"22px"}
-					bgColor={"#257eee"}
-					color={"#fff"}
-					fontWeight={600}
-					fontSize={"12px"}
-					outline="none"
-					variant="outline"
+					className="w-[58px] h-[22px] bg-[#257eee] text-white font-semibold text-xs outline-none border border-[#257eee] rounded hover:bg-[#1a5cbf] transition-colors"
 				>
 					Change
-				</Button>
-			</Flex>
+				</button>
+			</div>
 		);
 	};
 
@@ -340,7 +319,6 @@ const WalletModal: FC = () => {
 			address &&
 			prevAddressRef.current !== address
 		) {
-			// 계정이 변경된 경우
 			console.log(
 				"Account changed from",
 				prevAddressRef.current,
@@ -411,31 +389,58 @@ const WalletModal: FC = () => {
 		}
 	}, [address, disconnect, closeSelectModal, isConnected]);
 
+	if (!isOpen) return null;
+
+	// 모달 위치에 따른 클래스 설정
+	const getModalPositionClasses = () => {
+		switch (modalPosition) {
+			case 'center':
+				return "fixed inset-0 z-50 flex items-center justify-center";
+			case 'top-right':
+				return "fixed inset-0 z-50 flex items-start justify-end pt-4 pr-4";
+			case 'custom':
+				return "fixed inset-0 z-50 flex items-start justify-end mt-16";
+			default:
+				return "fixed inset-0 z-50 flex items-center justify-center";
+		}
+	};
+
 	return (
-		<Modal
-			isOpen={isOpen}
-			onClose={closeSelectModal}
-			closeOnOverlayClick={false}
-			closeOnEsc={false}
-			// isCentered
-		>
-			<ModalContent
-				w="280px"
-				mx="auto"
-				position={"absolute"}
-				right={`${rightOffset}px`}
+		<div className={getModalPositionClasses()}>
+			{/* Overlay */}
+			<div 
+				className="fixed inset-0 bg-black bg-opacity-50"
+				onClick={closeSelectModal}
+			/>
+			
+			{/* Modal Content */}
+			<div 
+				className={`relative bg-white w-[280px] rounded-lg shadow-lg ${
+					modalPosition === 'center' ? 'mx-auto' : ''
+				}`}
+				style={{ 
+					right: modalPosition === 'custom' ? `${rightOffset}px` : undefined 
+				}}
 			>
 				{(address && !chainSupported) ||
 				(chainId && !SUPPORTED_CHAIN_IDS.includes(chainId)) ? (
 					<>
-						<ModalHeader>Network not supported</ModalHeader>
-						<ModalCloseButton />
-						<ModalBody>
-							<Text mb={4}>Please switch to Mainnet or Sepolia.</Text>
-							<Flex direction="column" gap={2}>
-								<Button
-									colorScheme="blue"
-									w="full"
+						<div className="p-4 border-b">
+							<h2 className="text-lg font-semibold">Network not supported</h2>
+							<button
+								onClick={closeSelectModal}
+								className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+							>
+								<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						</div>
+						<div className="p-4">
+							<p className="mb-4">Please switch to Mainnet or Sepolia.</p>
+							<div className="flex flex-col gap-2">
+								<button
+									className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
 									onClick={async () => {
 										if (!(window as any).ethereum) return;
 										try {
@@ -443,23 +448,16 @@ const WalletModal: FC = () => {
 												method: "wallet_switchEthereumChain",
 												params: [{ chainId: "0x1" }],
 											});
-											toast({
-												title: "Switched to Mainnet",
-												status: "success",
-											});
+											console.log("Switched to Mainnet");
 										} catch {
-											toast({
-												title: "Failed to switch to Mainnet",
-												status: "error",
-											});
+											console.log("Failed to switch to Mainnet");
 										}
 									}}
 								>
 									Switch to Mainnet
-								</Button>
-								<Button
-									colorScheme="blue"
-									w="full"
+								</button>
+								<button
+									className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
 									onClick={async () => {
 										if (!(window as any).ethereum) return;
 										try {
@@ -467,97 +465,81 @@ const WalletModal: FC = () => {
 												method: "wallet_switchEthereumChain",
 												params: [{ chainId: "0xaa36a7" }], // 11155111 in hex
 											});
-											toast({
-												title: "Switched to Sepolia",
-												status: "success",
-											});
+											console.log("Switched to Sepolia");
 										} catch (error) {
-											toast({
-												title: "Failed to switch to Sepolia",
-												status: "error",
-											});
+											console.log("Failed to switch to Sepolia");
 										}
 									}}
 								>
 									Switch to Sepolia
-								</Button>
-							</Flex>
-						</ModalBody>
+								</button>
+							</div>
+						</div>
 					</>
 				) : (
 					view === WALLET_VIEWS.ACCOUNT &&
 					address &&
 					SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
 						<>
-							<ModalHeader fontFamily={"TitilliumWeb"}>
-								<Text>Account</Text>
-								<Text fontSize={"12px"} color={"#86929d"} fontWeight={"normal"}>
-									My account & connect change
-								</Text>
-							</ModalHeader>
-							<ModalCloseButton />
-							<ModalBody p={0} fontFamily={"TitilliumWeb"}>
-								<Flex
-									w={"280px"}
-									borderY={"1px"}
-									borderColor={"#f4f6f8"}
-									ml={0}
-								>
+							<div className="p-4 border-b font-titillium-web">
+								<div className="flex justify-between items-center">
+									<div>
+										<h2 className="text-lg font-semibold">Account</h2>
+										<p className="text-xs text-[#86929d] font-normal">
+											My account & connect change
+										</p>
+									</div>
+									<button
+										onClick={closeSelectModal}
+										className="text-gray-400 hover:text-gray-600 transition-colors"
+									>
+										<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</div>
+							</div>
+							<div className="p-0 font-titillium-web">
+								<div className="w-[280px] border-y border-[#f4f6f8] ml-0">
 									{address && (
-										<Flex my={"24px"} ml={"25px"}>
-											<Text fontSize="15px" fontWeight={600} mr={"12px"}>
+										<div className="flex my-6 ml-6">
+											<span className="text-[15px] font-semibold mr-3">
 												{trimAddress({
 													address: address,
 													firstChar: 7,
 													lastChar: 4,
 													dots: "....",
 												})}
-											</Text>
-											<Flex
-												w={"22px"}
-												h={"22px"}
-												mr={"7px"}
+											</span>
+											<div
+												className="w-[22px] h-[22px] mr-1.5 cursor-pointer hover:opacity-70 transition-opacity"
 												onClick={handleCopy}
-												cursor="pointer"
 											>
 												<Image src={ACCOUNT_COPY} alt={"alt"} />
-											</Flex>
-											<Link
-												isExternal
+											</div>
+											<a
 												href={`https://etherscan.io/address/${address}`}
-												fontSize="sm"
-												_hover={{
-													textDecoration: "none",
-												}}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="hover:opacity-70 transition-opacity"
 											>
 												<Image src={ETHERSCAN_LINK} alt={"alt"} />
-											</Link>
-										</Flex>
+											</a>
+										</div>
 									)}
-								</Flex>
-								{/* <Flex w={'100%'} borderY={'1px'} borderColor={'#f4f6f8'} h={'50px'} justifyContent={'center'} alignItems={'center'}>
-                {formatConnectorName()}
-              </Flex> */}
-								<Flex
-									h={"64px"}
-									justifyContent={"center"}
-									alignItems={"center"}
-								>
-									<Flex
-										fontSize={"15px"}
-										color={"#2a72e5"}
-										fontWeight={600}
-										cursor={"pointer"}
+								</div>
+								<div className="h-16 flex justify-center items-center">
+									<button
+										className="text-[15px] text-[#2a72e5] font-semibold cursor-pointer hover:underline"
 										onClick={() => {
 											disconnect();
 											closeSelectModal();
-											// setView(WALLET_VIEWS.OPTIONS);
 										}}
 									>
 										Logout
-									</Flex>
-								</Flex>
-							</ModalBody>
+									</button>
+								</div>
+							</div>
 						</>
 					)
 				)}
@@ -565,14 +547,25 @@ const WalletModal: FC = () => {
 				{view === WALLET_VIEWS.OPTIONS &&
 					SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
 						<>
-							<ModalHeader fontFamily={"TitilliumWeb"}>
-								<Text>Connect Wallet</Text>
-								<Text fontSize={"12px"} color={"#86929d"} fontWeight={"normal"}>
-									To start using Staking
-								</Text>
-							</ModalHeader>
-							<ModalCloseButton />
-							<ModalBody pb={6} fontFamily={"TitilliumWeb"} px={0}>
+							<div className="p-4 border-b font-titillium-web">
+								<div className="flex justify-between items-center">
+									<div>
+										<h2 className="text-lg font-semibold">Connect Wallet</h2>
+										<p className="text-xs text-[#86929d] font-normal">
+											To start using Staking
+										</p>
+									</div>
+									<button
+										onClick={closeSelectModal}
+										className="text-gray-400 hover:text-gray-600 transition-colors"
+									>
+										<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</div>
+							</div>
+							<div className="pb-6 font-titillium-web px-0">
 								{walletView === WALLET_VIEWS.PENDING ? (
 									<WalletPending
 										connector={pendingWallet}
@@ -584,41 +577,39 @@ const WalletModal: FC = () => {
 									<>{getOptions()}</>
 								)}
 								{walletView !== WALLET_VIEWS.PENDING && (
-									<Flex
-										flexDir={"column"}
-										fontSize={"13px"}
-										fontFamily={"TitilliumWeb"}
-										ml={"25px"}
-									>
-										<Text pt={3}>New to Ethereum? </Text>
-										<Link
-											isExternal
+									<div className="flex flex-col text-[13px] font-titillium-web ml-6">
+										<span className="pt-3">New to Ethereum? </span>
+										<a
 											href="https://ethereum.org/wallets/"
-											color={"#2a72e5"}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-[#2a72e5] hover:underline"
 										>
 											Learn more about wallets
-										</Link>
-									</Flex>
+										</a>
+									</div>
 								)}
-							</ModalBody>
+							</div>
 						</>
 					)}
 
 				{view === WALLET_VIEWS.PENDING && (
 					<>
-						<ModalHeader>Connecting…</ModalHeader>
-						<ModalBody>
+						<div className="p-4 border-b">
+							<h2 className="text-lg font-semibold">Connecting…</h2>
+						</div>
+						<div className="p-4">
 							<WalletPending
 								connector={pendingWallet}
 								error={pendingError}
 								setPendingError={setPendingError}
 								tryActivation={tryActivation}
 							/>
-						</ModalBody>
+						</div>
 					</>
 				)}
-			</ModalContent>
-		</Modal>
+			</div>
+		</div>
 	);
 };
 

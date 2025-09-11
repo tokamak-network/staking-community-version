@@ -1,32 +1,9 @@
 // components/StakingHeader.tsx
 import React, { useCallback } from "react";
-import {
-	Box,
-	Flex,
-	Text,
-	Heading,
-	HStack,
-	Tag,
-	Icon,
-	useColorModeValue,
-	Tooltip,
-	Container,
-	useClipboard,
-	IconButton,
-} from "@chakra-ui/react";
-import { CloseIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 import { Connector, useAccount, useChainId } from "wagmi";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-	Button,
-	Menu,
-	MenuButton,
-	MenuList,
-	useDisclosure,
-	useToast,
-} from "@chakra-ui/react";
 import {
 	useConnect,
 	useDisconnect,
@@ -86,135 +63,86 @@ export const Header = () => {
 
 	if (!mounted) {
 		return (
-			<Box as="header" py={4} position="sticky" zIndex={10} w="100%">
-				<Container maxW="container.xl">
-					<Flex justifyContent="space-between" alignItems="center">
-						<HStack spacing={3}>
-							<Flex
-								as="h1"
-								flexDir={"row"}
-								fontSize={"24px"}
-								fontWeight={800}
-								fontFamily={"NanumSquare"}
-							>
+			<header className="py-4 sticky z-10 w-full">
+				<div className="max-w-screen-xl mx-auto px-4">
+					<div className="flex justify-between items-center">
+						<div className="flex items-center space-x-3">
+							<h1 className="flex flex-row text-2xl font-extrabold font-nanum-square">
 								Tokamak{" "}
-								<Text as="span" color="blue.500" ml={"3px"}>
-									{" "}
+								<span className="text-blue-500 ml-1">
 									staking
-								</Text>{" "}
-								<Flex
-									as="span"
-									w={"62px"}
-									ml={"3px"}
-									fontSize={"11px"}
-									lineHeight={"11px"}
-								>
+								</span>{" "}
+								<span className="w-[67px] ml-1 text-[11px] leading-[11px]">
 									Community version
-								</Flex>
-							</Flex>
-						</HStack>
-						<HStack>
-							<Button
-								border="solid 1px #d7d9df"
-								color={"#86929d"}
-								w={151}
-								h={35}
-								fontSize={14}
-								fontWeight={600}
-								rounded={18}
-								bg={"white.100"}
-								zIndex={100}
-								_hover={{}}
-							>
-								<Box>
-									<Text>Connect wallet</Text>
-								</Box>
-							</Button>
-						</HStack>
-					</Flex>
-				</Container>
-			</Box>
+								</span>
+							</h1>
+						</div>
+						<div className="flex items-center">
+							<button className="border border-[#d7d9df] text-[#86929d] w-[151px] h-[35px] text-sm font-semibold rounded-[18px] bg-white z-[100] hover:bg-gray-50 transition-colors">
+								<div>
+									<span>Connect wallet</span>
+								</div>
+							</button>
+						</div>
+					</div>
+				</div>
+			</header>
 		);
 	}
 
 	return (
-		<Box as="header" py={4} position="sticky" zIndex={10} w="100%">
-			<Container maxW="container.xl">
-				<Flex justifyContent="space-between" alignItems="center">
-					<HStack spacing={3}>
-						<Flex
-							as="h1"
-							flexDir={"row"}
-							fontSize={"24px"}
-							fontWeight={800}
-							fontFamily={"NanumSquare"}
-						>
+		<header className="py-4 sticky z-10 w-full">
+			<div className="max-w-screen-xl mx-auto px-4">
+				<div className="flex justify-between items-center">
+					<div className="flex items-center space-x-3">
+						<h1 className="flex flex-row text-2xl font-extrabold font-nanum-square">
 							Tokamak{" "}
-							<Text as="span" color="blue.500" ml={"3px"}>
-								{" "}
+							<span className="text-blue-500 ml-1">
 								staking
-							</Text>{" "}
-							<Flex
-								as="span"
-								w={"62px"}
-								ml={"3px"}
-								fontSize={"11px"}
-								lineHeight={"11px"}
-							>
+							</span>{" "}
+							<span className="w-[67px] ml-1 text-[11px] leading-[11px]">
 								Community version
-							</Flex>
-						</Flex>
-					</HStack>
+							</span>
+						</h1>
+					</div>
 
-					<HStack>
-						<Button
-							border="solid 1px #d7d9df"
-							color={"#86929d"}
-							w={151}
-							h={35}
-							fontSize={14}
-							fontWeight={600}
+					<div className="flex items-center">
+						<button
+							className="border border-[#d7d9df] text-[#86929d] w-[151px] h-[35px] text-sm font-semibold rounded-[18px] bg-white z-[100] hover:bg-gray-50 transition-colors"
 							onClick={() => onOpenSelectModal()}
-							rounded={18}
-							bg={"white.100"}
-							zIndex={100}
-							_hover={{}}
 						>
 							{address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) ? (
-								<Box>
-									<Flex
-										flexDir={"row"}
-										justifyContent={"center"}
-										alignItems={"center"}
-									>
-										<Box mr={2} position="relative" top="2px">
+								<div>
+									<div className="flex flex-row justify-center items-center">
+										<div className="mr-2 relative top-0.5">
 											<Jazzicon
 												diameter={23}
 												seed={jsNumberForAddress(address as string)}
 											/>
-										</Box>
-										<Text textAlign={"left"} fontWeight={"normal"}>
+										</div>
+										<span className="text-left font-normal">
 											{trimAddress({
 												address: address as string,
 												firstChar: 7,
 												lastChar: 4,
 												dots: "....",
 											})}
-										</Text>
-									</Flex>
-								</Box>
+										</span>
+									</div>
+								</div>
 							) : (
-								<Box>
-									<Text>Connect wallet</Text>
-								</Box>
+								<div>
+									<span>Connect wallet</span>
+								</div>
 							)}
-						</Button>
-					</HStack>
-				</Flex>
-			</Container>
-		</Box>
+						</button>
+					</div>
+				</div>
+			</div>
+		</header>
 	);
 };
+
 const WalletOption = ({
 	id,
 	onClick,
@@ -233,29 +161,23 @@ const WalletOption = ({
 	color?: string;
 }) => {
 	return (
-		<Flex
+		<div
 			id={id}
-			w="100%"
-			p={3}
-			cursor="pointer"
-			_hover={{ bg: "gray.50" }}
+			className="w-full p-3 cursor-pointer hover:bg-gray-50 flex items-center border-b border-gray-100 h-14"
 			onClick={onClick}
-			alignItems="center"
-			borderBottom="1px"
-			borderColor="gray.100"
-			h="56px"
 		>
-			<Flex alignItems="center" w="100%">
-				<Box mr={3} w="24px" h="24px">
+			<div className="flex items-center w-full">
+				<div className="mr-3 w-6 h-6">
 					<Image src={METAMASK} alt={header} />
-				</Box>
-				<Text fontWeight="600" fontSize="14px">
+				</div>
+				<span className="font-semibold text-sm">
 					{header}
-				</Text>
-			</Flex>
-		</Flex>
+				</span>
+			</div>
+		</div>
 	);
 };
+
 const WalletPending = ({
 	error,
 	connector,
@@ -268,36 +190,30 @@ const WalletPending = ({
 	tryActivation: (connector: any) => void;
 }) => {
 	return (
-		<Flex
-			direction="column"
-			px={4}
-			py={6}
-			justifyContent="center"
-			alignItems="center"
-		>
-			<Text mb={4}></Text>
+		<div className="flex flex-col px-4 py-6 justify-center items-center">
+			<span className="mb-4"></span>
 			{error && (
 				<>
-					<Text color="red.500" mb={2}>
+					<span className="text-red-500 mb-2">
 						Connection error
-					</Text>
-					<Button
+					</span>
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
 						onClick={() => {
 							setPendingError(false);
 							tryActivation(connector);
 						}}
 					>
 						Try again
-					</Button>
+					</button>
 				</>
 			)}
-		</Flex>
+		</div>
 	);
 };
 
 const WalletConnector: React.FC = () => {
-	const { isOpen, onOpen, onClose } = useDisclosure();
-	const toast = useToast();
+	const [isOpen, setIsOpen] = useState(false);
 	const [hasMounted, setHasMounted] = useState(false);
 	const [chainSupport, setChainSupport] = useState<boolean>(false);
 
@@ -305,7 +221,6 @@ const WalletConnector: React.FC = () => {
 	const { connect, connectors, error: connectError } = useConnect();
 	const { disconnect } = useDisconnect();
 
-	// const chains as chain = useChains();
 	const { chains, switchChain } = useSwitchChain();
 	const chain = useChains();
 	const chainId = useChainId();
@@ -345,26 +260,17 @@ const WalletConnector: React.FC = () => {
 	const handleCopyAction = useCallback(() => {
 		if (address) {
 			copy(address);
-			toast({
-				title: "Copy Success",
-				status: "success",
-				duration: 2000,
-				isClosable: true,
-			});
+			// Toast notification would go here
 		}
-	}, [address, toast]);
+	}, [address]);
 
 	useEffect(() => {
 		setHasMounted(true);
 	}, []);
 
-	const { onCopy } = useClipboard(address || "");
-
 	const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
 	const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
 	const [pendingError, setPendingError] = useState<boolean>(false);
-
-	const menuBg = useColorModeValue("white", "gray.700");
 
 	if (!hasMounted) {
 		return null;
@@ -382,24 +288,17 @@ const WalletConnector: React.FC = () => {
 			: activeConnector.name;
 
 		return (
-			<Flex flexDir={"row"}>
-				<Text colorScheme="gray.200" fontSize="13px" mr={"10px"} mt={"2px"}>
+			<div className="flex flex-row">
+				<span className="text-gray-200 text-[13px] mr-2.5 mt-0.5">
 					Connected with {name}
-				</Text>
-				<Button
+				</span>
+				<button
 					onClick={handleWalletChange}
-					w={"58px"}
-					h={"22px"}
-					bgColor={"#257eee"}
-					color={"#fff"}
-					fontWeight={600}
-					fontSize={"12px"}
-					outline="none"
-					variant="outline"
+					className="w-[58px] h-[22px] bg-[#257eee] text-white font-semibold text-xs outline-none border border-[#257eee] rounded hover:bg-[#1a5cbf] transition-colors"
 				>
 					Change
-				</Button>
-			</Flex>
+				</button>
+			</div>
 		);
 	};
 
@@ -430,157 +329,124 @@ const WalletConnector: React.FC = () => {
 	return (
 		<>
 			{!isConnected ? (
-				<Menu isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-					<MenuButton
-						as={Button}
-						bgColor={"#fff"}
-						w="137px"
-						border={"1px"}
-						borderColor={"#D7D9DF"}
-						borderRadius={"17.5px"}
-						color={"#86929d"}
-						fontFamily={"TitilliumWeb"}
+				<div className="relative">
+					<button
+						className="bg-white w-[137px] border border-[#D7D9DF] rounded-[17.5px] text-[#86929d] font-titillium-web px-4 py-2 hover:bg-gray-50 transition-colors"
+						onClick={() => setIsOpen(!isOpen)}
 					>
-						<Box>
-							<Text>Connect Wallet</Text>
-						</Box>
-					</MenuButton>
-					<MenuList bg={menuBg} w={"280px"} p={"0px"} right={"45px"}>
-						<Box fontFamily={"TitilliumWeb"} p={4}>
-							<Text>Connect Wallet</Text>
-							<Text fontSize={"12px"} color={"#86929d"} fontWeight={"normal"}>
-								To start using Staking
-							</Text>
-						</Box>
-						<Box fontFamily={"TitilliumWeb"} pb={6} px={0}>
-							{walletView === WALLET_VIEWS.PENDING ? (
-								<WalletPending
-									connector={pendingWallet}
-									error={pendingError}
-									setPendingError={setPendingError}
-									tryActivation={tryActivation}
-								/>
-							) : (
-								<>{getOptions()}</>
-							)}
-							{walletView !== WALLET_VIEWS.PENDING && (
-								<Flex
-									flexDir={"column"}
-									fontSize={"13px"}
-									fontFamily={"TitilliumWeb"}
-									ml={"25px"}
-									mb={4}
-								>
-									<Text pt={3}>New to Ethereum? </Text>
-									<Link
-										target="_blank"
-										rel="noopener noreferrer"
-										href="https://ethereum.org/wallets/"
-										color={"#2a72e5"}
-									>
-										Learn more about wallets
-									</Link>
-								</Flex>
-							)}
-						</Box>
-					</MenuList>
-				</Menu>
+						<div>
+							<span>Connect Wallet</span>
+						</div>
+					</button>
+					{isOpen && (
+						<div className="absolute right-11 top-full mt-2 w-[280px] bg-white rounded-lg shadow-lg z-50">
+							<div className="font-titillium-web p-4">
+								<span>Connect Wallet</span>
+								<div className="text-xs text-[#86929d] font-normal">
+									To start using Staking
+								</div>
+							</div>
+							<div className="font-titillium-web pb-6 px-0">
+								{walletView === WALLET_VIEWS.PENDING ? (
+									<WalletPending
+										connector={pendingWallet}
+										error={pendingError}
+										setPendingError={setPendingError}
+										tryActivation={tryActivation}
+									/>
+								) : (
+									<>{getOptions()}</>
+								)}
+								{walletView !== WALLET_VIEWS.PENDING && (
+									<div className="flex flex-col text-[13px] font-titillium-web ml-6 mb-4">
+										<span className="pt-3">New to Ethereum? </span>
+										<Link
+											target="_blank"
+											rel="noopener noreferrer"
+											href="https://ethereum.org/wallets/"
+											className="text-[#2a72e5] hover:underline"
+										>
+											Learn more about wallets
+										</Link>
+									</div>
+								)}
+							</div>
+						</div>
+					)}
+				</div>
 			) : (
-				<Menu>
-					<MenuButton
-						as={Button}
-						w={"157px"}
-						h={"35px"}
-						borderRadius={"17.5px"}
-						border={"1px solid #D7D9DF"}
-						bg={"#fff"}
-						size="md"
+				<div className="relative">
+					<button
+						className="w-[157px] h-[35px] rounded-[17.5px] border border-[#D7D9DF] bg-white hover:bg-gray-50 transition-colors"
+						onClick={() => setIsOpen(!isOpen)}
 					>
-						<Box>
-							<Flex
-								flexDir={"row"}
-								justifyContent={"center"}
-								alignItems={"center"}
-							>
-								<Box mr={2} position="relative" top="2px">
+						<div>
+							<div className="flex flex-row justify-center items-center">
+								<div className="mr-2 relative top-0.5">
 									<Jazzicon
 										diameter={23}
 										seed={jsNumberForAddress(address as string)}
 									/>
-								</Box>
-								<Text
-									textAlign={"left"}
-									fontWeight={"normal"}
-									fontFamily={"TitilliumWeb"}
-								>
+								</div>
+								<span className="text-left font-normal font-titillium-web">
 									{trimAddress({
 										address: address as string,
 										firstChar: 7,
 										lastChar: 4,
 										dots: "....",
 									})}
-								</Text>
-							</Flex>
-						</Box>
-					</MenuButton>
-					<MenuList bg={menuBg} w={"280px"} p={"0px"} right={"45px"}>
-						<Box fontFamily={"TitilliumWeb"} p={4}>
-							<Text>Account</Text>
-							<Text fontSize={"12px"} color={"#86929d"} fontWeight={"normal"}>
-								My account & connect change
-							</Text>
-						</Box>
-						<Flex w={"100%"} borderY={"1px"} borderColor={"#f4f6f8"} ml={0}>
-							{address && (
-								<Flex my={"24px"} ml={"25px"}>
-									<Text fontSize="15px" fontWeight={600} mr={"12px"}>
-										{`0x${address.slice(2, 9)}...${address.slice(-4)}`}
-									</Text>
-									<Flex
-										w={"22px"}
-										h={"22px"}
-										mr={"7px"}
-										onClick={handleCopyAction}
-										cursor="pointer"
-									>
-										<Image src={ACCOUNT_COPY} alt="Copy" />
-									</Flex>
-									<Link
-										target="_blank"
-										rel="noopener noreferrer"
-										href={`https://etherscan.io/address/${address}`}
-									>
-										<Image src={ETHERSCAN_LINK} alt="Etherscan" />
-									</Link>
-								</Flex>
-							)}
-						</Flex>
-						<Flex
-							w={"100%"}
-							borderY={"1px"}
-							borderColor={"#f4f6f8"}
-							h={"50px"}
-							justifyContent={"center"}
-							alignItems={"center"}
-						>
-							{formatConnectorName()}
-						</Flex>
-						<Flex h={"64px"} justifyContent={"center"} alignItems={"center"}>
-							<Flex
-								fontSize={"15px"}
-								color={"#2a72e5"}
-								fontWeight={600}
-								cursor={"pointer"}
-								onClick={() => {
-									disconnect();
-									onClose();
-								}}
-							>
-								Logout
-							</Flex>
-						</Flex>
-					</MenuList>
-				</Menu>
+								</span>
+							</div>
+						</div>
+					</button>
+					{isOpen && (
+						<div className="absolute right-11 top-full mt-2 w-[280px] bg-white rounded-lg shadow-lg z-50">
+							<div className="font-titillium-web p-4">
+								<span>Account</span>
+								<div className="text-xs text-[#86929d] font-normal">
+									My account & connect change
+								</div>
+							</div>
+							<div className="w-full border-y border-[#f4f6f8] ml-0">
+								{address && (
+									<div className="flex my-6 ml-6">
+										<span className="text-[15px] font-semibold mr-3">
+											{`0x${address.slice(2, 9)}...${address.slice(-4)}`}
+										</span>
+										<div
+											className="w-[22px] h-[22px] mr-1.5 cursor-pointer hover:opacity-70 transition-opacity"
+											onClick={handleCopyAction}
+										>
+											<Image src={ACCOUNT_COPY} alt="Copy" />
+										</div>
+										<Link
+											target="_blank"
+											rel="noopener noreferrer"
+											href={`https://etherscan.io/address/${address}`}
+											className="hover:opacity-70 transition-opacity"
+										>
+											<Image src={ETHERSCAN_LINK} alt="Etherscan" />
+										</Link>
+									</div>
+								)}
+							</div>
+							<div className="w-full border-y border-[#f4f6f8] h-[50px] flex justify-center items-center">
+								{formatConnectorName()}
+							</div>
+							<div className="h-16 flex justify-center items-center">
+								<button
+									className="text-[15px] text-[#2a72e5] font-semibold cursor-pointer hover:underline"
+									onClick={() => {
+										disconnect();
+										setIsOpen(false);
+									}}
+								>
+									Logout
+								</button>
+							</div>
+						</div>
+					)}
+				</div>
 			)}
 		</>
 	);

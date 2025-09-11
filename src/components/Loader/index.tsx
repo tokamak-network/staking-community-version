@@ -1,20 +1,11 @@
 import React from "react";
-import { HTMLChakraProps, chakra, Container } from "@chakra-ui/react";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 
-type Merge<P, T> = Omit<P, keyof T> & T;
-type MotionBoxProps = Merge<HTMLChakraProps<"div">, HTMLMotionProps<"div">>;
-
-export const MotionBox = motion(chakra.div);
+export const MotionBox = motion.div;
 
 export const Loader = () => {
 	return (
-		<Container
-			h="100vh"
-			display="flex"
-			alignItems="center"
-			justifyContent="center"
-		>
+		<div className="h-screen flex items-center justify-center">
 			<MotionBox
 				as="aside"
 				animate={{
@@ -30,12 +21,8 @@ export const Loader = () => {
 					repeatType: "loop",
 					repeatDelay: 1,
 				}}
-				padding="2"
-				bgGradient="linear(to-l, #7928CA, #FF0080)"
-				width="12"
-				height="12"
-				display="flex"
+				className="p-2 bg-gradient-to-l from-[#7928CA] to-[#FF0080] w-12 h-12 flex"
 			/>
-		</Container>
+		</div>
 	);
 };
