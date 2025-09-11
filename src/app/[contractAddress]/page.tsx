@@ -1,17 +1,5 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import {
-	Box,
-	Button,
-	Flex,
-	Text,
-	VStack,
-	IconButton,
-	Divider,
-	useToast,
-	Spinner,
-} from "@chakra-ui/react";
-import { ArrowBackIcon } from "@chakra-ui/icons";
 import { useRouter, useParams } from "next/navigation";
 import { useAccount, useChainId } from "wagmi";
 import { useRecoilValue, useRecoilState } from "recoil";
@@ -56,7 +44,6 @@ import {
 } from "@ton-staking-sdk/react-kit";
 import { useWithdrawableLength } from "@/hooks/staking/useWithdrawable";
 import useCallOperators from "@/hooks/staking/useCallOperators";
-// import useStakeWTON from '@/hooks/staking/useStakeWTON';
 import useRestake from "@/hooks/staking/useRestake";
 import useUpdateSeig from "@/hooks/staking/useUpdateSeig";
 import useWithdraw from "@/hooks/staking/useWithdraw";
@@ -90,7 +77,6 @@ export default function Page() {
 	const candidateAddress = params?.contractAddress as `0x${string}`;
 
 	const { address } = useAccount();
-	const toast = useToast();
 
 	const operators = useRecoilValue(filteredOperatorsState);
 	const [operatorsList, setOperatorsList] = useRecoilState(operatorsListState);
@@ -102,8 +88,6 @@ export default function Page() {
 
 	const prevTxPendingRef = useRef(txPending);
 	const { roi } = useStakingInformation();
-
-	// const { commissionRate } = useExpectedSeigs(candidateAddress as `0x${string}`, address as `0x${string}`);
 
 	const { refreshOperator } = useOperatorData();
 
@@ -118,13 +102,10 @@ export default function Page() {
 	}, [address]);
 
 	useEffect(() => {
-		// console.log(operatorsList, candidateAddress)
-		// console.log(candidateAddress && operators.length > 0, candidateAddress, operators)
 		if (candidateAddress && operatorsList.length > 0) {
 			const operator = operatorsList.find(
 				(op) => op.address === candidateAddress,
 			);
-			// console.log(operator)
 			setCurrentOperator(operator || null);
 		}
 	}, [candidateAddress, operatorsList, txPending]);
@@ -137,12 +118,6 @@ export default function Page() {
 		candidateAddress as `0x${string}`,
 		currentOperator?.totalStaked || "0",
 	);
-	// console.log(expSeig)
-	// const { expectedSeig, lastSeigBlock, isLoading: seigLoading, commissionRates } = useExpectedSeig(
-	//   candidateAddress as `0x${string}`,
-	//   BigInt(currentOperator?.totalStaked || '0'),
-	//   address as `0x${string}`,
-	// );
 
 	const { layer2Reward } = useLayer2RewardInfo({
 		candidateAddress: candidateAddress as `0x${string}`,
@@ -151,21 +126,8 @@ export default function Page() {
 		candidateAddress: candidateAddress as `0x${string}`,
 	});
 
-	// console.log(claimableAmount);
-	// const { data: userStaked, isLoading: userStakedLoading } = useUserStakeAmount({
-	//   candidateAddress: candidateAddress as `0x${string}`,
-	//   accountAddress: address as `0x${string}`
-	// })
-	// const { data: candidateStaked, isLoading: candidateStakeLoading } = useCandidateStake({
-	//   candidateAddress: candidateAddress as `0x${string}`
-	// })
-	// const { candidateType } = useCheckCandidateType({ candidateAddress: candidateAddress as `0x${string}` });
-	// const { isCandidateAddon} = useIsCandidateAddon({ candidateAddress: currentOperator?.address as `0x${string}` });
-	// console.log(isCandidateAddon);
-
 	const [activeToken, setActiveToken] = useState<string>("TON");
 	const [activeAction, setActiveAction] = useState<string>("Stake");
-	// L2 withdrawal target selection
 	const [withdrawTarget, setWithdrawTarget] = useState<string>("Ethereum");
 	const [showWithdrawOptions, setShowWithdrawOptions] =
 		useState<boolean>(false);
@@ -214,7 +176,6 @@ export default function Page() {
 		setActiveToken(token);
 	}, [activeAction]);
 
-	// Handle withdraw action for L2
 	useEffect(() => {
 		if (
 			activeAction === "WithdrawL2" ||
@@ -229,7 +190,6 @@ export default function Page() {
 	const onClick = useCallback(async () => {
 		const amount = floatParser(value);
 		let tx;
-		// yourStaked는 27자리 단위로 들어옴
 		const yourStaked = Number(
 			currentOperator?.yourStaked
 				? ethers.utils.formatUnits(currentOperator.yourStaked, 27)
@@ -237,14 +197,9 @@ export default function Page() {
 		);
 		if (activeAction === "Unstake") {
 			if (!amount || amount <= 0) {
-				toast({ title: "Please enter a valid amount.", status: "warning" });
 				return;
 			}
 			if (amount > yourStaked) {
-				toast({
-					title: "Unstake amount exceeds your staked amount.",
-					status: "error",
-				});
 				return;
 			}
 		}
@@ -293,7 +248,7 @@ export default function Page() {
 						console.error("action mode is not found");
 				}
 			} catch (err: any) {
-				toast({ title: err?.message || "Transaction failed", status: "error" });
+				// Error handling
 			}
 			return tx;
 		}
@@ -355,67 +310,42 @@ export default function Page() {
 	}, [currentOperator?.yourStaked, value]);
 
 	return (
-		<Flex
-			maxW="515px"
-			w={"515px"}
-			h={"100%"}
-			mt={"200px"}
-			py={5}
-			flexDir={"column"}
-			justifyContent={"start"}
-		>
+		<div className="max-w-[515px] w-[515px] h-full mt-[200px] py-5 flex flex-col justify-start">
 			{/* Title Section */}
-			<Flex mb={6} align="start" justifyContent={"space-between"}>
-				<Flex
-					alignItems={"center"}
+			<div className="flex mb-6 items-start justify-between">
+				<div
+					className="flex items-center cursor-pointer"
 					onClick={() => router.push("/")}
-					cursor="pointer"
 				>
-					<IconButton
+					<button
 						aria-label="Back"
-						icon={<ArrowBackIcon />}
-						variant="ghost"
-					/>
-					Back
-				</Flex>
-				<Flex
-					fontSize={"30px"}
-					fontWeight={700}
-					flexDir={"row"}
-					ml={"20px"}
-					alignItems={"center"}
-				>
-					{currentOperator?.name || "Loading..."}
+						className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+					>
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+						</svg>
+					</button>
+					<span className="ml-2">Back</span>
+				</div>
+				<div className="flex text-[30px] font-bold flex-row ml-5 items-center">
+					<span>{currentOperator?.name || "Loading..."}</span>
 					{currentOperator?.isL2 && (
-						<Flex
-							bgColor={"#257eee"}
-							w={"34px"}
-							h={"18px"}
-							borderRadius={"3px"}
-							justifyContent={"center"}
-							fontSize={"12px"}
-							color={"#fff"}
-							fontWeight={600}
-							fontFamily={"Roboto"}
-							ml={"5px"}
-						>
+						<div className="bg-[#257eee] w-[34px] h-[18px] rounded-[3px] flex justify-center items-center text-xs text-white font-semibold font-roboto ml-[5px]">
 							L2
-						</Flex>
+						</div>
 					)}
-					<Flex
-						ml={"12px"}
+					<div
+						className="ml-3 cursor-pointer hover:scale-105 transition-transform"
 						onClick={() => onOpenSelectModal()}
-						cursor={"pointer"}
-						_hover={{ transform: "scale(1.05)" }}
 					>
 						<Image src={LIST_ARROW} alt={""} />
-					</Flex>
-				</Flex>
-				<Flex w={"72px"} />
-			</Flex>
+					</div>
+				</div>
+				<div className="w-[72px]" />
+			</div>
 
 			{/* Info Section */}
-			<Flex justify="space-between" mb={8} flexWrap="wrap" gap={4} px={"15px"}>
+			<div className="flex justify-between mb-8 flex-wrap gap-4 px-[15px]">
 				<HeadInfo
 					title="Staking APY"
 					value={
@@ -428,14 +358,13 @@ export default function Page() {
 					value={`${formatUnits(currentOperator?.totalStaked || "0", 27)} TON`}
 					isLoading={!currentOperator?.totalStaked}
 					label=""
-					// isLoading={candidateStakeLoading}
 				/>
 				<HeadInfo
 					title="Commission rate"
 					value={formatUnits((commissionRates ?? 0).toString(), 25) + " %"}
 					label=""
 				/>
-			</Flex>
+			</div>
 
 			<ActionSection
 				activeAction={activeAction}
@@ -446,73 +375,51 @@ export default function Page() {
 				withdrawTarget={withdrawTarget}
 				pendingUnstaked={pendingUnstaked}
 			/>
+			
 			{/* Main Box Section */}
-			<Box {...boxStyle()} mb={6}>
-				<Flex mb={5} flexWrap="wrap" gap={2}>
+			<div className="bg-white rounded-lg shadow-md p-6 mb-6">
+				<div className="flex mb-5 flex-wrap gap-2">
 					{activeAction === "WithdrawL2" ? (
-						<Flex
-							color={"#1c1c1c"}
-							fontFamily={"Open Sans"}
-							fontSize={"12px"}
-							fontWeight={600}
-							alignItems={"center"}
-							h={"28px"}
-						>
-							<Flex alignItems={"center"}>
-								<Flex w={"28px"} mr={"6px"}>
+						<div className="text-[#1c1c1c] font-open-sans text-xs font-semibold flex items-center h-7">
+							<div className="flex items-center">
+								<div className="w-7 mr-1.5">
 									<Image src={ETH} alt={""} />
-								</Flex>
+								</div>
 								Ethereum
-							</Flex>
-							<Flex w={"18px"} mx={"6px"}>
+							</div>
+							<div className="w-[18px] mx-1.5">
 								<Image src={ARROW} alt={""} />
-							</Flex>
-							<Flex>{currentOperator?.name}</Flex>
-						</Flex>
+							</div>
+							<div>{currentOperator?.name}</div>
+						</div>
 					) : activeAction === "Unstake" || activeAction === "Restake" ? (
-						<Flex h={"25px"} />
+						<div className="h-6" />
 					) : (
 						<TokenTypeSelector tab={activeToken} setTab={setActiveToken} />
 					)}
-					<Text
-						ml="auto"
-						mt={"3px"}
-						color={"#7E7E8F"}
-						fontSize={"12px"}
-						fontWeight={400}
-					>
+					<span className="ml-auto mt-[3px] text-[#7E7E8F] text-xs font-normal">
 						Balance:{" "}
 						{formatUnits(
 							activeToken === "TON" ? tonBalance : wtonBalance || "0",
 							activeToken === "TON" ? 18 : 27,
 						)}{" "}
 						{activeToken}
-					</Text>
-				</Flex>
+					</span>
+				</div>
+				
 				{/* Balance Section */}
-				<Flex
-					mb={"15px"}
-					align="center"
-					justifyContent={"space-between"}
-					flexDir={"row"}
-					h={"90px"}
-				>
+				<div className="flex mb-[15px] items-center justify-between flex-row h-[90px]">
 					{activeAction === "Withdraw" ||
 					activeAction === "Restake" ||
 					activeAction === "WithdrawL1" ? (
-						<Flex
-							fontSize={"30px"}
-							fontFamily={"Open Sans"}
-							fontWeight={600}
-							ml={"15px"}
-						>
+						<div className="text-[30px] font-open-sans font-semibold ml-[15px]">
 							{formatUnits(
 								activeAction === "Withdraw" || activeAction === "WithdrawL1"
 									? withdrawableAmount
 									: pendingUnstaked,
 								27,
 							)}
-						</Flex>
+						</div>
 					) : (
 						<BalanceInput
 							placeHolder={"0.00"}
@@ -526,82 +433,72 @@ export default function Page() {
 							}
 						/>
 					)}
-					<Flex align="center" mr={"15px"}>
+					<div className="flex items-center mr-[15px]">
 						<Image
 							src={activeToken === "TON" ? TON_SYMBOL : WTON_SYMBOL}
 							alt={""}
 						/>
-						<Text fontSize={"18px"} fontWeight="bold" ml={"9px"} mt={"2px"}>
+						<span className="text-lg font-bold ml-2 mt-0.5">
 							{activeToken}
-						</Text>
-					</Flex>
-				</Flex>
+						</span>
+					</div>
+				</div>
 
-				<Button
+				<button
 					onClick={async () => onClick()}
-					{...mainButtonStyle(value)}
-					isDisabled={
+					className={`w-full h-14 rounded-lg font-semibold text-white flex items-center justify-center transition-all ${
+						value === "0.00" ||
+						!value ||
+						value === "0" ||
+						(activeAction === "Unstake" && isUnstakeDisabled()) ||
+						txPending
+							? "bg-gray-300 cursor-not-allowed"
+							: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700"
+					}`}
+					disabled={
 						value === "0.00" ||
 						!value ||
 						value === "0" ||
 						(activeAction === "Unstake" && isUnstakeDisabled()) ||
 						txPending
 					}
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
 				>
 					{isClient &&
 						(txPending ? (
-							<Spinner size="sm" />
+							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
 						) : (
 							getButtonText(value, activeAction)
 						))}
-				</Button>
+				</button>
 
 				{activeAction === "Unstake" && showUnstakeWarning() && (
-					<Text
-						fontSize="sm"
-						color={"#FF2D78"}
-						textAlign="center"
-						px={4}
-						fontWeight={400}
-						w={"100%"}
-						mb={4}
-					>
+					<div className="text-sm text-[#FF2D78] text-center px-4 font-normal w-full mb-4">
 						Warning: Unstake amount exceeds your staked amount
-					</Text>
+					</div>
 				)}
 
-				<VStack spacing={6} align="stretch">
+				<div className="flex flex-col space-y-6 mt-6">
 					<ValueSection
 						title={"Your Staked Amount"}
 						value={currentOperator?.yourStaked || "0"}
-						// isLoading={userStakedLoading}
 					/>
-					<Divider />
+					<div className="border-t border-gray-200" />
 					<ValueSection
 						title={"Unclaimed Staking Reward"}
 						value={expectedSeig}
 						onClaim={() => updateSeig()}
-						// isLoading={seigLoading}
 						seigUpdated={lastSeigBlock ?? undefined}
 					/>
-				</VStack>
-			</Box>
+				</div>
+			</div>
+			
 			{isL2 ? (
-				<VStack>
-					<Flex
-						fontSize={"16px"}
-						fontWeight={700}
-						color={"#1c1c1c"}
-						justifyContent={"center"}
-						w={"100%"}
-					>
+				<div className="flex flex-col">
+					<div className="text-base font-bold text-[#1c1c1c] flex justify-center w-full">
 						Sequencer seigniorage
-					</Flex>
-					<Box {...boxStyle()} mb={6} w={"100%"}>
-						<VStack spacing={6} align="stretch">
+					</div>
+					<div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full">
+						<div className="flex flex-col space-y-6">
 							<ValueSection
 								title={"TON Bridged to L2"}
 								value={layer2Reward?.layer2Tvl.toString() || "0"}
@@ -609,7 +506,7 @@ export default function Page() {
 									"TON bridged to L2 is the amount of TON that has been bridged to L2."
 								}
 							/>
-							<Divider />
+							<div className="border-t border-gray-200" />
 							<ValueSection
 								title={"Claimable Seigniorage"}
 								value={claimableAmount?.toString() || "0"}
@@ -619,61 +516,35 @@ export default function Page() {
 									"Claimable seigniorage is the amount of seigniorage that the L2 operator can claim."
 								}
 							/>
-						</VStack>
-					</Box>
-				</VStack>
+						</div>
+					</div>
+				</div>
 			) : (
 				""
 			)}
+			
 			{activeAction === "Stake" && (
-				<Text
-					fontSize="sm"
-					color={"#3E495C"}
-					textAlign="center"
-					px={4}
-					fontWeight={400}
-					w={"100%"}
-				>
-					<Text as="span" color={"#FF2D78"}>
-						Warning:
-					</Text>{" "}
+				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					Staking TON will earn you TON staking rewards. However, you have to
 					unstake and wait for 93,046 blocks (~14 days) to withdraw.
-				</Text>
+				</div>
 			)}
 			{activeAction === "Unstake" && (
-				<Text
-					fontSize="sm"
-					color={"#3E495C"}
-					textAlign="center"
-					px={4}
-					fontWeight={400}
-					w={"100%"}
-				>
-					<Text as="span" color={"#FF2D78"}>
-						Warning:
-					</Text>{" "}
+				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					To withdraw staked TON, it needs to be unstaked first and after 93,046
 					blocks (~14 days) they can be withdrawn to your account.
-				</Text>
+				</div>
 			)}
 			{activeAction === "Restake" && (
-				<Text
-					fontSize="sm"
-					color={"#3E495C"}
-					textAlign="center"
-					px={4}
-					fontWeight={400}
-					w={"100%"}
-				>
-					<Text as="span" color={"#FF2D78"}>
-						Warning:
-					</Text>{" "}
+				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					Restaking unstaked TON earns you TON from staking. However, to
 					withdraw, they need to be unstaked and wait for 93,046 blocks (~14
 					days).
-				</Text>
+				</div>
 			)}
-		</Flex>
+		</div>
 	);
 }
