@@ -9,7 +9,7 @@ import { calculateRoiBasedonCompound } from "@/utils/apy/calculateRoi";
 import { ethers } from "ethers";
 import useTokenBalance from "@/hooks/balance/useTonBalance";
 import useCallSeigManager from "@/hooks/contracts/useCallSeigManager";
-import { useAllCandidatesTotalStaked } from "@ton-staking-sdk/react-kit";
+import { useAllCandidatesTotalStaked } from "@tokamak-ecosystem/staking-sdk-react-kit";
 
 function CalculatorModal() {
 	const { closeSelectModal, isOpen } = useCalculatorModal();

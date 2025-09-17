@@ -133,8 +133,6 @@ const WalletModal: FC = () => {
 	const [hasCopied, setHasCopied] = useState(false);
 	const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
 	const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
-
-	// 모달 위치 설정 옵션들
 	const [modalPosition, setModalPosition] = useState<'center' | 'top-right' | 'custom'>('custom');
 	const [rightOffset, setRightOffset] = useState<number>(0);
 
@@ -391,7 +389,6 @@ const WalletModal: FC = () => {
 
 	if (!isOpen) return null;
 
-	// 모달 위치에 따른 클래스 설정
 	const getModalPositionClasses = () => {
 		switch (modalPosition) {
 			case 'center':
@@ -409,7 +406,7 @@ const WalletModal: FC = () => {
 		<div className={getModalPositionClasses()}>
 			{/* Overlay */}
 			<div 
-				className="fixed inset-0 bg-black bg-opacity-50"
+				className="fixed inset-0 bg-black bg-opacity-0"
 				onClick={closeSelectModal}
 			/>
 			

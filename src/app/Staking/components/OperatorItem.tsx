@@ -5,13 +5,6 @@ import { ethers } from "ethers";
 import commafy from "@/utils/trim/commafy";
 import { Operator } from "@/recoil/staking/operator";
 import React from "react";
-import {
-	useCandidateStake,
-	useCheckCandidateType,
-	useIsCandidateAddon,
-	useOperatorManager,
-	useUserStakeAmount,
-} from "@ton-staking-sdk/react-kit";
 import { getAvatarBgColor, getInitials } from "@/utils/color/getAvatarInfo";
 import { LoadingDots } from "@/components/Loader/LoadingDots";
 import { useAccount } from "wagmi";

@@ -9,6 +9,7 @@ import useWalletModal from "@/hooks/modal/useWalletModal";
 import dynamic from "next/dynamic";
 import { useRecoilState } from "recoil";
 import { chainIdState } from "@/recoil/chainId";
+import WalletModal from "@/components/modal/WalletModal";
 
 const Candidates = dynamic(
 	() => import("./Staking/index"),
@@ -38,6 +39,8 @@ export default function Page() {
 					</button>
 				</div>
 			)}
+			{/* WalletModal 추가 */}
+			<WalletModal />
 		</div>
 	);
 }

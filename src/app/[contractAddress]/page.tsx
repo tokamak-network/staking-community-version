@@ -41,7 +41,7 @@ import {
 	useCheckCandidateType,
 	useCandidateStake,
 	useIsCandidateAddon,
-} from "@ton-staking-sdk/react-kit";
+} from "@tokamak-ecosystem/staking-sdk-react-kit";
 import { useWithdrawableLength } from "@/hooks/staking/useWithdrawable";
 import useCallOperators from "@/hooks/staking/useCallOperators";
 import useRestake from "@/hooks/staking/useRestake";
@@ -92,6 +92,14 @@ export default function Page() {
 	const { refreshOperator } = useOperatorData();
 
 	const [isClient, setIsClient] = useState(false);
+
+	const { expectedSeig: expSeig, isLoading: expectedSeigLoading } = useExpectedSeig(
+		candidateAddress as `0x${string}`,
+		BigInt(currentOperator?.yourStaked || "0" ),
+		address as `0x${string}`,
+	);
+
+	console.log("expSeig", expSeig, expectedSeigLoading);
 
 	useEffect(() => {
 		setIsClient(true);

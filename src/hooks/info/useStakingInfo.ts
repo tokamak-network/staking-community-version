@@ -10,7 +10,7 @@ import useCallSeigManager from "../contracts/useCallSeigManager";
 import useCallOperators from "../staking/useCallOperators";
 import { ethers } from "ethers";
 import commafy from "@/utils/trim/commafy";
-import { useAllCandidatesTotalStaked } from "@ton-staking-sdk/react-kit";
+import { useAllCandidatesTotalStaked } from "@tokamak-ecosystem/staking-sdk-react-kit";
 
 /**
  * A hook to fetch and update staking information, such as total staked
