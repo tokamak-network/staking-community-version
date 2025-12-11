@@ -63,25 +63,26 @@ export const Header = () => {
 
 	if (!mounted) {
 		return (
-			<header className="py-4 sticky z-10 w-full">
-				<div className="max-w-screen-xl mx-auto px-4">
-					<div className="flex justify-between items-center">
-						<div className="flex items-center space-x-3">
-							<h1 className="flex flex-row text-2xl font-extrabold font-nanum-square">
-								Tokamak{" "}
-								<span className="text-blue-500 ml-1">
+			<header className="py-3 sm:py-4 sticky z-10 w-full bg-white/80 backdrop-blur-sm border-b border-gray-100">
+				<div className="max-w-screen-xl mx-auto px-3 sm:px-4">
+					<div className="flex justify-between items-center gap-2">
+						{/* Logo Section */}
+						<div className="flex items-center min-w-0 flex-shrink">
+							<h1 className="flex flex-row items-center text-lg sm:text-2xl font-extrabold font-nanum-square">
+								<span className="whitespace-nowrap">Tokamak</span>
+								<span className="text-blue-500 ml-1 whitespace-nowrap">
 									staking
-								</span>{" "}
-								<span className="w-[67px] ml-1 text-[11px] leading-[11px]">
+								</span>
+								<span className="hidden sm:inline-block w-[67px] ml-1 text-[10px] sm:text-[11px] leading-[11px] text-gray-500">
 									Community version
 								</span>
 							</h1>
 						</div>
-						<div className="flex items-center">
-							<button className="border border-[#d7d9df] text-[#86929d] w-[151px] h-[35px] text-sm font-semibold rounded-[18px] bg-white z-[100] hover:bg-gray-50 transition-colors">
-								<div>
-									<span>Connect wallet</span>
-								</div>
+
+						{/* Connect Button */}
+						<div className="flex items-center flex-shrink-0">
+							<button className="border border-[#d7d9df] text-[#86929d] min-w-[120px] sm:min-w-[151px] h-[40px] sm:h-[35px] px-3 sm:px-4 text-sm font-semibold rounded-full bg-white z-[100] hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation">
+								<span>Connect</span>
 							</button>
 						</div>
 					</div>
@@ -91,49 +92,47 @@ export const Header = () => {
 	}
 
 	return (
-		<header className="py-4 sticky z-10 w-full">
-			<div className="max-w-screen-xl mx-auto px-4">
-				<div className="flex justify-between items-center">
-					<div className="flex items-center space-x-3">
-						<h1 className="flex flex-row text-2xl font-extrabold font-nanum-square">
-							Tokamak{" "}
-							<span className="text-blue-500 ml-1">
+		<header className="py-3 sm:py-4 sticky z-10 w-full bg-white/80 backdrop-blur-sm border-b border-gray-100">
+			<div className="max-w-screen-xl mx-auto px-3 sm:px-4">
+				<div className="flex justify-between items-center gap-2">
+					{/* Logo Section */}
+					<div className="flex items-center min-w-0 flex-shrink">
+						<h1 className="flex flex-row items-center text-lg sm:text-2xl font-extrabold font-nanum-square">
+							<span className="whitespace-nowrap">Tokamak</span>
+							<span className="text-blue-500 ml-1 whitespace-nowrap">
 								staking
-							</span>{" "}
-							<span className="w-[67px] ml-1 text-[11px] leading-[11px]">
+							</span>
+							<span className="hidden sm:inline-block w-[67px] ml-1 text-[10px] sm:text-[11px] leading-[11px] text-gray-500">
 								Community version
 							</span>
 						</h1>
 					</div>
 
-					<div className="flex items-center">
+					{/* Connect Button */}
+					<div className="flex items-center flex-shrink-0">
 						<button
-							className="border border-[#d7d9df] text-[#86929d] w-[151px] h-[35px] text-sm font-semibold rounded-[18px] bg-white z-[100] hover:bg-gray-50 transition-colors"
+							className="border border-[#d7d9df] text-[#86929d] min-w-[120px] sm:min-w-[151px] h-[44px] sm:h-[38px] px-3 sm:px-4 text-sm font-semibold rounded-full bg-white z-[100] hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation"
 							onClick={() => onOpenSelectModal()}
 						>
 							{address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) ? (
-								<div>
-									<div className="flex flex-row justify-center items-center">
-										<div className="mr-2 relative top-0.5">
-											<Jazzicon
-												diameter={23}
-												seed={jsNumberForAddress(address as string)}
-											/>
-										</div>
-										<span className="text-left font-normal">
-											{trimAddress({
-												address: address as string,
-												firstChar: 7,
-												lastChar: 4,
-												dots: "....",
-											})}
-										</span>
+								<div className="flex flex-row justify-center items-center">
+									<div className="mr-2 relative top-0.5 flex-shrink-0">
+										<Jazzicon
+											diameter={22}
+											seed={jsNumberForAddress(address as string)}
+										/>
 									</div>
+									<span className="text-left font-normal text-gray-700 text-sm">
+										{trimAddress({
+											address: address as string,
+											firstChar: 4,
+											lastChar: 4,
+											dots: "...",
+										})}
+									</span>
 								</div>
 							) : (
-								<div>
-									<span>Connect wallet</span>
-								</div>
+								<span>Connect</span>
 							)}
 						</button>
 					</div>
