@@ -13,9 +13,9 @@ export const HeadInfo = (args: HedInfoType) => {
 	const { title, value, label, isLoading } = args;
 
 	return (
-		<div className="flex flex-col items-center space-y-1">
+		<div className="flex flex-col items-center space-y-1 min-w-[80px]">
 			<div className="flex items-center">
-				<span className="text-gray-500 text-xs">
+				<span className="text-gray-500 text-[11px] lg:text-xs">
 					{title}
 				</span>
 				{label && (
@@ -31,7 +31,7 @@ export const HeadInfo = (args: HedInfoType) => {
 					</div>
 				)}
 			</div>
-			<h3 className="text-[21px] font-semibold">
+			<h3 className="text-[16px] lg:text-[21px] font-semibold text-center">
 				{isLoading ? (
 					<div className="flex mr-1 mt-1.5">
 						<div className="flex mt-2.5 mr-1.5">

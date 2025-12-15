@@ -1,5 +1,5 @@
 // hooks/useCallOperators.ts
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import {
 	operatorsListState,
@@ -44,15 +44,25 @@ export default function useCallOperators() {
 	const [loading, setLoading] = useRecoilState(operatorsLoadingState);
 	const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 	const { address, isConnected } = useAccount();
+	const hasFetchedRef = useRef<boolean>(false);
+	const isFetchingRef = useRef<boolean>(false);
 
 	const publicClient = usePublicClient();
 	const { transport, chain } = publicClient as PublicClient;
 	const { data: blockNumber } = useBlockNumber();
+	// Store blockNumber in ref to avoid re-triggering effects
+	const blockNumberRef = useRef<bigint | undefined>(blockNumber);
+	blockNumberRef.current = blockNumber;
 
 	const { candidates: operatorAddresses, isLoading } = useAllCandidates();
 
 	const chainId = useChainId();
 	const CONTRACT_ADDRESS = getContractAddress(chainId);
+
+	// Reset fetch flag when address or chainId changes
+	useEffect(() => {
+		hasFetchedRef.current = false;
+	}, [address, chainId]);
 
 	const getContractInstance = useCallback(
 		(contractAddress: string, abi: any): any => {
@@ -169,6 +179,7 @@ export default function useCallOperators() {
 		async (opAddress: string): Promise<Operator | null> => {
 			if (!opAddress || !publicClient || !commonContracts) return null;
 			const { layer2manager, seigManager, wton, ton } = commonContracts;
+			const currentBlockNumber = blockNumberRef.current;
 
 			try {
 				const candidateContract = getContractInstance(opAddress, Candidates);
@@ -263,7 +274,7 @@ export default function useCallOperators() {
 												ton &&
 												wton &&
 												seigManager &&
-												blockNumber
+												currentBlockNumber
 											) {
 												const [bridgeAddress, wtonBalanceOfM] =
 													await Promise.all([
@@ -285,7 +296,7 @@ export default function useCallOperators() {
 												try {
 													const estimatedDistribution =
 														await seigManager.read.estimatedDistribute([
-															Number(blockNumber.toString()) + 1,
+															Number(currentBlockNumber.toString()) + 1,
 															opAddress,
 															true,
 														]);
@@ -335,37 +346,48 @@ export default function useCallOperators() {
 			publicClient,
 			commonContracts,
 			address,
-			blockNumber,
 			getContractInstance,
 			checkContractExists,
 		],
 	);
 
+	// Use a simple trigger based on when contracts are ready
+	const isReady = Boolean(publicClient && commonContracts);
+
 	useEffect(() => {
-		// console.log(operatorsList.length, operatorAddresses.length, address)
-		if (
-			(operatorsList.length === operatorAddresses.length &&
-				operatorAddresses.length > 0) ||
-			!publicClient ||
-			!commonContracts ||
-			!blockNumber ||
-			isLoading
-		) {
+		// Skip if already fetched or currently fetching
+		if (hasFetchedRef.current || isFetchingRef.current) {
+			return;
+		}
+
+		// Skip if dependencies aren't ready
+		if (!isReady) {
 			return;
 		}
 
 		const fetchOperators = async () => {
+			// Double-check to prevent race conditions
+			if (hasFetchedRef.current || isFetchingRef.current) {
+				return;
+			}
+
+			isFetchingRef.current = true;
+			setLoading(true);
+
 			try {
 				const l2Registry = getContractInstance(
 					CONTRACT_ADDRESS.Layer2Registry_ADDRESS,
 					Layer2Registry,
 				);
-				const numLayer2 = await l2Registry.read.numLayer2s();
+				
+				if (!l2Registry) {
+					console.error("Failed to get L2 registry contract");
+					isFetchingRef.current = false;
+					setLoading(false);
+					return;
+				}
 
-				// if (operatorAddresses.length > 0) {
-				//   return;
-				// }
-				setLoading(true);
+				const numLayer2 = await l2Registry.read.numLayer2s();
 
 				const chunkSize = 10;
 				let totalStakedAmount = BigNumber.from(0);
@@ -392,11 +414,6 @@ export default function useCallOperators() {
 							BigNumber.from(op.totalStaked || "0"),
 						);
 					});
-
-					// // 다음 청크로 넘어가기 전에 300ms 대기
-					// if (i + chunkSize < operatorAddresses.length) {
-					//   await sleep(300);
-					// }
 				}
 
 				const sortedOperators = [...operators].sort((a, b) =>
@@ -405,27 +422,20 @@ export default function useCallOperators() {
 
 				setTotalStaked(totalStakedAmount.toString());
 				setOperatorsList(sortedOperators);
+				hasFetchedRef.current = true;
 			} catch (error) {
 				console.error("Error fetching operators:", error);
+				// Reset so it can retry
+				hasFetchedRef.current = false;
 			} finally {
 				setLoading(false);
+				isFetchingRef.current = false;
 			}
 		};
 
 		fetchOperators();
-	}, [
-		publicClient,
-		commonContracts,
-		// operatorAddresses,
-		blockNumber,
-		isLoading,
-		compareTotalStaked,
-		fetchOperatorData,
-		sortDirection,
-		setOperatorsList,
-		operatorsList.length,
-		loading,
-	]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isReady, address, chainId]);
 
 	const refreshOperator = useCallback(
 		async (candidateAddress: string) => {

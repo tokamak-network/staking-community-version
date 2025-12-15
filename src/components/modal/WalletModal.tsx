@@ -8,7 +8,6 @@ import {
 	useChains,
 	Connector,
 } from "wagmi";
-import { motion, AnimatePresence } from "framer-motion";
 import Jazzicon, { jsNumberForAddress } from "react-jazzicon";
 import trimAddress from "@/utils/trim/trim";
 import copy from "copy-to-clipboard";
@@ -174,7 +173,13 @@ const WalletModal: FC = () => {
 	const [hasCopied, setHasCopied] = useState(false);
 	const [pendingWallet, setPendingWallet] = useState<Connector | undefined>();
 	const [walletView, setWalletView] = useState<string>(WALLET_VIEWS.ACCOUNT);
-	const [isMobile, setIsMobile] = useState(false);
+	const [isMobile, setIsMobile] = useState(() => {
+		// Initialize with correct value on client-side
+		if (typeof window !== "undefined") {
+			return window.innerWidth < 640;
+		}
+		return false;
+	});
 	const [isActualMobileDevice, setIsActualMobileDevice] = useState(false);
 
 	const previousAddress = usePrevious(address);
@@ -185,6 +190,7 @@ const WalletModal: FC = () => {
 		const checkMobile = () => {
 			setIsMobile(window.innerWidth < 640);
 		};
+		// Check immediately in case SSR value was wrong
 		checkMobile();
 		window.addEventListener("resize", checkMobile);
 		return () => window.removeEventListener("resize", checkMobile);
@@ -442,287 +448,244 @@ const WalletModal: FC = () => {
 		}
 	}, [address, disconnect, closeSelectModal, isConnected]);
 
-	// Animation variants
-	const overlayVariants = {
-		hidden: { opacity: 0 },
-		visible: { opacity: 1 },
-	};
-
-	const mobileModalVariants = {
-		hidden: { y: "100%" },
-		visible: { y: 0 },
-	};
-
-	const desktopModalVariants = {
-		hidden: { opacity: 0, scale: 0.95, x: "-50%", y: "-50%" },
-		visible: { opacity: 1, scale: 1, x: "-50%", y: "-50%" },
-	};
+	if (!isOpen) return null;
 
 	return (
-		<AnimatePresence>
-			{isOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center">
-					{/* Overlay */}
-					<motion.div
-						className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-						onClick={closeSelectModal}
-						initial="hidden"
-						animate="visible"
-						exit="hidden"
-						variants={overlayVariants}
-						transition={{ duration: 0.2 }}
-					/>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+			{/* Overlay */}
+			<div
+				className="fixed inset-0 bg-black/50"
+				onClick={closeSelectModal}
+			/>
 
-					{/* Modal Content - Bottom sheet on mobile, centered on desktop */}
-					<motion.div
-						className={`
-							bg-white shadow-2xl overflow-hidden
-							${isMobile 
-								? "fixed inset-x-0 bottom-0 rounded-t-2xl max-h-[85vh]" 
-								: "fixed top-1/2 left-1/2 w-[340px] rounded-2xl max-h-[90vh]"
-							}
-						`}
-						initial="hidden"
-						animate="visible"
-						exit="hidden"
-						variants={isMobile ? mobileModalVariants : desktopModalVariants}
-						transition={{ type: "spring", damping: 25, stiffness: 300 }}
-					>
-						{/* Mobile drag handle */}
-						{isMobile && (
-							<div className="flex justify-center pt-3 pb-1">
-								<div className="w-10 h-1 bg-gray-300 rounded-full" />
+			{/* Modal Content - Centered on both mobile and desktop */}
+			<div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[340px] max-h-[90vh] overflow-auto z-10">
+				{/* Network not supported view */}
+				{((address && !chainSupported) ||
+					(chainId && !SUPPORTED_CHAIN_IDS.includes(chainId))) && (
+					<>
+						<div className="p-5 sm:p-4 border-b border-gray-100">
+							<div className="flex justify-between items-start">
+								<div>
+									<h2 className="text-xl sm:text-lg font-bold text-gray-900">
+										Wrong Network
+									</h2>
+									<p className="text-sm text-gray-500 mt-1">
+										Please switch to a supported network
+									</p>
+								</div>
+								<CloseButton onClick={closeSelectModal} />
 							</div>
-						)}
+						</div>
+						<div className="p-5 sm:p-4">
+							<div className="flex flex-col gap-3">
+								<button
+									className="w-full bg-blue-500 text-white py-4 sm:py-3 px-4 rounded-xl sm:rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors font-semibold touch-manipulation"
+									onClick={() => switchToNetwork("0x1")}
+								>
+									Switch to Ethereum Mainnet
+								</button>
+								<button
+									className="w-full bg-gray-100 text-gray-700 py-4 sm:py-3 px-4 rounded-xl sm:rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors font-semibold touch-manipulation"
+									onClick={() => switchToNetwork("0xaa36a7")}
+								>
+									Switch to Sepolia Testnet
+								</button>
+							</div>
+						</div>
+					</>
+				)}
 
-						{/* Network not supported view */}
-						{((address && !chainSupported) ||
-							(chainId && !SUPPORTED_CHAIN_IDS.includes(chainId))) && (
-							<>
-								<div className="p-5 sm:p-4 border-b border-gray-100">
-									<div className="flex justify-between items-start">
-										<div>
-											<h2 className="text-xl sm:text-lg font-bold text-gray-900">
-												Wrong Network
-											</h2>
-											<p className="text-sm text-gray-500 mt-1">
-												Please switch to a supported network
-											</p>
-										</div>
-										<CloseButton onClick={closeSelectModal} />
-									</div>
+				{/* Account view */}
+				{view === WALLET_VIEWS.ACCOUNT &&
+					address &&
+					SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
+					<>
+						{/* Header */}
+						<div className="p-5 sm:p-4 border-b border-gray-100">
+							<div className="flex justify-between items-start">
+								<div>
+									<h2 className="text-xl sm:text-lg font-bold text-gray-900">
+										Connected
+									</h2>
 								</div>
-								<div className="p-5 sm:p-4">
-									<div className="flex flex-col gap-3">
-										<button
-											className="w-full bg-blue-500 text-white py-4 sm:py-3 px-4 rounded-xl sm:rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors font-semibold touch-manipulation"
-											onClick={() => switchToNetwork("0x1")}
-										>
-											Switch to Ethereum Mainnet
-										</button>
-										<button
-											className="w-full bg-gray-100 text-gray-700 py-4 sm:py-3 px-4 rounded-xl sm:rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors font-semibold touch-manipulation"
-											onClick={() => switchToNetwork("0xaa36a7")}
-										>
-											Switch to Sepolia Testnet
-										</button>
-									</div>
+								<CloseButton onClick={closeSelectModal} />
+							</div>
+						</div>
+
+						<div className="p-5 sm:p-4">
+							{/* Profile Section */}
+							<div className="flex flex-col items-center mb-6">
+								{/* Avatar */}
+								<div className="mb-4">
+									<Jazzicon
+										diameter={64}
+										seed={jsNumberForAddress(address)}
+									/>
 								</div>
-							</>
-						)}
 
-						{/* Account view */}
-						{view === WALLET_VIEWS.ACCOUNT &&
-							address &&
-							SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
-								<>
-									{/* Header */}
-									<div className="p-5 sm:p-4 border-b border-gray-100">
-										<div className="flex justify-between items-start">
-											<div>
-												<h2 className="text-xl sm:text-lg font-bold text-gray-900">
-													Connected
-												</h2>
-											</div>
-											<CloseButton onClick={closeSelectModal} />
-										</div>
-									</div>
-
-									<div className="p-5 sm:p-4">
-										{/* Profile Section */}
-										<div className="flex flex-col items-center mb-6">
-											{/* Avatar */}
-											<div className="mb-4">
-												<Jazzicon
-													diameter={64}
-													seed={jsNumberForAddress(address)}
-												/>
-											</div>
-
-											{/* Address */}
-											<div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
-												<span className="text-base font-semibold text-gray-800 font-mono">
-													{trimAddress({
-														address: address,
-														firstChar: 6,
-														lastChar: 4,
-														dots: "...",
-													})}
-												</span>
-												<button
-													className="p-1.5 hover:bg-gray-200 active:bg-gray-300 rounded-full transition-colors touch-manipulation"
-													onClick={handleCopy}
-													title={hasCopied ? "Copied!" : "Copy address"}
-												>
-													{hasCopied ? (
-														<svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-														</svg>
-													) : (
-														<svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-														</svg>
-													)}
-												</button>
-											</div>
-										</div>
-
-										{/* Wallet Info Card */}
-										<div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-2xl p-4 mb-4">
-											<div className="flex items-center justify-between">
-												<div className="flex items-center gap-3">
-													<div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-														<Image src={METAMASK} alt="MetaMask" className="w-6 h-6" />
-													</div>
-													<div>
-														<p className="text-sm font-semibold text-gray-900">
-															{activeConnector?.name || "MetaMask"}
-														</p>
-														<p className="text-xs text-gray-500">Connected</p>
-													</div>
-												</div>
-												<div className="flex items-center gap-1.5">
-													<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-													<span className="text-xs text-green-600 font-medium">Active</span>
-												</div>
-											</div>
-										</div>
-
-										{/* Action Buttons */}
-										<div className="flex gap-3 mb-4">
-											<a
-												href={`https://etherscan.io/address/${address}`}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl transition-colors touch-manipulation"
-											>
-												<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-												</svg>
-												<span className="text-sm font-medium text-gray-700">Explorer</span>
-											</a>
-											<button
-												onClick={handleWalletChange}
-												className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-600 rounded-xl transition-colors touch-manipulation"
-											>
-												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-												</svg>
-												<span className="text-sm font-medium">Switch</span>
-											</button>
-										</div>
-
-										{/* Disconnect Button */}
-										<button
-											className="w-full py-3.5 border-2 border-red-200 text-red-500 font-semibold hover:bg-red-50 hover:border-red-300 active:bg-red-100 rounded-xl transition-all touch-manipulation"
-											onClick={() => {
-												disconnect();
-												closeSelectModal();
-											}}
-										>
-											Disconnect
-										</button>
-									</div>
-								</>
-							)}
-
-						{/* Connect wallet options view */}
-						{view === WALLET_VIEWS.OPTIONS &&
-							SUPPORTED_CHAIN_IDS.includes(chainId || 0) && (
-								<>
-									<div className="p-5 sm:p-4 border-b border-gray-100">
-										<div className="flex justify-between items-start">
-											<div>
-												<h2 className="text-xl sm:text-lg font-bold text-gray-900">
-													Connect Wallet
-												</h2>
-												<p className="text-sm text-gray-500 mt-1">
-													Choose your preferred wallet
-												</p>
-											</div>
-											<CloseButton onClick={closeSelectModal} />
-										</div>
-									</div>
-									<div className="overflow-y-auto">
-										{walletView === WALLET_VIEWS.PENDING ? (
-											<WalletPending
-												connector={pendingWallet}
-												error={pendingError}
-												setPendingError={setPendingError}
-												tryActivation={tryActivation}
-											/>
+								{/* Address */}
+								<div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
+									<span className="text-base font-semibold text-gray-800 font-mono">
+										{trimAddress({
+											address: address,
+											firstChar: 6,
+											lastChar: 4,
+											dots: "...",
+										})}
+									</span>
+									<button
+										className="p-1.5 hover:bg-gray-200 active:bg-gray-300 rounded-full transition-colors touch-manipulation"
+										onClick={handleCopy}
+										title={hasCopied ? "Copied!" : "Copy address"}
+									>
+										{hasCopied ? (
+											<svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+											</svg>
 										) : (
-											<div className="divide-y divide-gray-100">
-												{getOptions()}
-											</div>
+											<svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+											</svg>
 										)}
-										{walletView !== WALLET_VIEWS.PENDING && (
-											<div className="p-5 sm:p-4 border-t border-gray-100 bg-gray-50">
-												<p className="text-sm text-gray-500">
-													New to Ethereum?{" "}
-													<a
-														href="https://ethereum.org/wallets/"
-														target="_blank"
-														rel="noopener noreferrer"
-														className="text-blue-500 hover:text-blue-600 font-medium"
-													>
-														Learn about wallets
-													</a>
-												</p>
-											</div>
-										)}
-									</div>
-								</>
-							)}
+									</button>
+								</div>
+							</div>
 
-						{/* Pending connection view */}
-						{view === WALLET_VIEWS.PENDING && (
-							<>
-								<div className="p-5 sm:p-4 border-b border-gray-100">
-									<div className="flex justify-between items-start">
-										<div>
-											<h2 className="text-xl sm:text-lg font-bold text-gray-900">
-												Connecting...
-											</h2>
-											<p className="text-sm text-gray-500 mt-1">
-												Please confirm in your wallet
-											</p>
+							{/* Wallet Info Card */}
+							<div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-2xl p-4 mb-4">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+											<Image src={METAMASK} alt="MetaMask" className="w-6 h-6" />
 										</div>
-										<CloseButton onClick={closeSelectModal} />
+										<div>
+											<p className="text-sm font-semibold text-gray-900">
+												{activeConnector?.name || "MetaMask"}
+											</p>
+											<p className="text-xs text-gray-500">Connected</p>
+										</div>
+									</div>
+									<div className="flex items-center gap-1.5">
+										<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+										<span className="text-xs text-green-600 font-medium">Active</span>
 									</div>
 								</div>
+							</div>
+
+							{/* Action Buttons */}
+							<div className="flex gap-3 mb-4">
+								<a
+									href={`https://etherscan.io/address/${address}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl transition-colors touch-manipulation"
+								>
+									<svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+									</svg>
+									<span className="text-sm font-medium text-gray-700">Explorer</span>
+								</a>
+								<button
+									onClick={handleWalletChange}
+									className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-600 rounded-xl transition-colors touch-manipulation"
+								>
+									<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+									</svg>
+									<span className="text-sm font-medium">Switch</span>
+								</button>
+							</div>
+
+							{/* Disconnect Button */}
+							<button
+								className="w-full py-3.5 border-2 border-red-200 text-red-500 font-semibold hover:bg-red-50 hover:border-red-300 active:bg-red-100 rounded-xl transition-all touch-manipulation"
+								onClick={() => {
+									disconnect();
+									closeSelectModal();
+								}}
+							>
+								Disconnect
+							</button>
+						</div>
+					</>
+				)}
+
+				{/* Connect wallet options view */}
+				{view === WALLET_VIEWS.OPTIONS &&
+					(chainId === null || SUPPORTED_CHAIN_IDS.includes(chainId)) && (
+					<>
+						<div className="p-5 sm:p-4 border-b border-gray-100">
+							<div className="flex justify-between items-start">
+								<div>
+									<h2 className="text-xl sm:text-lg font-bold text-gray-900">
+										Connect Wallet
+									</h2>
+									<p className="text-sm text-gray-500 mt-1">
+										Choose your preferred wallet
+									</p>
+								</div>
+								<CloseButton onClick={closeSelectModal} />
+							</div>
+						</div>
+						<div className="overflow-y-auto">
+							{walletView === WALLET_VIEWS.PENDING ? (
 								<WalletPending
 									connector={pendingWallet}
 									error={pendingError}
 									setPendingError={setPendingError}
 									tryActivation={tryActivation}
 								/>
-							</>
-						)}
-					</motion.div>
-				</div>
-			)}
-		</AnimatePresence>
+							) : (
+								<div className="divide-y divide-gray-100">
+									{getOptions()}
+								</div>
+							)}
+							{walletView !== WALLET_VIEWS.PENDING && (
+								<div className="p-5 sm:p-4 border-t border-gray-100 bg-gray-50">
+									<p className="text-sm text-gray-500">
+										New to Ethereum?{" "}
+										<a
+											href="https://ethereum.org/wallets/"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-blue-500 hover:text-blue-600 font-medium"
+										>
+											Learn about wallets
+										</a>
+									</p>
+								</div>
+							)}
+						</div>
+					</>
+				)}
+
+				{/* Pending connection view */}
+				{view === WALLET_VIEWS.PENDING && (
+					<>
+						<div className="p-5 sm:p-4 border-b border-gray-100">
+							<div className="flex justify-between items-start">
+								<div>
+									<h2 className="text-xl sm:text-lg font-bold text-gray-900">
+										Connecting...
+									</h2>
+									<p className="text-sm text-gray-500 mt-1">
+										Please confirm in your wallet
+									</p>
+								</div>
+								<CloseButton onClick={closeSelectModal} />
+							</div>
+						</div>
+						<WalletPending
+							connector={pendingWallet}
+							error={pendingError}
+							setPendingError={setPendingError}
+							tryActivation={tryActivation}
+						/>
+					</>
+				)}
+			</div>
+		</div>
 	);
 };
 
