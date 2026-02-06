@@ -318,9 +318,9 @@ export default function Page() {
 	}, [currentOperator?.yourStaked, value]);
 
 	return (
-		<div className="max-w-[515px] w-[515px] h-full mt-[200px] py-5 flex flex-col justify-start">
+		<div className="w-full max-w-[515px] h-full mt-4 lg:mt-[100px] py-5 px-4 lg:px-0 flex flex-col justify-start mx-auto">
 			{/* Title Section */}
-			<div className="flex mb-6 items-start justify-between">
+			<div className="flex mb-6 items-start justify-between flex-wrap gap-3">
 				<div
 					className="flex items-center cursor-pointer"
 					onClick={() => router.push("/")}
@@ -335,25 +335,25 @@ export default function Page() {
 					</button>
 					<span className="ml-2">Back</span>
 				</div>
-				<div className="flex text-[30px] font-bold flex-row ml-5 items-center">
-					<span>{currentOperator?.name || "Loading..."}</span>
+				<div className="flex text-[22px] lg:text-[30px] font-bold flex-row items-center flex-1 justify-center lg:ml-5">
+					<span className="truncate max-w-[180px] lg:max-w-none">{currentOperator?.name || "Loading..."}</span>
 					{currentOperator?.isL2 && (
-						<div className="bg-[#257eee] w-[34px] h-[18px] rounded-[3px] flex justify-center items-center text-xs text-white font-semibold font-roboto ml-[5px]">
+						<div className="bg-[#257eee] w-[34px] h-[18px] rounded-[3px] flex justify-center items-center text-xs text-white font-semibold font-roboto ml-[5px] flex-shrink-0">
 							L2
 						</div>
 					)}
 					<div
-						className="ml-3 cursor-pointer hover:scale-105 transition-transform"
+						className="ml-3 cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
 						onClick={() => onOpenSelectModal()}
 					>
 						<Image src={LIST_ARROW} alt={""} />
 					</div>
 				</div>
-				<div className="w-[72px]" />
+				<div className="w-[72px] hidden lg:block" />
 			</div>
 
 			{/* Info Section */}
-			<div className="flex justify-between mb-8 flex-wrap gap-4 px-[15px]">
+			<div className="flex justify-between mb-8 flex-wrap gap-4 px-0 lg:px-[15px]">
 				<HeadInfo
 					title="Staking APY"
 					value={
@@ -385,7 +385,7 @@ export default function Page() {
 			/>
 			
 			{/* Main Box Section */}
-			<div className="bg-white rounded-lg shadow-md p-6 mb-6">
+			<div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-6">
 				<div className="flex mb-5 flex-wrap gap-2">
 					{activeAction === "WithdrawL2" ? (
 						<div className="text-[#1c1c1c] font-open-sans text-xs font-semibold flex items-center h-7">
@@ -416,11 +416,11 @@ export default function Page() {
 				</div>
 				
 				{/* Balance Section */}
-				<div className="flex mb-[15px] items-center justify-between flex-row h-[90px]">
+				<div className="flex mb-[15px] items-center justify-between flex-row h-auto min-h-[70px] lg:h-[90px]">
 					{activeAction === "Withdraw" ||
 					activeAction === "Restake" ||
 					activeAction === "WithdrawL1" ? (
-						<div className="text-[30px] font-open-sans font-semibold ml-[15px]">
+						<div className="text-[22px] lg:text-[30px] font-open-sans font-semibold ml-[15px] break-all">
 							{formatUnits(
 								activeAction === "Withdraw" || activeAction === "WithdrawL1"
 									? withdrawableAmount
@@ -441,7 +441,7 @@ export default function Page() {
 							}
 						/>
 					)}
-					<div className="flex items-center mr-[15px]">
+					<div className="flex items-center mr-[15px] flex-shrink-0">
 						<Image
 							src={activeToken === "TON" ? TON_SYMBOL : WTON_SYMBOL}
 							alt={""}
@@ -502,10 +502,10 @@ export default function Page() {
 			
 			{isL2 ? (
 				<div className="flex flex-col">
-					<div className="text-base font-bold text-[#1c1c1c] flex justify-center w-full">
+					<div className="text-sm lg:text-base font-bold text-[#1c1c1c] flex justify-center w-full">
 						Sequencer seigniorage
 					</div>
-					<div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full">
+					<div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-6 w-full">
 						<div className="flex flex-col space-y-6">
 							<ValueSection
 								title={"TON Bridged to L2"}
@@ -532,21 +532,21 @@ export default function Page() {
 			)}
 			
 			{activeAction === "Stake" && (
-				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+				<div className="text-[12px] lg:text-sm text-[#3E495C] text-center px-2 lg:px-4 font-normal w-full">
 					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					Staking TON will earn you TON staking rewards. However, you have to
 					unstake and wait for 93,046 blocks (~14 days) to withdraw.
 				</div>
 			)}
 			{activeAction === "Unstake" && (
-				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+				<div className="text-[12px] lg:text-sm text-[#3E495C] text-center px-2 lg:px-4 font-normal w-full">
 					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					To withdraw staked TON, it needs to be unstaked first and after 93,046
 					blocks (~14 days) they can be withdrawn to your account.
 				</div>
 			)}
 			{activeAction === "Restake" && (
-				<div className="text-sm text-[#3E495C] text-center px-4 font-normal w-full">
+				<div className="text-[12px] lg:text-sm text-[#3E495C] text-center px-2 lg:px-4 font-normal w-full">
 					<span className="text-[#FF2D78]">Warning:</span>{" "}
 					Restaking unstaked TON earns you TON from staking. However, to
 					withdraw, they need to be unstaked and wait for 93,046 blocks (~14

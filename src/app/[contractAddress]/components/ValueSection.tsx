@@ -30,12 +30,12 @@ export const ValueSection = (args: ValueSectionProps) => {
 	}, []);
 
 	return (
-		<div className="flex justify-between font-semibold text-[#1c1c1c]">
+		<div className="flex justify-between font-semibold text-[#1c1c1c] flex-wrap gap-2">
 			<div className="flex flex-col items-start space-y-1">
-				<div className="flex flex-row">
+				<div className="flex flex-row text-[13px] lg:text-base">
 					<span>{title}</span>
 					{label ? (
-						<div className="ml-1.5 group relative">
+						<div className="ml-1.5 group relative hidden lg:block">
 							<div className="cursor-help">
 								<Image src={QUESTION_ICON} alt={""} />
 							</div>
@@ -50,13 +50,13 @@ export const ValueSection = (args: ValueSectionProps) => {
 					)}
 				</div>
 				{seigUpdated && (
-					<div className="text-xs text-[#808992]">
+					<div className="text-[10px] lg:text-xs text-[#808992]">
 						Seigniorage is updated at block number {seigUpdated}.
 					</div>
 				)}
 			</div>
 			<div className="flex flex-col space-y-0 items-end">
-				<div className="text-sm text-right">
+				<div className="text-[12px] lg:text-sm text-right">
 					<div>
 						{isLoading ? (
 							<div className="flex mr-1">
@@ -70,7 +70,7 @@ export const ValueSection = (args: ValueSectionProps) => {
 					{((onClaim && seigUpdated) || (onClaim && manager === address)) && (
 						<div
 							onClick={onClaim}
-							className="text-xs text-[#2a72e5] cursor-pointer font-normal text-right hover:text-[#1a62d5] hover:underline transition-all duration-200"
+							className="text-[10px] lg:text-xs text-[#2a72e5] cursor-pointer font-normal text-right hover:text-[#1a62d5] hover:underline transition-all duration-200"
 						>
 							{seigUpdated ? "Update seigniorage" : "Claim"}
 						</div>

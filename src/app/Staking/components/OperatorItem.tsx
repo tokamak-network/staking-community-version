@@ -26,12 +26,12 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(
 
 		return (
 			<div
-				className="flex items-center w-fit py-4 h-[66px] my-3 cursor-pointer overflow-x-visible"
+				className="flex items-center w-full lg:w-fit py-4 h-auto lg:h-[66px] my-3 cursor-pointer overflow-x-visible"
 				onClick={navigateToOperatorDetail}
 			>
 				<div className="w-full">
-					<div className="flex items-center gap-2 mb-1">
-						<h2 className="text-[#304156] text-2xl font-bold">
+					<div className="flex items-center gap-2 mb-1 flex-wrap">
+						<h2 className="text-[#304156] text-xl lg:text-2xl font-bold break-words">
 							{operator.name}
 						</h2>
 						{isL2 && (
@@ -41,8 +41,8 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(
 						)}
 					</div>
 
-					<div className="flex flex-col md:flex-row items-start md:items-center gap-0 md:gap-8">
-						<div className="flex items-center text-[#86929D] text-[13px] font-normal">
+					<div className="flex flex-col lg:flex-row items-start lg:items-center gap-1 lg:gap-8">
+						<div className="flex items-center text-[#86929D] text-[12px] lg:text-[13px] font-normal">
 							<span>Total Staked</span>
 							<div className="ml-2 font-medium flex flex-row items-center">
 								{commafy(
@@ -59,7 +59,7 @@ export const OperatorItem: React.FC<OperatorItemProps> = React.memo(
 						</div>
 
 						{operator.yourStaked && operator.yourStaked !== "0" && (
-							<div className="flex items-center text-[#304156] text-[13px] font-normal ml-[15px]">
+							<div className="flex items-center text-[#304156] text-[12px] lg:text-[13px] font-normal ml-0 lg:ml-[15px]">
 								<span>Your Staked</span>
 								<div className="ml-2 font-medium flex flex-row items-center">
 									{commafy(

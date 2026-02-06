@@ -35,13 +35,13 @@ export const ActionSection = (args: ActionSectionProps) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	return (
-		<div className="flex flex-wrap gap-2 mb-3 text-xs px-[5px]">
+		<div className="flex flex-wrap gap-2 mb-3 text-xs px-0 lg:px-[5px]">
 			<button
 				onClick={() => {
 					setActiveAction("Stake");
 					setValue("");
 				}}
-				className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+				className={`px-2 lg:px-3 py-1.5 rounded text-[11px] lg:text-xs font-medium transition-colors ${
 					activeAction === "Stake"
 						? "bg-[#2a72e5] text-white"
 						: "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -55,14 +55,14 @@ export const ActionSection = (args: ActionSectionProps) => {
 					setActiveAction("Unstake");
 					setValue("");
 				}}
-				className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center ${
+				className={`px-2 lg:px-3 py-1.5 rounded text-[11px] lg:text-xs font-medium transition-colors flex items-center ${
 					activeAction === "Unstake"
 						? "bg-[#2a72e5] text-white"
 						: "bg-gray-100 text-gray-700 hover:bg-gray-200"
 				}`}
 			>
 				Unstake
-				<div className="ml-1.5 group relative">
+				<div className="ml-1.5 group relative hidden lg:block">
 					<div className="cursor-help">
 						<Image
 							src={
@@ -83,10 +83,10 @@ export const ActionSection = (args: ActionSectionProps) => {
 				<div className="relative">
 					<button
 						onClick={() => setIsMenuOpen(!isMenuOpen)}
-						className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center ${
+						className={`px-2 lg:px-3 py-1.5 rounded text-[11px] lg:text-xs font-medium transition-colors flex items-center ${
 							activeAction === "WithdrawL1" || activeAction === "WithdrawL2"
-								? "bg-[#2a72e5] text-white w-[126px]"
-								: "bg-gray-100 text-gray-700 hover:bg-gray-200 w-[97px]"
+								? "bg-[#2a72e5] text-white w-auto lg:w-[126px]"
+								: "bg-gray-100 text-gray-700 hover:bg-gray-200 w-auto lg:w-[97px]"
 						}`}
 					>
 						<div className="flex flex-row justify-center">
@@ -146,7 +146,7 @@ export const ActionSection = (args: ActionSectionProps) => {
 						setValue(formatUnits(BigInt(withdrawableAmount), 27));
 						setActiveAction("Withdraw");
 					}}
-					className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+					className={`px-2 lg:px-3 py-1.5 rounded text-[11px] lg:text-xs font-medium transition-colors ${
 						activeAction === "Withdraw"
 							? "bg-[#2a72e5] text-white"
 							: "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -161,7 +161,7 @@ export const ActionSection = (args: ActionSectionProps) => {
 					setValue(formatUnits(BigInt(pendingUnstaked), 27));
 					setActiveAction("Restake");
 				}}
-				className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+				className={`px-2 lg:px-3 py-1.5 rounded text-[11px] lg:text-xs font-medium transition-colors ${
 					activeAction === "Restake"
 						? "bg-[#2a72e5] text-white"
 						: "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -171,7 +171,7 @@ export const ActionSection = (args: ActionSectionProps) => {
 			</button>
 			
 			<button
-				className="ml-auto text-blue-500 font-medium cursor-pointer hover:text-blue-600 hover:underline transition-colors"
+				className="ml-auto text-blue-500 text-[11px] lg:text-xs font-medium cursor-pointer hover:text-blue-600 hover:underline transition-colors"
 				onClick={() => openCalculatorModal()}
 			>
 				Simulator

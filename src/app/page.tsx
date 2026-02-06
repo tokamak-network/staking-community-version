@@ -22,17 +22,17 @@ export default function Page() {
 	const { onOpenSelectModal } = useWalletModal();
 
 	return (
-		<div className="flex items-center h-full justify-center">
+		<div className="flex items-center h-full justify-center px-4 lg:px-0">
 			{address && SUPPORTED_CHAIN_IDS.includes(chainId || 0) ? (
 				<Candidates />
 			) : (
-				<div className="w-[338px] h-[208px] p-5 flex items-center justify-center rounded-[10px] bg-white border border-[#e7ebf2] flex-col">
+				<div className="w-full max-w-[338px] h-auto min-h-[208px] p-5 flex items-center justify-center rounded-[10px] bg-white border border-[#e7ebf2] flex-col">
 					<Image src={VECTOR} alt="vector" />
 					<div className="text-[#1c1c1c] text-[15px] font-light my-5 font-open-sans text-center">
 						Connect your wallet to start Tokamak staking service
 					</div>
 					<button
-						className="w-[298px] h-10 rounded-[4px] bg-[#257eee] text-white text-sm font-roboto hover:bg-[#1a5cbf] transition-colors duration-200"
+						className="w-full max-w-[298px] h-10 rounded-[4px] bg-[#257eee] text-white text-sm font-roboto hover:bg-[#1a5cbf] transition-colors duration-200"
 						onClick={() => onOpenSelectModal()}
 					>
 						Connect Wallet

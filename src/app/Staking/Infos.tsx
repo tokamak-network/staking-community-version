@@ -22,9 +22,9 @@ export default function Infos() {
 	}, [stakingInfo]);
 
 	return (
-		<div className="flex items-center justify-center h-full flex-col w-[500px]">
+		<div className="flex items-center justify-center h-full flex-col w-full lg:w-[500px]">
 			<div className="flex mt-2.5 flex-row justify-between items-center w-full">
-				<h1 className="text-[45px] font-bold text-left mb-6 w-full">
+				<h1 className="text-[32px] md:text-[45px] font-bold text-left mb-6 w-full">
 					TON Staking
 				</h1>
 			</div>
@@ -44,7 +44,7 @@ export default function Infos() {
 					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
 				</div>
 			) : (
-				<div className="flex flex-col md:flex-row justify-between mb-[45px] w-full">
+				<div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-0 justify-between mb-[30px] lg:mb-[45px] w-full">
 					{stakingInfo.map((info: SupplyValueProps, index: number) => (
 						<StakingInfo
 							key={index}
